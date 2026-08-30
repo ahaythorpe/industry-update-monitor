@@ -1,0 +1,132 @@
+{
+  "_comment": "Your sources. access: free | free_signup | paid. rss: feed URL or null. flag: ACT | KNOW | NOTE. Fill in rss URLs as you confirm them on each site.",
+  "sources": [
+    {
+      "name": "ASIC media releases",
+      "access": "free",
+      "flag": "ACT",
+      "rss": null,
+      "home": "https://www.asic.gov.au/newsroom/media-releases",
+      "intake": "email_alert",
+      "sub_status": "subscribed - CONFIRM going to right inbox"
+    },
+    {
+      "name": "AFCA determinations",
+      "access": "free",
+      "flag": "ACT",
+      "intake": "bookmark_and_check",
+      "rss": null,
+      "home": "https://www.afca.org.au/what-to-expect/search-published-decisions",
+      "also_check": "https://www.afca.org.au/news/media-releases",
+      "note": "No working email subscription (newsletter mid-rebuild as of Aug 2026). Bookmark-and-check during weekly sweep: determinations search + media releases page. Determinations are read deliberately, not skimmed — check-the-site is the right intake here, not a fallback.",
+      "sub_status": "bookmark-and-check (no email)"
+    },
+    {
+      "name": "ABS releases",
+      "access": "free",
+      "flag": "NOTE",
+      "rss": null,
+      "home": "https://www.abs.gov.au",
+      "intake": "email_alert"
+    },
+    {
+      "name": "Treasury consultations",
+      "access": "free",
+      "flag": "NOTE",
+      "rss": null,
+      "home": "https://treasury.gov.au/consultation",
+      "intake": "bookmark_and_check"
+    },
+    {
+      "name": "Financial Standard FS Advice",
+      "access": "free_signup",
+      "flag": "KNOW",
+      "rss": null,
+      "home": "https://www.financialstandard.com.au",
+      "intake": "email_newsletter",
+      "sub_status": "received 22 Aug 2026 + filtering (working)"
+    },
+    {
+      "name": "FS Industry Moves",
+      "access": "free_signup",
+      "flag": "KNOW",
+      "rss": null,
+      "home": "https://www.financialstandard.com.au",
+      "intake": "email_newsletter",
+      "sub_status": "received 27 Aug 2026"
+    },
+    {
+      "name": "Professional Planner",
+      "access": "free_signup",
+      "flag": "KNOW",
+      "rss": null,
+      "home": "https://www.professionalplanner.com.au",
+      "intake": "email_newsletter",
+      "sub_status": "to subscribe - free"
+    },
+    {
+      "name": "Riskinfo",
+      "access": "free_signup",
+      "flag": "KNOW",
+      "rss": null,
+      "home": "https://riskinfo.com.au",
+      "intake": "email_newsletter",
+      "sub_status": "to subscribe - free"
+    },
+    {
+      "name": "FAAA",
+      "access": "free_signup",
+      "flag": "KNOW",
+      "rss": null,
+      "home": "https://faaa.au",
+      "note": "Member emails carry policy/reform alerts (e.g. CSLR, DBFO, NCA, anti-hawking). Item = KNOW, but follow its links to ACT-level primary sources at Treasury.",
+      "intake": "email_newsletter",
+      "sub_status": "signed up as student affiliate - waiting for first email"
+    },
+    {
+      "name": "Macquarie Technical Services",
+      "access": "free_signup",
+      "flag": "ACT",
+      "rss": null,
+      "home": "https://www.macquarie.com.au",
+      "note": "Product-provider technical updates. Confirm any rule against ASIC or legislation.",
+      "intake": "email_newsletter",
+      "sub_status": "signed up - waiting for first email"
+    },
+    {
+      "name": "CFS FirstTech",
+      "access": "free_signup",
+      "flag": "ACT",
+      "rss": null,
+      "home": "https://www.cfs.com.au",
+      "note": "Product-provider technical updates. Confirm any rule against ASIC or legislation.",
+      "intake": "email_newsletter",
+      "sub_status": "signed up - waiting for first email"
+    },
+    {
+      "name": "The ifa Show",
+      "access": "free",
+      "flag": "KNOW",
+      "intake": "listen",
+      "rss": null,
+      "home": "https://www.fspodcast.com.au",
+      "note": "Profession-facing podcast. Consume directly in a podcast app — outside the digest, no cost."
+    },
+    {
+      "name": "SMSF Adviser Show",
+      "access": "free",
+      "flag": "KNOW",
+      "intake": "listen",
+      "rss": null,
+      "home": "https://www.fspodcast.com.au",
+      "note": "Profession-facing podcast. Consume directly in a podcast app — outside the digest, no cost."
+    }
+  ],
+  "free_search_sources": [
+    "https://www.asic.gov.au",
+    "https://www.afca.org.au",
+    "https://faaa.au",
+    "https://treasury.gov.au",
+    "https://www.abs.gov.au"
+  ]
+}
