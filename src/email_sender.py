@@ -14,6 +14,34 @@ from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 
 
+def _smtp_config() -> dict:
+    """Resolve the SMTP configuration, preferring provider variables when present."""
+    smtp_host = os.getenv("SMTP_HOST")
+    if smtp_host:
+        smtp_port = int(os.getenv("SMTP_PORT", "587"))
+        smtp_user = os.getenv("SMTP_USER") or os.getenv("EMAIL_ADDRESS")
+        smtp_password = os.getenv("SMTP_PASSWORD") or os.getenv("EMAIL_PASSWORD")
+        from_email = os.getenv("SMTP_FROM_EMAIL") or os.getenv("EMAIL_ADDRESS") or smtp_user
+        use_tls = os.getenv("SMTP_USE_TLS", "true").lower() in {"1", "true", "yes"}
+        return {
+            "host": smtp_host,
+            "port": smtp_port,
+            "user": smtp_user,
+            "password": smtp_password,
+            "from_email": from_email,
+            "use_tls": use_tls,
+        }
+
+    return {
+        "host": "smtp.gmail.com",
+        "port": 465,
+        "user": os.getenv("EMAIL_ADDRESS"),
+        "password": os.getenv("EMAIL_PASSWORD"),
+        "from_email": os.getenv("EMAIL_ADDRESS"),
+        "use_tls": False,
+    }
+
+
 def send_digest_email(
     items: list,
     to_email: str,
@@ -21,28 +49,19 @@ def send_digest_email(
     use_ai: bool = False,
 ) -> bool:
     """
-    Send a digest of items as an HTML email via Gmail SMTP.
-    
-    Args:
-        items: list of dicts with keys: flag, title, summary, link, ai_summary (optional)
-        to_email: recipient email address
-        subject: email subject line
-        use_ai: if True, include ai_summary field if present
-        
-    Returns:
-        True if email sent successfully; False if failed.
-        
-    Requires in .env:
-        EMAIL_ADDRESS=your-gmail@gmail.com
-        EMAIL_PASSWORD=xxxx xxxx xxxx xxxx  (app password, not regular password)
+    Send a digest of items as an HTML email via SMTP.
+
+    Supports Gmail or a generic SMTP provider such as Resend, Mailgun, or SendGrid.
     """
-    from_email = os.getenv("EMAIL_ADDRESS")
-    app_password = os.getenv("EMAIL_PASSWORD")
-    
+    cfg = _smtp_config()
+    from_email = cfg["from_email"]
+    app_password = cfg["password"]
+
     if not from_email or not app_password:
-        print("❌ Email not configured. Set EMAIL_ADDRESS and EMAIL_PASSWORD in .env")
+        provider = "SMTP" if os.getenv("SMTP_HOST") else "Gmail"
+        print(f"❌ {provider} email not configured. Set the SMTP_* values or EMAIL_ADDRESS/EMAIL_PASSWORD in .env")
         return False
-    
+
     try:
         # Group items by flag
         by_flag = {"ACT": [], "KNOW": [], "NOTE": []}
@@ -50,29 +69,35 @@ def send_digest_email(
             flag = item.get("flag", "NOTE")
             if flag in by_flag:
                 by_flag[flag].append(item)
-        
+
         # Build HTML body
         html = _build_html_digest(by_flag, use_ai)
-        
+
         # Create email message
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
         msg["From"] = from_email
         msg["To"] = to_email
-        
+
         # Attach HTML part
         msg.attach(MIMEText(html, "html"))
-        
-        # Send via Gmail SMTP
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(from_email, app_password)
-            server.send_message(msg)
-        
-        print(f"✅ Digest emailed to {to_email}")
+
+        if cfg["port"] == 465:
+            with smtplib.SMTP_SSL(cfg["host"], cfg["port"]) as server:
+                server.login(cfg["user"], app_password)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(cfg["host"], cfg["port"]) as server:
+                if cfg["use_tls"]:
+                    server.starttls()
+                server.login(cfg["user"], app_password)
+                server.send_message(msg)
+
+        print(f"✅ Digest emailed to {to_email} via {cfg['host']}")
         return True
-        
+
     except smtplib.SMTPAuthenticationError:
-        print("❌ Gmail authentication failed. Check EMAIL_ADDRESS and EMAIL_PASSWORD in .env")
+        print("❌ SMTP authentication failed. Check your provider credentials in .env")
         return False
     except smtplib.SMTPException as e:
         print(f"❌ Email send failed: {e}")
@@ -86,92 +111,51 @@ def _build_html_digest(by_flag: dict, use_ai: bool) -> str:
     """Build HTML email body with items grouped by flag."""
     today = datetime.now().strftime("%Y-%m-%d")
     
-    html_parts = [
-        """
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="utf-8">
-            <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; }
-                .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                h1 { color: #1a1a1a; border-bottom: 3px solid #0066cc; padding-bottom: 10px; }
-                h2 { color: #333; margin-top: 30px; margin-bottom: 15px; font-size: 1.1em; }
-                .item { margin-bottom: 20px; padding: 15px; border-left: 4px solid #ddd; background: #f9f9f9; }
-                .item-act { border-left-color: #dc2626; background: #fef2f2; }
-                .item-know { border-left-color: #ea580c; background: #fffbf0; }
-                .item-note { border-left-color: #16a34a; background: #f0fdf4; }
-                .item h3 { margin: 0 0 10px 0; font-size: 1em; color: #1a1a1a; }
-                .flag { display: inline-block; padding: 4px 8px; border-radius: 4px; font-weight: bold; font-size: 0.85em; margin-right: 8px; }
-                .flag-act { background: #fecaca; color: #991b1b; }
-                .flag-know { background: #fed7aa; color: #92400e; }
-                .flag-note { background: #bbf7d0; color: #166534; }
-                .teaser { margin: 10px 0; font-size: 0.95em; color: #555; }
-                .summary { margin: 10px 0; padding: 10px; background: white; border-radius: 4px; font-size: 0.95em; color: #444; border-left: 3px solid #0066cc; }
-                .link { margin: 10px 0; }
-                .link a { color: #0066cc; text-decoration: none; font-weight: 500; }
-                .link a:hover { text-decoration: underline; }
-                .footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.85em; color: #666; }
-                .footer a { color: #0066cc; text-decoration: none; }
-                .count { color: #666; font-size: 0.9em; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <h1>📊 Advice Monitor Weekly Digest</h1>
-                <p style="color: #666;">Week of <strong>{}</strong></p>
-        """.format(today)
-    ]
+    # Build HTML with proper escaping
+    html = '<!DOCTYPE html><html><head><meta charset="utf-8"><style type="text/css">'
+    html += 'body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }'
+    html += '.container { max-width: 600px; margin: 0 auto; padding: 20px; }'
+    html += 'h1 { color: #1a1a1a; border-bottom: 3px solid #0066cc; padding-bottom: 10px; }'
+    html += 'h2 { color: #333; margin-top: 30px; margin-bottom: 15px; font-size: 1.1em; }'
+    html += '.item { margin-bottom: 20px; padding: 15px; border-left: 4px solid #ddd; background: #f9f9f9; }'
+    html += '.item-act { border-left-color: #dc2626; background: #fef2f2; }'
+    html += '.item-know { border-left-color: #ea580c; background: #fffbf0; }'
+    html += '.item-note { border-left-color: #16a34a; background: #f0fdf4; }'
+    html += '.item h3 { margin: 0 0 10px 0; font-size: 1em; color: #1a1a1a; }'
+    html += '.teaser { margin: 10px 0; font-size: 0.95em; color: #555; }'
+    html += '.summary { margin: 10px 0; padding: 10px; background: white; border-radius: 4px; font-size: 0.95em; color: #444; border-left: 3px solid #0066cc; }'
+    html += '.link { margin: 10px 0; }'
+    html += '.link a { color: #0066cc; text-decoration: none; font-weight: 500; }'
+    html += '.footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.85em; color: #666; }'
+    html += '.count { color: #666; font-size: 0.9em; }'
+    html += '</style></head><body><div class="container">'
+    html += '<h1>Advice Monitor Weekly Digest</h1>'
+    html += f'<p style="color: #666;">Week of <strong>{today}</strong></p>'
     
     # ACT section
     if by_flag["ACT"]:
-        html_parts.append(
-            f'<h2>🔴 ACT (Action Required) <span class="count">— {len(by_flag["ACT"])} items</span></h2>'
-        )
+        html += f'<h2>ACT (Action Required) — {len(by_flag["ACT"])} items</h2>'
         for item in by_flag["ACT"]:
-            html_parts.append(_item_html(item, "act", use_ai))
+            html += _item_html(item, "act", use_ai)
     
     # KNOW section
     if by_flag["KNOW"]:
-        html_parts.append(
-            f'<h2>🟠 KNOW (Should Know) <span class="count">— {len(by_flag["KNOW"])} items</span></h2>'
-        )
+        html += f'<h2>KNOW (Should Know) — {len(by_flag["KNOW"])} items</h2>'
         for item in by_flag["KNOW"]:
-            html_parts.append(_item_html(item, "know", use_ai))
+            html += _item_html(item, "know", use_ai)
     
-    # NOTE section (collapsible if many items)
+    # NOTE section
     if by_flag["NOTE"]:
         note_count = len(by_flag["NOTE"])
-        if note_count > 5:
-            html_parts.append(
-                f'<h2>🟢 NOTE (Background) <span class="count">— {note_count} items</span></h2>'
-                '<details style="cursor: pointer;">'
-                f'<summary style="font-weight: bold; padding: 10px; background: #f0fdf4; border-radius: 4px;">Show {note_count} note items</summary>'
-            )
-            for item in by_flag["NOTE"]:
-                html_parts.append(_item_html(item, "note", use_ai))
-            html_parts.append('</details>')
-        else:
-            html_parts.append(
-                f'<h2>🟢 NOTE (Background) <span class="count">— {note_count} items</span></h2>'
-            )
-            for item in by_flag["NOTE"]:
-                html_parts.append(_item_html(item, "note", use_ai))
+        html += f'<h2>NOTE (Background) — {note_count} items</h2>'
+        for item in by_flag["NOTE"]:
+            html += _item_html(item, "note", use_ai)
     
     # Footer
-    html_parts.append(
-        """
-                <div class="footer">
-                    <p>Built with <a href="https://github.com/your-username/advice-monitor">Advice Monitor</a> — open source, free, safe, no paywalls.</p>
-                    <p style="font-size: 0.8em; color: #999;">This digest contains only public teasers and links. Always read the source before acting on anything flagged 🔴.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-        """
-    )
+    html += '<div class="footer"><p>Built with Advice Monitor - open source, free, safe, no paywalls.</p></div>'
+    html += '</div></body></html>'
     
-    return "".join(html_parts)
+    return html
 
 
 def _item_html(item: dict, flag_class: str, use_ai: bool) -> str:

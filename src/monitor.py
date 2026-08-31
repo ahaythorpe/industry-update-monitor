@@ -25,6 +25,21 @@ from html import unescape
 from pathlib import Path
 from urllib.parse import urlparse
 
+# Load .env file if it exists
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # If python-dotenv not installed, fall back to reading .env manually
+    env_file = Path(__file__).resolve().parent.parent / ".env"
+    if env_file.exists():
+        with open(env_file) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, val = line.split("=", 1)
+                    os.environ[key.strip()] = val.strip()
+
 DATA = Path(__file__).resolve().parent.parent / "data" / "sources.json"
 USE_AI = False
 USE_EMAIL = False  # Set to True to email digest; requires EMAIL_ADDRESS and EMAIL_PASSWORD in .env
@@ -284,13 +299,14 @@ def find_free_version(headline, teaser, free_sources, use_ai=False):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Advice Industry Monitor")
     parser.add_argument("--email", action="store_true", help="Email digest instead of printing to stdout")
+    parser.add_argument("--preview", action="store_true", help="Write a local HTML preview of the digest to output/digest_preview.html")
     parser.add_argument("--ai", action="store_true", help="Enable AI summarisation (requires ANTHROPIC_API_KEY in .env)")
     args = parser.parse_args()
-    
+
     # Override config from command line
     if args.ai:
         USE_AI = True
-    
+
     show_sources()
 
     # Demo of the digest with a couple of fake items (no network needed):
@@ -304,9 +320,16 @@ if __name__ == "__main__":
          "link": "https://www.professionalplanner.com.au/example",
          "flag": "KNOW"},
     ]
-    
-    # Generate digest as text or email
-    if args.email or USE_EMAIL:
+
+    if args.preview:
+        from email_sender import _build_html_digest
+        preview_dir = Path(__file__).resolve().parent.parent / "output"
+        preview_dir.mkdir(exist_ok=True)
+        preview_path = preview_dir / "digest_preview.html"
+        html = _build_html_digest({"ACT": demo[:1], "KNOW": demo[1:], "NOTE": []}, use_ai=False)
+        preview_path.write_text(html, encoding="utf-8")
+        print(f"📄 Local preview written to {preview_path}")
+    elif args.email or USE_EMAIL:
         from email_sender import send_digest_email
         recipient = os.getenv("EMAIL_ADDRESS")
         if recipient:
