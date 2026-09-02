@@ -1,11 +1,11 @@
-"""Read-only Gmail adapter for the Advice Monitor label."""
+"""Read-only Gmail adapter for the Industry Update Monitor label."""
 
 import base64
 from email.utils import parsedate_to_datetime
 
 
 GMAIL_READONLY_SCOPE = "https://www.googleapis.com/auth/gmail.readonly"
-LABEL_NAME = "advice-monitor"
+LABEL_NAME = "industry-update-monitor"
 
 
 class GmailAccessError(ValueError):

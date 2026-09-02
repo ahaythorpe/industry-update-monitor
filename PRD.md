@@ -1,4 +1,4 @@
-# Advice Industry Monitor — Product Requirements (PRD)
+# Industry Update Monitor — Product Requirements (PRD)
 
 A personal tool to stay across the Australian financial advice industry without drowning,
 without paying, and without cutting any corners. Built for one user (you), possibly shareable
@@ -53,7 +53,7 @@ Only email/RSS sources flow through the script. Bookmark and listen sources are 
 - **Status: written and tested. Next step is running it on your machine with real feeds.**
 
 ### Phase 2 — Email intake (habit, not code) [IN PROGRESS]
-- Gmail/Hotmail label "Advice Monitor" + filters route newsletters into one folder.
+- Gmail/Hotmail label "Industry Update Monitor" + filters route newsletters into one folder.
 - Weekly sweep: open the folder, read top-down by flag.
 - **Status: Financial Standard filtering; ASIC to confirm; more sources to add.**
 

@@ -1,5 +1,5 @@
 """
-Email digest sender for Advice Monitor.
+Email digest sender for Industry Update Monitor.
 
 Sends collated, prioritised items as an HTML email digest via Gmail SMTP.
 Requires Gmail app password stored in .env (not regular Gmail password).
@@ -7,6 +7,7 @@ Requires Gmail app password stored in .env (not regular Gmail password).
 Safe: never includes full article text, only publisher teasers and links.
 """
 
+import html
 import os
 import smtplib
 from email.mime.text import MIMEText
@@ -45,8 +46,7 @@ def _smtp_config() -> dict:
 def send_digest_email(
     items: list,
     to_email: str,
-    subject: str = "Weekly Advice Monitor Digest",
-    use_ai: bool = False,
+    subject: str = "Industry Update Monitor — weekly digest",
 ) -> bool:
     """
     Send a digest of items as an HTML email via SMTP.
@@ -71,7 +71,7 @@ def send_digest_email(
                 by_flag[flag].append(item)
 
         # Build HTML body
-        html = _build_html_digest(by_flag, use_ai)
+        body_html = _build_html_digest(by_flag)
 
         # Create email message
         msg = MIMEMultipart("alternative")
@@ -80,7 +80,7 @@ def send_digest_email(
         msg["To"] = to_email
 
         # Attach HTML part
-        msg.attach(MIMEText(html, "html"))
+        msg.attach(MIMEText(body_html, "html"))
 
         if cfg["port"] == 465:
             with smtplib.SMTP_SSL(cfg["host"], cfg["port"]) as server:
@@ -107,75 +107,84 @@ def send_digest_email(
         return False
 
 
-def _build_html_digest(by_flag: dict, use_ai: bool) -> str:
+def _build_html_digest(by_flag: dict) -> str:
     """Build HTML email body with items grouped by flag."""
     today = datetime.now().strftime("%Y-%m-%d")
     
     # Build HTML with proper escaping
-    html = '<!DOCTYPE html><html><head><meta charset="utf-8"><style type="text/css">'
-    html += 'body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }'
-    html += '.container { max-width: 600px; margin: 0 auto; padding: 20px; }'
-    html += 'h1 { color: #1a1a1a; border-bottom: 3px solid #0066cc; padding-bottom: 10px; }'
-    html += 'h2 { color: #333; margin-top: 30px; margin-bottom: 15px; font-size: 1.1em; }'
-    html += '.item { margin-bottom: 20px; padding: 15px; border-left: 4px solid #ddd; background: #f9f9f9; }'
-    html += '.item-act { border-left-color: #dc2626; background: #fef2f2; }'
-    html += '.item-know { border-left-color: #ea580c; background: #fffbf0; }'
-    html += '.item-note { border-left-color: #16a34a; background: #f0fdf4; }'
-    html += '.item h3 { margin: 0 0 10px 0; font-size: 1em; color: #1a1a1a; }'
-    html += '.teaser { margin: 10px 0; font-size: 0.95em; color: #555; }'
-    html += '.summary { margin: 10px 0; padding: 10px; background: white; border-radius: 4px; font-size: 0.95em; color: #444; border-left: 3px solid #0066cc; }'
-    html += '.link { margin: 10px 0; }'
-    html += '.link a { color: #0066cc; text-decoration: none; font-weight: 500; }'
-    html += '.footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.85em; color: #666; }'
-    html += '.count { color: #666; font-size: 0.9em; }'
-    html += '</style></head><body><div class="container">'
-    html += '<h1>Advice Monitor Weekly Digest</h1>'
-    html += f'<p style="color: #666;">Week of <strong>{today}</strong></p>'
+    markup = '<!DOCTYPE html><html><head><meta charset="utf-8"><style type="text/css">'
+    markup += 'body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }'
+    markup += '.container { max-width: 600px; margin: 0 auto; padding: 20px; }'
+    markup += 'h1 { color: #1a1a1a; border-bottom: 3px solid #0066cc; padding-bottom: 10px; }'
+    markup += 'h2 { color: #333; margin-top: 30px; margin-bottom: 15px; font-size: 1.1em; }'
+    markup += '.item { margin-bottom: 20px; padding: 15px; border-left: 4px solid #ddd; background: #f9f9f9; }'
+    markup += '.item-act { border-left-color: #dc2626; background: #fef2f2; }'
+    markup += '.item-know { border-left-color: #ea580c; background: #fffbf0; }'
+    markup += '.item-note { border-left-color: #16a34a; background: #f0fdf4; }'
+    markup += '.item h3 { margin: 0 0 10px 0; font-size: 1em; color: #1a1a1a; }'
+    markup += '.teaser { margin: 10px 0; font-size: 0.95em; color: #555; }'
+    markup += '.summary { margin: 10px 0; padding: 10px; background: white; border-radius: 4px; font-size: 0.95em; color: #444; border-left: 3px solid #0066cc; }'
+    markup += '.link { margin: 10px 0; }'
+    markup += '.link a { color: #0066cc; text-decoration: none; font-weight: 500; }'
+    markup += '.footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; font-size: 0.85em; color: #666; }'
+    markup += '.count { color: #666; font-size: 0.9em; }'
+    markup += '.confidence { display: inline-block; margin-left: 8px; padding: 1px 7px; border-radius: 10px; background: #eee; color: #555; font-size: 0.75em; font-weight: 600; vertical-align: middle; }'
+    markup += '.badge-low { background: #fde68a; color: #78350f; }'
+    markup += '.deadlink { color: #b91c1c; font-size: 0.85em; }'
+    markup += '</style></head><body><div class="container">'
+    markup += '<h1>Industry Update Monitor Weekly Digest</h1>'
+    markup += f'<p style="color: #666;">Week of <strong>{today}</strong></p>'
     
     # ACT section
     if by_flag["ACT"]:
-        html += f'<h2>ACT (Action Required) — {len(by_flag["ACT"])} items</h2>'
+        markup += f'<h2>ACT (Action Required) — {len(by_flag["ACT"])} items</h2>'
         for item in by_flag["ACT"]:
-            html += _item_html(item, "act", use_ai)
+            markup += _item_html(item, "act")
     
     # KNOW section
     if by_flag["KNOW"]:
-        html += f'<h2>KNOW (Should Know) — {len(by_flag["KNOW"])} items</h2>'
+        markup += f'<h2>KNOW (Should Know) — {len(by_flag["KNOW"])} items</h2>'
         for item in by_flag["KNOW"]:
-            html += _item_html(item, "know", use_ai)
+            markup += _item_html(item, "know")
     
     # NOTE section
     if by_flag["NOTE"]:
         note_count = len(by_flag["NOTE"])
-        html += f'<h2>NOTE (Background) — {note_count} items</h2>'
+        markup += f'<h2>NOTE (Background) — {note_count} items</h2>'
         for item in by_flag["NOTE"]:
-            html += _item_html(item, "note", use_ai)
+            markup += _item_html(item, "note")
     
     # Footer
-    html += '<div class="footer"><p>Built with Advice Monitor - open source, free, safe, no paywalls.</p></div>'
-    html += '</div></body></html>'
+    markup += '<div class="footer"><p>Built with Industry Update Monitor - open source, free, safe, no paywalls.</p></div>'
+    markup += '</div></body></html>'
     
-    return html
+    return markup
 
 
-def _item_html(item: dict, flag_class: str, use_ai: bool) -> str:
-    """Build HTML for a single digest item."""
-    title = item.get("title", "Untitled")
-    teaser = item.get("summary", "")
+def _item_html(item: dict, flag_class: str) -> str:
+    """Build HTML for a single digest item. All feed-supplied text is escaped."""
+    title = html.escape(item.get("title", "Untitled"))
+    teaser = html.escape(item.get("summary", ""))
     link = item.get("link", "")
-    ai_summary = item.get("ai_summary")
-    
-    html = f'<div class="item item-{flag_class}">'
-    html += f'<h3>{title}</h3>'
-    
+    source_name = html.escape(item.get("source_name", ""))
+    confidence = item.get("confidence")
+
+    body = f'<div class="item item-{flag_class}">'
+    body += f'<h3>{title}'
+    if confidence is not None and item.get("flag") in {"ACT", "KNOW"}:
+        badge_class = "confidence" if confidence >= 0.6 else "confidence badge-low"
+        body += f'<span class="{badge_class}">{confidence:.0%}</span>'
+    body += '</h3>'
+
     if teaser:
-        html += f'<div class="teaser">{teaser}</div>'
-    
-    if use_ai and ai_summary:
-        html += f'<div class="summary"><strong>Summary:</strong> {ai_summary}</div>'
-    
+        body += f'<div class="teaser">{teaser}</div>'
+
     if link:
-        html += f'<div class="link"><a href="{link}" target="_blank">Read at source →</a></div>'
-    
-    html += '</div>'
-    return html
+        safe_link = html.escape(link, quote=True)
+        via = f' <span class="count">via {source_name}</span>' if source_name else ""
+        body += f'<div class="link"><a href="{safe_link}" target="_blank">Read at source →</a>{via}</div>'
+        if item.get("link_ok") is False:
+            body += '<div class="deadlink">⚠️ This link did not resolve when checked.</div>'
+
+    body += '</div>'
+    return body

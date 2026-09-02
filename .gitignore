@@ -1,5 +1,28 @@
+# secrets / local runtime
+.env
+.env.*
+!.env.example
 credentials.json
 token.json
+
+# Python
 .venv/
 __pycache__/
 .pytest_cache/
+*.pyc
+
+# Node / web app
+web/node_modules/
+web/.next/
+web/out/
+web/.turbo/
+
+# build outputs
+output/
+*.log
+.DS_Store
+
+# coverage / tool noise
+.coverage
+htmlcov/
+

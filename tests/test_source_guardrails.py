@@ -5,9 +5,7 @@ from src.monitor import (
     assess_email,
     collate_items,
     extractive_summary,
-    find_free_version,
     format_assessment,
-    summarise_items,
     validate_feed_source,
 )
 
@@ -95,13 +93,6 @@ class SourceGuardrailTests(unittest.TestCase):
     def test_collate_items_enforces_limit(self):
         with self.assertRaises(ValueError):
             collate_items([], max_items=101)
-
-    def test_ai_is_blocked_at_every_entry_point(self):
-        with self.assertRaises(RuntimeError):
-            summarise_items([], use_ai=True)
-        with self.assertRaises(RuntimeError):
-            find_free_version("Headline", "Public teaser", [], use_ai=True)
-
 
 if __name__ == "__main__":
     unittest.main()

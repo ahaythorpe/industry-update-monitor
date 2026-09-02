@@ -62,7 +62,7 @@ That's it. Digest lands in your inbox.
 def send_digest_email(
     digest_items: list[Item],
     to_email: str,
-    subject: str = "Weekly Advice Monitor Digest",
+    subject: str = "Weekly Industry Update Monitor Digest",
     use_ai: bool = False
 ) -> bool:
     """
@@ -99,7 +99,7 @@ If `--email` or `USE_EMAIL=True`:
 ## Email HTML format (rough)
 
 ```html
-<h1>Advice Monitor Weekly Digest</h1>
+<h1>Industry Update Monitor Weekly Digest</h1>
 <p>Week of [date]. [X items total]</p>
 
 <h2>🔴 ACT (Action Required) — [count]</h2>
@@ -119,7 +119,7 @@ If `--email` or `USE_EMAIL=True`:
 </details>
 
 <p style="font-size: 0.8em; color: #666;">
-  <a href="https://github.com/your-repo">Built with Advice Monitor</a>
+  <a href="https://github.com/your-repo">Built with Industry Update Monitor</a>
 </p>
 ```
 

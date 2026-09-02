@@ -1,0 +1,1 @@
+"""Industry Update Monitor package."""

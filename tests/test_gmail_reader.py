@@ -71,7 +71,7 @@ class GmailReaderTests(unittest.TestCase):
         self.assertEqual(emails[0]["body"], "Useful update.")
         self.assertNotIn("ignored", emails[0]["body"])
         self.assertEqual(service.user_resource.message_resource.list_arguments["userId"], "me")
-        self.assertEqual(service.user_resource.message_resource.list_arguments["q"], "label:advice-monitor newer_than:7d")
+        self.assertEqual(service.user_resource.message_resource.list_arguments["q"], "label:industry-update-monitor newer_than:7d")
         self.assertEqual(service.user_resource.message_resource.get_arguments[0]["format"], "full")
 
     def test_rejects_other_label(self):

@@ -1,4 +1,4 @@
--- Advice Monitor Supabase Schema
+-- Industry Update Monitor Supabase Schema
 -- Run this SQL in your Supabase project dashboard
 
 -- Create items table

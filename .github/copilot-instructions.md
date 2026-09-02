@@ -1,4 +1,4 @@
-# Advice Monitor Agent Rules
+# Industry Update Monitor Agent Rules
 
 These rules are mandatory for every agent working in this repository.
 
@@ -14,7 +14,7 @@ These rules are mandatory for every agent working in this repository.
 
 ## Gmail boundary
 
-- Gmail access is read-only and limited to the `advice-monitor` label.
+- Gmail access is read-only and limited to the `industry-update-monitor` label.
 - Use the smallest practical date and message limits during local testing.
 - Never read the whole mailbox, follow links, download attachments, or perform Gmail writes.
 - Keep dry-run mode enabled until the user has reviewed multiple reports.

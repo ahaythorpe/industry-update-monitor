@@ -1,14 +1,15 @@
 {
-  "_comment": "Your sources. access: free | free_signup | paid. rss: feed URL or null. flag: ACT | KNOW | NOTE. Fill in rss URLs as you confirm them on each site.",
+  "_comment": "Your sources. access: free | free_signup | paid. rss: feed URL or null. flag: ACT | KNOW | NOTE — this is the SOURCE PRIOR, a nudge for the content classifier, not the final flag. intake: how content arrives. Any source with an rss URL is fetched; feeds verified live 2 Sep 2026.",
   "sources": [
     {
       "name": "ASIC media releases",
       "access": "free",
       "flag": "ACT",
       "rss": null,
-      "home": "https://www.asic.gov.au/newsroom/media-releases",
-      "intake": "email_alert",
-      "sub_status": "subscribed - CONFIRM going to right inbox"
+      "home": "https://www.asic.gov.au/about-asic/news-centre/find-a-media-release/",
+      "intake": "bookmark_and_check",
+      "note": "ASIC retired its RSS feeds. Checked 2 Sep 2026: /rss/media-releases.xml, /newsroom/rss, /feed and /rss.xml all 404. Bookmark-and-check during the weekly sweep.",
+      "sub_status": "bookmark-and-check (no RSS)"
     },
     {
       "name": "AFCA determinations",
@@ -18,8 +19,8 @@
       "rss": null,
       "home": "https://www.afca.org.au/what-to-expect/search-published-decisions",
       "also_check": "https://www.afca.org.au/news/media-releases",
-      "note": "No working email subscription (newsletter mid-rebuild as of Aug 2026). Bookmark-and-check during weekly sweep: determinations search + media releases page. Determinations are read deliberately, not skimmed — check-the-site is the right intake here, not a fallback.",
-      "sub_status": "bookmark-and-check (no email)"
+      "note": "No working email subscription (newsletter mid-rebuild as of Aug 2026) and no feed — all AFCA feed paths return 403 to automated clients. Bookmark-and-check during weekly sweep: determinations search + media releases page. Determinations are read deliberately, not skimmed — check-the-site is the right intake here, not a fallback.",
+      "sub_status": "bookmark-and-check (no email, no RSS)"
     },
     {
       "name": "ABS releases",
@@ -27,7 +28,8 @@
       "flag": "NOTE",
       "rss": null,
       "home": "https://www.abs.gov.au",
-      "intake": "email_alert"
+      "intake": "email_alert",
+      "note": "ABS retired its site-wide RSS. Checked 2 Sep 2026: /rss.xml, /feed, /statistics/rss all 404. Email alert remains the intake."
     },
     {
       "name": "Treasury consultations",
@@ -35,15 +37,17 @@
       "flag": "NOTE",
       "rss": null,
       "home": "https://treasury.gov.au/consultation",
-      "intake": "bookmark_and_check"
+      "intake": "bookmark_and_check",
+      "note": "treasury.gov.au/rss.xml serves valid RSS but is empty (0 entries as of 2 Sep 2026). Left unconfigured until it carries items; re-probe periodically."
     },
     {
       "name": "Financial Standard FS Advice",
       "access": "free_signup",
       "flag": "KNOW",
-      "rss": null,
+      "rss": "https://www.financialstandard.com.au/feed",
       "home": "https://www.financialstandard.com.au",
       "intake": "email_newsletter",
+      "note": "Public feed carries ~50 current items; newsletter continues in parallel.",
       "sub_status": "received 22 Aug 2026 + filtering (working)"
     },
     {
@@ -53,35 +57,67 @@
       "rss": null,
       "home": "https://www.financialstandard.com.au",
       "intake": "email_newsletter",
+      "note": "No separate feed — covered by the Financial Standard feed above. Newsletter kept for the people-moves detail the feed omits.",
       "sub_status": "received 27 Aug 2026"
     },
     {
       "name": "Professional Planner",
       "access": "free_signup",
       "flag": "KNOW",
-      "rss": null,
+      "rss": "https://www.professionalplanner.com.au/feed/",
       "home": "https://www.professionalplanner.com.au",
       "intake": "email_newsletter",
-      "sub_status": "to subscribe - free"
+      "sub_status": "RSS configured (feed is public, no signup needed)"
     },
     {
       "name": "Riskinfo",
       "access": "free_signup",
       "flag": "KNOW",
-      "rss": null,
+      "rss": "https://riskinfo.com.au/news/feed/",
       "home": "https://riskinfo.com.au",
       "intake": "email_newsletter",
-      "sub_status": "to subscribe - free"
+      "note": "Use /news/feed/ — the root /feed/ is stale and returns 2013 articles below the first entry.",
+      "sub_status": "RSS configured (feed is public, no signup needed)"
     },
     {
       "name": "FAAA",
       "access": "free_signup",
       "flag": "KNOW",
-      "rss": null,
+      "rss": "https://faaa.au/feed/",
       "home": "https://faaa.au",
       "note": "Member emails carry policy/reform alerts (e.g. CSLR, DBFO, NCA, anti-hawking). Item = KNOW, but follow its links to ACT-level primary sources at Treasury.",
       "intake": "email_newsletter",
-      "sub_status": "signed up as student affiliate - waiting for first email"
+      "sub_status": "signed up as student affiliate; public RSS configured in the meantime"
+    },
+    {
+      "name": "Money Management",
+      "access": "free",
+      "flag": "KNOW",
+      "rss": "https://www.moneymanagement.com.au/feed",
+      "home": "https://www.moneymanagement.com.au",
+      "intake": "rss",
+      "note": "Requires a browser User-Agent — 403s the default feedparser agent.",
+      "sub_status": "RSS configured"
+    },
+    {
+      "name": "ifa",
+      "access": "free",
+      "flag": "KNOW",
+      "rss": "https://www.ifa.com.au/feed",
+      "home": "https://www.ifa.com.au",
+      "intake": "rss",
+      "note": "Requires a browser User-Agent — 403s the default feedparser agent.",
+      "sub_status": "RSS configured"
+    },
+    {
+      "name": "SMSF Adviser",
+      "access": "free",
+      "flag": "KNOW",
+      "rss": "https://www.smsfadviser.com/feed",
+      "home": "https://www.smsfadviser.com",
+      "intake": "rss",
+      "note": "Requires a browser User-Agent — 403s the default feedparser agent.",
+      "sub_status": "RSS configured"
     },
     {
       "name": "Macquarie Technical Services",

@@ -1,90 +1,139 @@
-# Advice Industry Monitor
+# Industry Update Monitor
 
-A small, safe, free-first tool to keep across the financial advice industry.
+A free-first monitoring project for the Australian financial advice industry.
 
-## The one rule that keeps this legitimate
-**Feeds in, free sources out. Never fetch, store, or reconstruct anything behind a paywall.**
-The tool reads only what publishers serve to the public (RSS feeds, free teasers) and,
-when it hits a paywall, searches your *free* sources for the same story. It never logs in
-or reads locked text. This is baked into the code comments — keep it there.
+## Demo status
+This repo is intentionally set up as a safe demo-first project. It is designed to work without Gmail credentials, Supabase secrets, or paywalled content access.
 
-## Folder
-- `free_subscriptions/FREE_SIGNUPS.md` — what to sign up to (all free) and how.
-- `paid_later/PAID_CONSIDER_LATER.md` — paid options for when there's budget. Not needed now.
-- `IMPROVEMENTS.md` — staged ideas for newcomer explanations, cost controls, and review habits.
-- `data/sources.json` — your flagged source list. Add RSS feed URLs as you confirm them.
-- `src/monitor.py` — parts 1–3. Runs offline; AI parts need an API key.
-- `src/gmail_reader.py` — read-only Gmail adapter for the `advice-monitor` label.
-- `src/gmail_dry_run.py` — local Gmail assessment command; never writes to Gmail.
+The default web demo is hardcoded and publishable to GitHub. The live intake pieces remain optional and are not enabled by default.
 
-The **Gmail Postmaster Tools API is not used here**. It reports sending-domain reputation and
-traffic statistics; it does not read inbox messages. Do not use the Postmaster scope or
-Postmaster quickstart for this project. The inbox reader requires the Gmail API and the single
-read-only scope `https://www.googleapis.com/auth/gmail.readonly`.
+## Core rule
+Feeds in, free sources out. Never fetch, store, or reconstruct anything behind a paywall.
 
-## Setup (in VS Code)
-1. `pip install feedparser anthropic`
-2. Run `python src/monitor.py` — you'll see your sources + a demo digest. (Confirmed working.)
-3. Add real RSS feed URLs to `data/sources.json` (find them on each site — RSS icon, or
-   try /feed or /rss, or view page source). Start with 2–3 sources.
-4. For AI parts, set your key: `export ANTHROPIC_API_KEY=sk-...` then call with `use_ai=True`.
+The project only reads content the publisher has made public, and it treats AI/email features as optional, explicit, and reversible.
 
-## Email digest (optional)
-Add `--email` flag to send a weekly digest to your inbox instead of printing:
+## What is included
+- Python monitor, classifier and source logic in [src/monitor.py](src/monitor.py)
+- Email newsletter in [src/email_sender.py](src/email_sender.py)
+- WhatsApp newsletter in [src/whatsapp_sender.py](src/whatsapp_sender.py)
+- Gmail read-only helper in [src/gmail_reader.py](src/gmail_reader.py)
+- Local Gmail dry-run script in [src/gmail_dry_run.py](src/gmail_dry_run.py)
+- Demo web dashboard in [web/app/page.tsx](web/app/page.tsx)
+- Source list in [data/sources.json](data/sources.json)
+- project rules and planning docs in the root of the repo
+
+## Quick start
+
+### Python CLI
 ```bash
-python src/monitor.py --email
-```
-Requires a Gmail app password (free, 5-minute setup). See [EMAIL_SETUP.md](EMAIL_SETUP.md) for details.
-
-## AI summaries (optional)
-By default, digests show publisher teasers (free, no API cost). To add AI one-sentence summaries:
-```bash
-python src/monitor.py --ai --email
-```
-Requires an Anthropic API key with prepaid balance (costs cents per week, only when you run).
-See [BUILD_STEPS.md](BUILD_STEPS.md) for the two-mode philosophy.
-
-## Local Gmail dry run
-
-Gmail access is optional and uses Google's Gmail API quota, not a Claude API call. For this
-local read-only test, create a normal Google Cloud project and enable Gmail API; do **not** start
-the general Google Cloud free trial, activate a paid account, add a billing account, or enter a
-card. Create an OAuth **Desktop app** credential and download the JSON file as
-`credentials.json` into the project folder. Do not commit it. Install the optional dependencies
-with `pip install -r requirements-gmail.txt`.
-
-Google may show an unverified-app warning while the OAuth app is in testing. That is expected for
-a personal test app: add your own Gmail address as a test user and continue only if the requested
-scope is Gmail read-only. If the console requires billing before enabling Gmail API, stop rather
-than adding payment details and we will use the manual no-API workflow instead.
-
-Run a small first test:
-
-```bash
-python src/gmail_dry_run.py --max-messages 2 --newer-than-days 14
+cd /Users/bella/Projects/advice-monitor
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python src/monitor.py
 ```
 
-The first run opens Google's consent page. Select the account containing the `advice-monitor`
-label and grant read-only access. The token is stored locally in `token.json`, which is ignored
-by Git. The command reads only that label, ignores attachments, does not follow links, and does
-not modify Gmail. Delete `token.json` to remove the local credential and repeat consent; revoke
-Google's permission separately from your Google Account security settings.
+#### Tuning the digest
 
-## Cost (order of magnitude, verify current pricing)
-- Parts 1 & 2 offline: $0.
-- AI summary (weekly, small model, batched): cents per week.
-- Part 3 lookups: ~a cent or two each.
-- Personal scale total: a few dollars a month, not hundreds.
-Keep it cheap: batch weekly, store summaries not full text, use the small model for
-routine work and a capable model only for chat answers (Part 4, not built yet).
+Every item is flagged ACT / KNOW / NOTE by a weighted keyword classifier and
+given a 0-1 confidence. No AI is involved. Confidence rises with how far the
+winning score cleared its threshold and how far clear it stayed of the
+runner-up, so a borderline call reads as borderline.
 
-## Part 4 (the chatbot over your filed content) — next step, not built
-Once Parts 1–3 are running and you've filed a few weeks of summaries, Part 4 answers
-questions like "what's happening in super, any client impact?" over your stored summaries
-(not the whole firehose — that's what keeps it cheap). Build it after the intake loop works.
+```bash
+python src/monitor.py --flags ACT,KNOW --min-confidence 0.7   # only calls it is sure about
+python src/monitor.py --days 7                                # last week only
+python src/monitor.py --no-check-links                        # skip link validation (faster)
+python src/monitor.py --sources                               # print the source list first
+```
 
-## Risks (short)
-- AI can drop a qualifier → summaries triage; read the source for anything you'd act on.
-- Product-provider sources (Macquarie/CFS) → great technical detail; confirm rules vs ASIC/law.
-- Free tiers change → re-check "Verify" sources every few months.
-- Sharing this tool → the same rule binds anyone who uses it. No bypassing, ever.
+### Reading the digest
+
+Every item carries a flag, a confidence, a whole-sentence summary drawn from the
+publisher's own teaser, and a checked link.
+
+```bash
+python src/monitor.py --preview                    # output/digest_preview.html
+python src/monitor.py --email                      # HTML newsletter by email
+python src/monitor.py --whatsapp                   # WhatsApp newsletter
+python src/monitor.py --whatsapp --per-flag 3      # top 3 per flag
+```
+
+`--whatsapp` sends through Twilio using `TWILIO_ACCOUNT_SID`,
+`TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER` and `WHATSAPP_TO`. **With no
+credentials set it prints the exact messages it would send**, so the newsletter
+can be proof-read for free. Long digests are split on item boundaries — never
+mid-article — and a section continued into the next message repeats its heading.
+
+| Flag | Default | Effect |
+| --- | --- | --- |
+| `--days` | 14 | Drop items older than N days (`0` = no limit) |
+| `--min-confidence` | 0.0 | Drop items whose flag confidence is below this |
+| `--flags` | `ACT,KNOW,NOTE` | Which tiers to include |
+| `--limit` | 50 | Maximum items in the digest |
+| `--no-check-links` | off | Skip the HEAD/GET check that drops dead links |
+| `--per-flag` | 6 | Max items per flag in the WhatsApp newsletter |
+
+A source's `flag` in `data/sources.json` is a **prior**, not a verdict — it
+nudges the score in its direction, but the item's own words decide the flag.
+
+#### Adding a source
+
+A source is fetched if it has an `rss` URL, and `validate_feed_source` requires
+it to be free, on the same host as `home`, and to look like a feed. Verify a new
+feed returns current items before adding it — some publishers serve a valid but
+stale or empty feed. ASIC, ABS and AFCA no longer offer usable feeds and stay
+bookmark-and-check.
+
+### Web demo
+```bash
+cd /Users/bella/Projects/advice-monitor/web
+npm install
+npm run build
+npm run dev
+```
+
+Then open http://localhost:3000
+
+## Testing
+```bash
+cd /Users/bella/Projects/advice-monitor
+. .venv/bin/activate
+python -m pytest -q
+```
+
+## Safety and guardrails
+- No paywall bypassing
+- No login flow required for default usage
+- No Gmail or database access in the default demo mode
+- Classification is plain weighted keywords — no AI, no API key, no per-run cost
+- Email and WhatsApp delivery are off unless explicitly enabled
+
+## Optional live features (not enabled by default)
+- Gmail label intake via the dry run
+- SMTP email digest
+- WhatsApp digest via Twilio
+- Later Supabase-backed dashboard
+
+These are documented in the project notes and should only be enabled when the user has intentionally configured them.
+
+## GitHub push instructions
+```bash
+git init
+git add .
+git commit -m "Initial demo publish"
+git branch -M main
+git remote add origin <your-github-repo-url>
+git push -u origin main
+```
+
+If the repo already exists locally, use:
+```bash
+git remote add origin <your-github-repo-url>
+git push -u origin main
+```
+
+## Notes
+This repo is intended to stay honest: if a feature is not enabled or configured, it should not appear to work as if it were live.
+

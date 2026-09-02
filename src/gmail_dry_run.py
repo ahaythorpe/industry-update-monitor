@@ -1,4 +1,4 @@
-"""Run a read-only local assessment of the advice-monitor Gmail label."""
+"""Run a read-only local assessment of the industry-update-monitor Gmail label."""
 
 import argparse
 
@@ -7,7 +7,7 @@ from monitor import assess_email, format_assessment
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Assess recent advice-monitor Gmail messages")
+    parser = argparse.ArgumentParser(description="Assess recent industry-update-monitor Gmail messages")
     parser.add_argument("--credentials", default="credentials.json")
     parser.add_argument("--token", default="token.json")
     parser.add_argument("--max-messages", type=int, default=5)

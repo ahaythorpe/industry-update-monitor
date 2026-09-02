@@ -192,7 +192,7 @@ Free-text search
 ## Dashboard Features (MVP)
 
 1. **Header**
-   - Title: "Advice Monitor"
+   - Title: "Industry Update Monitor"
    - Stats: total items, unread by flag, last updated
 
 2. **Filter bar**

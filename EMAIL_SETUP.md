@@ -1,6 +1,6 @@
 # Email Digest Setup
 
-How to set up weekly emailed digests from Advice Monitor.
+How to set up weekly emailed digests from Industry Update Monitor.
 
 ---
 
