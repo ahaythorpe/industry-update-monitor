@@ -506,6 +506,26 @@ def check_links(items, workers=8, timeout=FETCH_TIMEOUT):
 
 
 # ---------- Part 4: collation ----------
+# Topic labels for the web dashboard. Checked in order, first match wins.
+TOPIC_RULES = (
+    ("Super & tax", re.compile(r"division ?296|\bdiv ?296\b|\blrba|\bsmsf\b|super(annuation)?|contribution cap|transfer balance|\bato\b|preservation age", re.I)),
+    ("Compliance", re.compile(r"\bcompliance\b|\bobligation|\bbreach|code of ethics|best interests|fee consent|\bcpd\b|professional standards", re.I)),
+    ("Regulation", re.compile(r"\basic\b|\bafca\b|\bapra\b|\baustrac\b|legislation|regulator|consultation|\bcslr\b|\bdbfo\b|\bqar\b|\bnca\b|\blev(y|ies)\b", re.I)),
+    ("Insurance", re.compile(r"\binsurance\b|\btpd\b|life compan|\bclaims?\b|risk advice", re.I)),
+    ("People moves", re.compile(r"\bappoint|\bhire|\bjoins\b|steps down|\bresign|retirement|chief executive|\bceo\b|\bchair", re.I)),
+    ("Business", re.compile(r"\bacqui|\bmerge|takeover|\bstake\b|licensee|platform", re.I)),
+)
+
+
+def topic_for(title, summary=""):
+    """Label an item for dashboard grouping."""
+    text = f"{title} {summary}"
+    for label, pattern in TOPIC_RULES:
+        if pattern.search(text):
+            return label
+    return "Industry"
+
+
 def _fingerprint(title):
     """Loose title key so the same wire story from two outlets collapses."""
     return re.sub(r"[^a-z0-9]+", " ", (title or "").lower()).strip()[:70]
@@ -736,6 +756,37 @@ def summarise_items(items, **collate_kwargs):
     return "\n".join(lines)
 
 
+def export_json(items, path):
+    """Write the digest as JSON for the web dashboard to read."""
+    payload = {
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "items": [
+            {
+                "id": normalise_link(item.get("link", "")) or item.get("title", ""),
+                "title": item.get("title", ""),
+                "teaser": item.get("summary", ""),
+                "link": item.get("link", ""),
+                "source_name": item.get("source_name", ""),
+                "flag": item.get("flag", "NOTE"),
+                "topic": topic_for(item.get("title", ""), item.get("summary", "")),
+                "confidence": item.get("confidence"),
+                "is_read": False,
+                "created_at": (
+                    item["published"].isoformat()
+                    if isinstance(item.get("published"), datetime)
+                    else datetime.now(timezone.utc).isoformat()
+                ),
+                "ai_summary": None,
+            }
+            for item in items
+        ],
+    }
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    return path
+
+
 def _load_email_sender():
     try:
         from src import email_sender
@@ -756,6 +807,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Industry Update Monitor")
     parser.add_argument("--email", action="store_true", help="Email digest instead of printing to stdout")
     parser.add_argument("--preview", action="store_true", help="Write a local HTML preview of the digest to output/digest_preview.html")
+    parser.add_argument("--json", nargs="?", const="web/lib/digest.json", default=None,
+                        help="Write the digest as JSON for the web dashboard (default: web/lib/digest.json)")
     parser.add_argument("--whatsapp", action="store_true", help="Send the digest as a WhatsApp newsletter (previews if Twilio is unconfigured)")
     parser.add_argument("--whatsapp-to", help="WhatsApp recipient in +614... form; defaults to WHATSAPP_TO in .env")
     parser.add_argument("--per-flag", type=int, default=6, help="Max items per flag in the WhatsApp newsletter")
@@ -804,6 +857,10 @@ if __name__ == "__main__":
     digest_items = collate_items(items, **collate_kwargs)
     counts = {flag: sum(1 for i in digest_items if i["flag"] == flag) for flag in FLAG_ORDER}
     print(f"🏷️  Digest: {len(digest_items)} items — ACT {counts['ACT']}, KNOW {counts['KNOW']}, NOTE {counts['NOTE']}")
+
+    if args.json:
+        written = export_json(digest_items, Path(__file__).resolve().parent.parent / args.json)
+        print(f"🗂️  Digest JSON written to {written}")
 
     if args.preview:
         email_sender = _load_email_sender()
