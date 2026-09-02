@@ -2,10 +2,15 @@
 
 A free-first monitoring project for the Australian financial advice industry.
 
-## Demo status
-This repo is intentionally set up as a safe demo-first project. It is designed to work without Gmail credentials, Supabase secrets, or paywalled content access.
+## What it does
+Every week it reads seven public RSS feeds from the Australian financial advice
+press, flags each article ACT / KNOW / NOTE with a confidence score, checks that
+every link resolves, and emails you the result. No AI, no API key, no per-run
+cost, nothing behind a paywall.
 
-The default web demo is hardcoded and publishable to GitHub. The live intake pieces remain optional and are not enabled by default.
+Feeds currently configured: Financial Standard, Professional Planner, FAAA,
+Riskinfo, Money Management, ifa, SMSF Adviser. ASIC, ABS and AFCA no longer
+publish usable feeds, so those stay on the manual weekly check.
 
 ## Core rule
 Feeds in, free sources out. Never fetch, store, or reconstruct anything behind a paywall.
@@ -18,7 +23,7 @@ The project only reads content the publisher has made public, and it treats AI/e
 - WhatsApp newsletter in [src/whatsapp_sender.py](src/whatsapp_sender.py)
 - Gmail read-only helper in [src/gmail_reader.py](src/gmail_reader.py)
 - Local Gmail dry-run script in [src/gmail_dry_run.py](src/gmail_dry_run.py)
-- Demo web dashboard in [web/app/page.tsx](web/app/page.tsx)
+- Optional web dashboard in [web/app/page.tsx](web/app/page.tsx)
 - Source list in [data/sources.json](data/sources.json)
 - project rules and planning docs in the root of the repo
 
@@ -86,7 +91,7 @@ feed returns current items before adding it — some publishers serve a valid bu
 stale or empty feed. ASIC, ABS and AFCA no longer offer usable feeds and stay
 bookmark-and-check.
 
-### Web demo
+### Web dashboard (optional)
 ```bash
 cd /Users/bella/Projects/advice-monitor/web
 npm install
@@ -106,7 +111,7 @@ python -m pytest -q
 ## Safety and guardrails
 - No paywall bypassing
 - No login flow required for default usage
-- No Gmail or database access in the default demo mode
+- No Gmail or database access unless you configure it
 - Classification is plain weighted keywords — no AI, no API key, no per-run cost
 - Email and WhatsApp delivery are off unless explicitly enabled
 
@@ -122,7 +127,7 @@ These are documented in the project notes and should only be enabled when the us
 ```bash
 git init
 git add .
-git commit -m "Initial demo publish"
+git commit -m "Initial publish"
 git branch -M main
 git remote add origin <your-github-repo-url>
 git push -u origin main
