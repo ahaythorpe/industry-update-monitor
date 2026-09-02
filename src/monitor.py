@@ -531,6 +531,23 @@ def _fingerprint(title):
     return re.sub(r"[^a-z0-9]+", " ", (title or "").lower()).strip()[:70]
 
 
+def _outranks(candidate, existing):
+    """
+    Decide which copy of the same story the digest keeps.
+
+    Flag first, confidence second. The two confidences are not on one scale:
+    a pure-background NOTE scores 1.0 ("confidently nothing to do") while an
+    ACT that just clears its threshold scores ~0.6. Ranking on confidence
+    alone let the NOTE-worded copy of a syndicated story silently replace the
+    copy that read as ACT — the one failure the PRD calls the real cost.
+    """
+    candidate_rank = FLAG_ORDER.get(candidate.get("flag"), 3)
+    existing_rank = FLAG_ORDER.get(existing.get("flag"), 3)
+    if candidate_rank != existing_rank:
+        return candidate_rank < existing_rank
+    return candidate["confidence"] > existing["confidence"]
+
+
 def _item_timestamp(item):
     published = item.get("published")
     if isinstance(published, datetime):
@@ -590,7 +607,7 @@ def collate_items(
         })
 
         existing = unique.get(key)
-        if existing is None or enriched["confidence"] > existing["confidence"]:
+        if existing is None or _outranks(enriched, existing):
             unique[key] = enriched
 
     return sorted(

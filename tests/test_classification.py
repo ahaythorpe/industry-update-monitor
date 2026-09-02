@@ -160,6 +160,21 @@ class CollationTests(unittest.TestCase):
                   "link": "https://a.test/g", "source_flag": "ACT"}]
         self.assertEqual(collate_items(items)[0]["flag"], "NOTE")
 
+    def test_a_note_never_displaces_an_act_for_the_same_link(self):
+        # Two outlets, one story, one link. The background-worded copy scores a
+        # confident 1.0 NOTE; the copy that reads as ACT scrapes in around 0.7.
+        # Keeping the higher confidence dropped the ACT out of the digest.
+        items = [
+            {"title": "Adviser levy consultation opens", "summary": "",
+             "link": "https://a.test/story?utm_source=a", "source_name": "Outlet A"},
+            {"title": "Coffee catch up with the team", "summary": "",
+             "link": "https://a.test/story?utm_source=b", "source_name": "Outlet B"},
+        ]
+        for ordering in (items, list(reversed(items))):
+            kept = collate_items(ordering)
+            self.assertEqual(len(kept), 1)
+            self.assertEqual(kept[0]["flag"], "ACT")
+
 
 class StripHtmlTests(unittest.TestCase):
     def test_tags_and_entities_are_removed(self):
