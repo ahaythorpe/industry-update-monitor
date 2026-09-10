@@ -15,6 +15,8 @@ class TeaserCleaningTests(unittest.TestCase):
             ("Image: Studio Zenith/stock.adobe.com.au Three fund managers have hired.", "Three fund"),
             ("Bits and Splits/adobe.stock.com In a recent webinar, Cullen said.", "In a recent"),
             ("Image by onephoto/stock.adobe.com Ellem said on a webinar.", "Ellem said"),
+            # ifa writes the agency without the dot: "StockPhotoPro/adobestock.com".
+            ("StockPhotoPro/adobestock.com This data comes as the sector tries.", "This data"),
         ):
             self.assertTrue(clean_teaser(raw).startswith(expected_start), raw)
 
@@ -26,6 +28,24 @@ class TeaserCleaningTests(unittest.TestCase):
 
     def test_repeated_lead_word_after_a_credit_is_collapsed(self):
         self.assertTrue(clean_teaser("Supplied: Praemium Praemium is betting.").startswith("Praemium is"))
+
+    def test_figure_caption_is_not_read_as_the_story(self):
+        # Every Momentum Media feed opens with the article photo and its credit.
+        raw = (
+            '<figure><img src="x.jpg" /><figcaption>SMSF property</figcaption></figure>'
+            "<p>Hogan said off-the-plan apartment projects depend on SMSF buyers.</p>"
+        )
+        self.assertEqual(
+            clean_teaser(raw),
+            "Hogan said off-the-plan apartment projects depend on SMSF buyers.",
+        )
+
+    def test_caption_naming_an_organisation_is_removed(self):
+        raw = (
+            "<figure><figcaption>CPA Australia</figcaption></figure>"
+            "<p>Richard Webb, CPA Australia Superannuation Lead, said retirees.</p>"
+        )
+        self.assertTrue(clean_teaser(raw).startswith("Richard Webb,"))
 
     def test_wordpress_footer_is_removed(self):
         cleaned = clean_teaser("Anderson retires in November. The post Anderson retires appeared first on FAAA.")
@@ -53,6 +73,15 @@ class SummaryTests(unittest.TestCase):
         summary = summarise_teaser("Compliance update", teaser, max_chars=120)
         self.assertLessEqual(len(summary), 121)
         self.assertTrue(summary.endswith("…"))
+
+    def test_publisher_cut_last_sentence_is_dropped_when_one_is_whole(self):
+        teaser = (
+            "Adviser gains reported their first week of losses. "
+            "The register has reported a net loss of three, bringing the total down to the"
+        )
+        summary = summarise_teaser("Adviser gains", teaser)
+        self.assertNotIn("bringing the total down to the", summary)
+        self.assertIn("first week of losses", summary)
 
     def test_teaser_truncated_by_the_publisher_is_marked(self):
         summary = summarise_teaser("Retirement", "He will retire after 30 years and much of the last")

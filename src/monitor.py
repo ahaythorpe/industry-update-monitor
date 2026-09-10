@@ -277,7 +277,7 @@ BOILERPLATE_PATTERNS = (
 # credit may read "Bits and Splits/adobe.stock.com" with no "Image:" at all.
 CREDIT_DOMAIN = re.compile(
     r"^\s*[^.!?]{0,50}?"
-    r"(?:stock\.adobe\.com(?:\.au)?|adobe\.stock\.com|shutterstock[\w.]*"
+    r"(?:stock\.adobe\.com(?:\.au)?|adobe\.stock\.com|adobestock[\w.]*|shutterstock[\w.]*"
     r"|gettyimages[\w.]*|istockphoto[\w.]*|unsplash\.com)\b\S*\s*",
     re.IGNORECASE,
 )
@@ -307,6 +307,11 @@ def clean_teaser(text):
     return re.sub(r"\s+", " ", cleaned).strip(" -–—:;,")
 
 
+# What a finished sentence looks like. A teaser that ends any other way was cut
+# by the publisher.
+SENTENCE_ENDINGS = ("…", ".", "!", "?", "”", '"', ")")
+
+
 def _sentences(text):
     return [part.strip() for part in re.split(r"(?<=[.!?])\s+", text) if part.strip()]
 
@@ -324,6 +329,14 @@ def summarise_teaser(title, teaser, max_sentences=2, max_chars=320):
     sentences = _sentences(cleaned)
     if not sentences:
         return ""
+
+    # A WordPress teaser stops mid-clause: "...bringing the total down to
+    # 15,156 for the [&#8230;]". Once the marker is stripped, the last
+    # "sentence" is half a clause. Drop it when a whole sentence remains —
+    # showing "for the…" tells the reader nothing. If the fragment is all the
+    # publisher gave us, keep it: half a lead still beats an empty summary.
+    if len(sentences) > 1 and not sentences[-1].endswith(SENTENCE_ENDINGS):
+        sentences = sentences[:-1]
 
     title_terms = set(re.findall(r"[a-z]{4,}", (title or "").lower()))
     ranked = sorted(
@@ -346,15 +359,28 @@ def summarise_teaser(title, teaser, max_sentences=2, max_chars=320):
     if len(summary) > max_chars:
         # Trim to the last whole word rather than slicing a word in half.
         summary = summary[:max_chars].rsplit(" ", 1)[0].rstrip(",;:") + "…"
-    elif not summary.endswith(("…", ".", "!", "?", "”", '"', ")")):
+    elif not summary.endswith(SENTENCE_ENDINGS):
         # The publisher's teaser was itself cut off (a "[…] The post ..." tail).
         summary += "…"
     return summary
 
 
+# Elements whose text is not part of the story. Every Momentum Media title
+# (ifa, Money Management, SMSF Adviser) opens its RSS teaser with a <figure>
+# holding the article photo and a <figcaption> credit; flattening the tags
+# alone left the caption as the story's first words — "SMSF property Hogan
+# said…", "CPA Australia Richard Webb…", "ASIC An ASIC review…". The caption is
+# a separate element, so remove it with its contents rather than guessing at
+# where a credit ends in the plain text.
+ELEMENT_NOISE = re.compile(
+    r"<(figcaption|script|style)\b[^>]*>.*?</\1\s*>", re.IGNORECASE | re.DOTALL
+)
+
+
 def strip_html(text):
     """Flatten a publisher's HTML teaser to plain text."""
-    return re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", text or ""))).strip()
+    without_noise = ELEMENT_NOISE.sub(" ", text or "")
+    return re.sub(r"\s+", " ", unescape(re.sub(r"<[^>]+>", " ", without_noise))).strip()
 
 
 def _score(title, body, rules):
