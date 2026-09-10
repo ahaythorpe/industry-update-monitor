@@ -92,14 +92,43 @@ stale or empty feed. ASIC, ABS and AFCA no longer offer usable feeds and stay
 bookmark-and-check.
 
 ### Web dashboard (optional)
+
+The dashboard reads `web/lib/digest.json` — the real fetched, classified and
+link-checked digest. Refresh it before starting, or it shows the last run.
+
 ```bash
-cd /Users/bella/Projects/advice-monitor/web
+cd /Users/bella/Projects/advice-monitor
+python src/monitor.py --json          # writes web/lib/digest.json
+cd web
 npm install
-npm run build
 npm run dev
 ```
 
 Then open http://localhost:3000
+
+What works there without any credentials:
+
+- **Search** across titles, teasers, sources and topics.
+- **Filters**: source, date range, flag, and link kind — plus "hide read".
+- **Timeline**: the days that carried items; click one to filter to it.
+- **Read state**: per item, kept in the browser's local storage, so the Unread
+  count is real. It is one browser's state — there are no accounts.
+- **Bibliography**: one entry per publication the digest drew on, with its home
+  page — written by the monitor, not guessed from article links.
+- **WhatsApp**: composes the newsletter and, with no Twilio credentials, shows
+  the exact messages instead of sending. Same format and 1600-character
+  splitting as `src/whatsapp_sender.py`.
+- **Email**: `/api/email/preview` renders the digest as the email body to
+  proof-read. Sending stays with the credentials, in `python src/monitor.py
+  --email`.
+- **Integration cards** report what the server can actually do (`/api/status`),
+  rather than offering switches that only flip a piece of React state.
+
+The AI summariser is not built. Classification is weighted keywords only — see
+[BUILD_STEPS.md](BUILD_STEPS.md) for the opt-in AI stage.
+
+JSON endpoints over the same digest: `GET /api/items` (`flag`, `source`,
+`query`, `exactness`, `limit`), `POST /api/search`, `GET /api/status`.
 
 ## Testing
 ```bash
