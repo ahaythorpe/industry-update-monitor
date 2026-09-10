@@ -10,6 +10,7 @@ from src.monitor import (
     collate_items,
     normalise_link,
     strip_html,
+    topic_for,
 )
 
 
@@ -182,6 +183,37 @@ class StripHtmlTests(unittest.TestCase):
 
     def test_none_is_safe(self):
         self.assertEqual(strip_html(None), "")
+
+
+class TopicTests(unittest.TestCase):
+    """Topics are scored, not first-match — declaration order used to decide."""
+
+    def test_headline_subject_beats_an_incidental_body_mention(self):
+        topic = topic_for(
+            "ASIC zeroes in on recurring compliance breaches",
+            "ASIC has warned licensees about lapses in superannuation advice practices.",
+        )
+        self.assertEqual(topic, "Compliance")
+
+    def test_a_super_story_still_reads_as_super(self):
+        topic = topic_for(
+            "Late-run LRBAs attracting ATO attention",
+            "The tax office received more than 13,000 new SMSF registrations.",
+        )
+        self.assertEqual(topic, "Super & tax")
+
+    def test_insurer_counts_as_insurance_vocabulary(self):
+        # The rule matched "insurance" but not "insurer", so a story about an
+        # insurer scored nothing for the topic named after it.
+        self.assertEqual(topic_for("Life insurer lifts income protection premiums", ""), "Insurance")
+
+    def test_a_regulatory_label_wins_a_tie(self):
+        # "Insurer sanctioned over serious breaches" scores 2 for Insurance and
+        # 2 for Compliance; the breach is what the reader has to act on.
+        self.assertEqual(topic_for("Insurer sanctioned over serious breaches", ""), "Compliance")
+
+    def test_an_unmatched_item_falls_back_to_industry(self):
+        self.assertEqual(topic_for("Markets drift sideways", "A quiet week for equities."), "Industry")
 
 
 if __name__ == "__main__":

@@ -532,24 +532,36 @@ def check_links(items, workers=8, timeout=FETCH_TIMEOUT):
 
 
 # ---------- Part 4: collation ----------
-# Topic labels for the web dashboard. Checked in order, first match wins.
+# Topic labels for the web dashboard. Order matters only for ties: a
+# regulatory label wins a draw, matching the ACT-first ordering elsewhere.
 TOPIC_RULES = (
-    ("Super & tax", re.compile(r"division ?296|\bdiv ?296\b|\blrba|\bsmsf\b|super(annuation)?|contribution cap|transfer balance|\bato\b|preservation age", re.I)),
     ("Compliance", re.compile(r"\bcompliance\b|\bobligation|\bbreach|code of ethics|best interests|fee consent|\bcpd\b|professional standards", re.I)),
     ("Regulation", re.compile(r"\basic\b|\bafca\b|\bapra\b|\baustrac\b|legislation|regulator|consultation|\bcslr\b|\bdbfo\b|\bqar\b|\bnca\b|\blev(y|ies)\b", re.I)),
-    ("Insurance", re.compile(r"\binsurance\b|\btpd\b|life compan|\bclaims?\b|risk advice", re.I)),
+    ("Super & tax", re.compile(r"division ?296|\bdiv ?296\b|\blrba|\bsmsf\b|super(annuation)?|contribution cap|transfer balance|\bato\b|preservation age", re.I)),
+    ("Insurance", re.compile(r"\binsurance\b|\binsurer(s)?\b|\btpd\b|life compan|\bclaims?\b|risk advice", re.I)),
     ("People moves", re.compile(r"\bappoint|\bhire|\bjoins\b|steps down|\bresign|retirement|chief executive|\bceo\b|\bchair", re.I)),
     ("Business", re.compile(r"\bacqui|\bmerge|takeover|\bstake\b|licensee|platform", re.I)),
 )
 
 
 def topic_for(title, summary=""):
-    """Label an item for dashboard grouping."""
-    text = f"{title} {summary}"
+    """
+    Label an item for dashboard grouping.
+
+    Scored, not first-match. The rules used to be checked in declaration order
+    and the first hit won, so "ASIC zeroes in on recurring compliance
+    breaches" was filed under Super & tax because its teaser happened to
+    mention superannuation advice. A term in the headline counts double, the
+    same rule the flag classifier uses: the headline describes the story.
+    """
+    title_text = title or ""
+    body = summary or ""
+    best_label, best_score = "Industry", 0
     for label, pattern in TOPIC_RULES:
-        if pattern.search(text):
-            return label
-    return "Industry"
+        score = TITLE_WEIGHT * len(pattern.findall(title_text)) + len(pattern.findall(body))
+        if score > best_score:
+            best_label, best_score = label, score
+    return best_label
 
 
 def _fingerprint(title):
