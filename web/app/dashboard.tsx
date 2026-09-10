@@ -431,7 +431,13 @@ export default function Dashboard({
                 <div className="space-y-4">
                   {items.map((item) => {
                     const isRead = readIds.has(item.id)
-                    const linkMeta = exactnessMeta[(item.link_exactness || 'broad') as keyof typeof exactnessMeta]
+                    // A newsletter's link resolves only in your own mailbox,
+                    // so the link-exactness badge would say "section page" and
+                    // mean nothing. Say what it actually is.
+                    const linkMeta =
+                      item.intake === 'email'
+                        ? { label: 'Newsletter', className: 'border-sky-500/40 bg-sky-500/10 text-sky-300' }
+                        : exactnessMeta[(item.link_exactness || 'broad') as keyof typeof exactnessMeta]
 
                     return (
                       <article
@@ -487,7 +493,7 @@ export default function Dashboard({
                             rel="noreferrer"
                             className="text-sm font-medium text-sky-300 underline underline-offset-4"
                           >
-                            Read at source
+                            {item.intake === 'email' ? 'Open in Gmail' : 'Read at source'}
                           </a>
                           <label className="flex items-center gap-2 text-sm text-slate-400">
                             <input

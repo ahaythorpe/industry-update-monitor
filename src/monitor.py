@@ -517,13 +517,27 @@ def check_link(url, timeout=FETCH_TIMEOUT):
     return {"ok": False, "status": None, "url": url, "error": "unreachable"}
 
 
+def is_checkable_link(item):
+    """
+    Whether this item's link is a public page a link check can reach.
+
+    A newsletter item links back to the message in your own mailbox, which
+    redirects to a Google login for any client but your browser. Checking it
+    would mark every newsletter dead and drop it from the digest.
+    """
+    return item.get("intake") != "email"
+
+
 def check_links(items, workers=8, timeout=FETCH_TIMEOUT):
     """Annotate items in place with link_ok/link_status; adopt redirect targets."""
     if not items:
         return items
+    checkable = [item for item in items if is_checkable_link(item)]
+    if not checkable:
+        return items
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        results = list(pool.map(lambda item: check_link(item.get("link", ""), timeout), items))
-    for item, result in zip(items, results):
+        results = list(pool.map(lambda item: check_link(item.get("link", ""), timeout), checkable))
+    for item, result in zip(checkable, results):
         item["link_ok"] = result["ok"]
         item["link_status"] = result["status"]
         if result["ok"] and result["url"]:
@@ -658,17 +672,30 @@ def collate_items(
     )[:max_items]
 
 
+def _is_promotional(text):
+    return any(term in text.lower() for term in PROMOTIONAL_TERMS)
+
+
 def _clean_email_text(text):
-    """Drop tags and promotional lines. Line breaks are kept until after the
-    promotional filter runs — collapsing them first merges a footer's
-    "Unsubscribe" into the whole body and discards it all."""
+    """
+    Drop tags and promotional text from a received newsletter.
+
+    Filtered a sentence at a time, within each line. Line breaks are kept until
+    after the filter runs — collapsing them first merges a footer's
+    "Unsubscribe" into the whole body and discards it all — but dropping the
+    whole line had the same failure on a one-line body: a newsletter whose
+    single paragraph ended "Unsubscribe here." summarised to nothing.
+    """
     text = unescape(re.sub(r"<[^>]+>", " ", text or ""))
-    lines = []
+    kept = []
     for line in text.splitlines():
         cleaned = re.sub(r"\s+", " ", line).strip()
-        if cleaned and not any(term in cleaned.lower() for term in PROMOTIONAL_TERMS):
-            lines.append(cleaned)
-    return " ".join(lines)
+        if not cleaned:
+            continue
+        wanted = [part for part in _sentences(cleaned) if not _is_promotional(part)]
+        if wanted:
+            kept.append(" ".join(wanted))
+    return " ".join(kept)
 
 
 def extractive_summary(email, max_sentences=2):
@@ -720,6 +747,94 @@ def format_assessment(assessments):
         lines.append(f"- Source: {item['source']}")
         lines.append(f"- Link: {item['link'] or '(no link supplied)'}")
     return "\n".join(lines)
+
+
+# ---------- Part 2b: newsletters (Gmail label — legitimate intake) ----------
+# Four configured sources have no feed at all, two of them ACT-flagged product
+# technical services. They arrive in the inbox, so the digest never saw them:
+# gmail_dry_run.py printed an assessment to the terminal and stopped there.
+
+
+def match_source_for_sender(sender, sources):
+    """
+    Find the configured source a newsletter came from, by name.
+
+    Deliberately literal: the configured source name (or its distinctive first
+    word) must appear in the sender line. A guess here would attach the wrong
+    ACT prior to somebody's marketing email.
+    """
+    haystack = (sender or "").lower()
+    if not haystack:
+        return None
+    best = None
+    for source in sources or []:
+        name = (source.get("name") or "").lower()
+        if not name:
+            continue
+        if name in haystack:
+            return source
+        first_word = name.split()[0]
+        # Two letters is not a match — "FS" would hit half the internet.
+        if len(first_word) > 3 and first_word in haystack and best is None:
+            best = source
+    return best
+
+
+def email_to_item(email, sources=None):
+    """Convert one legitimately received newsletter into a digest item."""
+    source = match_source_for_sender(email.get("sender") or email.get("source"), sources)
+    published = None
+    received = email.get("received")
+    if received:
+        try:
+            published = datetime.fromisoformat(received)
+        except (TypeError, ValueError):
+            published = None
+    if published is not None and published.tzinfo is None:
+        published = published.replace(tzinfo=timezone.utc)
+
+    subject = email.get("subject", "")
+    teaser = extractive_summary(email)
+    return {
+        "title": subject,
+        "summary": summarise_teaser(subject, teaser) or teaser,
+        "teaser": teaser[:600],
+        "link": email.get("link", ""),
+        "published": published,
+        "source_name": (source or {}).get("name") or email.get("sender", "Newsletter"),
+        "source_flag": (source or {}).get("flag"),
+        "intake": "email",
+    }
+
+
+def fetch_gmail_items(sources=None, label=None, max_messages=25, newer_than_days=14,
+                      credentials_path="credentials.json", token_path="token.json"):
+    """
+    Read the configured Gmail label and return digest items.
+
+    Read-only, one label, no writes — the restrictions live in gmail_reader.
+    Raises a clear error rather than a traceback when Gmail is not set up,
+    because Gmail access is opt-in and must stay that way.
+    """
+    try:
+        from src import gmail_reader
+    except ImportError:
+        import gmail_reader
+
+    if not Path(credentials_path).exists():
+        raise SystemExit(
+            f"❌ Gmail is not set up: no {credentials_path}. See README (Newsletters from Gmail). "
+            "Nothing else about the run needs it — drop --gmail to skip."
+        )
+
+    service = gmail_reader.build_gmail_service(credentials_path, token_path)
+    emails = gmail_reader.read_label(
+        service,
+        label_name=label or gmail_reader.LABEL_NAME,
+        max_messages=max_messages,
+        newer_than_days=newer_than_days,
+    )
+    return [email_to_item(email, sources) for email in emails]
 
 
 # ---------- Part 1: sources ----------
@@ -775,6 +890,7 @@ def fetch_feed_items(source, limit=10, timeout=FETCH_TIMEOUT):
             "published": _entry_published(entry),
             "source_name": source.get("name", ""),
             "source_flag": source.get("flag"),
+            "intake": "rss",
         })
     return items
 
@@ -850,6 +966,7 @@ def export_json(items, path, sources=None):
             "teaser": item.get("summary", ""),
             "link": item.get("link", ""),
             "source_name": item.get("source_name", ""),
+            "intake": item.get("intake", "rss"),
             "flag": item.get("flag", "NOTE"),
             "topic": topic_for(item.get("title", ""), item.get("summary", "")),
             "confidence": item.get("confidence"),
@@ -1025,6 +1142,10 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=50, help="Maximum items in the digest (1-100)")
     parser.add_argument("--no-check-links", action="store_true", help="Skip the link health check (faster, but dead links may ship)")
     parser.add_argument("--sources", action="store_true", help="Print the source list before the digest")
+    parser.add_argument("--gmail", action="store_true",
+                        help="Also read newsletters from the industry-update-monitor Gmail label (read-only, opt-in)")
+    parser.add_argument("--gmail-label", default=None, help="Gmail label to read (default: industry-update-monitor)")
+    parser.add_argument("--gmail-max", type=int, default=25, help="Maximum newsletters to read (1-50)")
     parser.add_argument("--brief", nargs="?", const="output/briefing.md", default=None,
                         help="Write a paste-ready briefing for a web AI tool (default: output/briefing.md)")
     parser.add_argument("--import-summaries", metavar="PATH", default=None,
@@ -1063,6 +1184,18 @@ if __name__ == "__main__":
     items, failures = fetch_all_sources(sources, limit=15)
     for name, error in failures:
         print(f"⚠️  Error fetching {name}: {error}")
+
+    if args.gmail:
+        # Opt-in and read-only. Four configured sources have no feed at all,
+        # two of them ACT-flagged, so without this they never reach the digest.
+        newsletters = fetch_gmail_items(
+            sources,
+            label=args.gmail_label,
+            max_messages=args.gmail_max,
+            newer_than_days=args.days or 14,
+        )
+        print(f"📧 Read {len(newsletters)} newsletter(s) from the Gmail label.")
+        items.extend(newsletters)
 
     if not items:
         raise SystemExit(

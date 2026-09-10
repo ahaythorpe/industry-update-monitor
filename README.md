@@ -79,6 +79,8 @@ mid-article — and a section continued into the next message repeats its headin
 | `--limit` | 50 | Maximum items in the digest |
 | `--no-check-links` | off | Skip the HEAD/GET check that drops dead links |
 | `--per-flag` | 6 | Max items per flag in the WhatsApp newsletter |
+| `--gmail` | off | Also read newsletters from the Gmail label (read-only, opt-in) |
+| `--gmail-max` | 25 | Maximum newsletters to read |
 | `--brief` | `output/briefing.md` | Write a paste-ready briefing for an AI web tool |
 | `--import-summaries` | — | Merge summaries pasted back from an AI web tool |
 | `--digest` | `web/lib/digest.json` | The digest those two commands read and write |
@@ -93,6 +95,39 @@ it to be free, on the same host as `home`, and to look like a feed. Verify a new
 feed returns current items before adding it — some publishers serve a valid but
 stale or empty feed. ASIC, ABS and AFCA no longer offer usable feeds and stay
 bookmark-and-check.
+
+### Newsletters from Gmail
+
+Four configured sources have no feed at all — ABS, FS Industry Moves, and the
+two ACT-flagged product technical services, Macquarie Technical Services and
+CFS FirstTech. They arrive in your inbox, so the digest never saw them.
+`--gmail` reads them from one Gmail label and treats each one as a digest item:
+same flags, same confidence, same dedupe, same dashboard.
+
+```bash
+python src/monitor.py --json --gmail        # feeds + newsletters
+python src/monitor.py --gmail --gmail-max 10
+```
+
+Setup, once (all of it yours to do — the tool never asks for your password):
+
+1. In Gmail, create a label `industry-update-monitor` and a filter that applies
+   it to the newsletters you want read. Nothing outside that label is visible
+   to the tool.
+2. In Google Cloud Console, create an OAuth **desktop** client with the Gmail
+   API enabled, download it as `credentials.json` in the repo root (it is
+   git-ignored), and run with `--gmail`. Your browser handles the consent; the
+   resulting `token.json` stays local.
+
+The scope is `gmail.readonly` and `gmail_reader.py` refuses any label but the
+configured one, so the tool cannot read the rest of your mail, and cannot send,
+label, archive or delete anything. Without `credentials.json` the run says so
+and stops; every other command works without Gmail.
+
+A newsletter item links to the message in your own mailbox, so it is never
+link-checked (that link redirects to a Google login for anything but your
+browser) and the dashboard badges it **Newsletter** with an "Open in Gmail"
+link rather than pretending it is a public article.
 
 ### Summaries without an API key
 

@@ -7,6 +7,9 @@ export type DigestItem = {
   teaser: string
   link: string
   source_name: string
+  // How the item reached us: a public feed, or a newsletter in the Gmail
+  // label. A newsletter's link goes to your own mailbox, not a public page.
+  intake?: 'rss' | 'email'
   flag: Flag
   topic: string
   is_read: boolean
@@ -86,6 +89,7 @@ export function normalizeIncomingItem(input: Partial<DigestItem> & Pick<DigestIt
     teaser: input.teaser || '',
     link: input.link,
     source_name: input.source_name,
+    intake: input.intake || 'rss',
     flag: input.flag,
     topic: input.topic,
     is_read: input.is_read ?? false,
