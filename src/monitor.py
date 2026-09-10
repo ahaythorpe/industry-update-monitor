@@ -773,10 +773,32 @@ def summarise_items(items, **collate_kwargs):
     return "\n".join(lines)
 
 
-def export_json(items, path):
+def _bibliography(items, sources=None):
+    """
+    One entry per source that actually contributed an item.
+
+    The dashboard used to build its bibliography from item links, which listed
+    the same publisher once per article and pointed "Visit" at a single story.
+    A bibliography is a list of the publications consulted, so it is built from
+    the source list and carries the publisher's own home page.
+    """
+    homes = {s.get("name", ""): s.get("home", "") for s in (sources or [])}
+    counts = {}
+    for item in items:
+        name = item.get("source_name", "")
+        if name:
+            counts[name] = counts.get(name, 0) + 1
+    return [
+        {"name": name, "home": homes.get(name, ""), "count": counts[name]}
+        for name in sorted(counts)
+    ]
+
+
+def export_json(items, path, sources=None):
     """Write the digest as JSON for the web dashboard to read."""
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        "sources": _bibliography(items, sources),
         "items": [
             {
                 "id": normalise_link(item.get("link", "")) or item.get("title", ""),
@@ -876,7 +898,9 @@ if __name__ == "__main__":
     print(f"🏷️  Digest: {len(digest_items)} items — ACT {counts['ACT']}, KNOW {counts['KNOW']}, NOTE {counts['NOTE']}")
 
     if args.json:
-        written = export_json(digest_items, Path(__file__).resolve().parent.parent / args.json)
+        written = export_json(
+            digest_items, Path(__file__).resolve().parent.parent / args.json, sources
+        )
         print(f"🗂️  Digest JSON written to {written}")
 
     if args.preview:
