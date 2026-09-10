@@ -27,13 +27,13 @@ To enable WhatsApp digest sending, you'll need to configure Twilio:
    - Add the three env vars above
    - Redeploy
 
-## Demo Mode
+## Preview mode
 
-Without Twilio credentials, the app runs in **demo mode**:
-- Shows message preview
-- Generates digest formatting
-- Returns success confirmation
-- Prompts to configure Twilio for real sending
+Without Twilio credentials nothing is sent. The route composes the newsletter
+and returns the exact message bodies instead, so the formatting can be
+proof-read for free — the same behaviour as `python src/monitor.py --whatsapp`.
+The response says `preview: true` and the dashboard shows the text it would
+have sent.
 
 ## Costs
 

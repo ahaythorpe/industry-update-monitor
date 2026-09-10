@@ -34,7 +34,7 @@ export async function POST(request: Request) {
       // the exact bodies, which is what preview mode means in the Python sender.
       return Response.json({
         success: true,
-        demo: true,
+        sent: false,
         parts: bodies.length,
         message:
           'Twilio is not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_WHATSAPP_NUMBER to send.',
@@ -72,7 +72,12 @@ export async function POST(request: Request) {
       }
     }
 
-    return Response.json({ success: true, parts: bodies.length, message: 'Digest sent to WhatsApp.' })
+    return Response.json({
+      success: true,
+      sent: true,
+      parts: bodies.length,
+      message: 'Digest sent to WhatsApp.',
+    })
   } catch (error) {
     console.error('WhatsApp send error:', error)
     return Response.json({ error: 'Failed to send digest' }, { status: 500 })

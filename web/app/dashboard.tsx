@@ -239,7 +239,7 @@ export default function Dashboard({
       const data = await response.json()
 
       if (data.success) {
-        if (data.demo) {
+        if (!data.sent) {
           setWhatsappMessage(
             `Twilio is not configured, so nothing was sent. This is the exact message it would send, in ${data.parts} part${data.parts === 1 ? '' : 's'}:`
           )

@@ -13,8 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Industry Update Monitor Demo",
-  description: "A safe, free-first demo dashboard for monitoring industry updates without Gmail or paid access.",
+  title: "Industry Update Monitor",
+  description:
+    "Weekly ACT / KNOW / NOTE digest of the Australian financial advice press, built from public RSS feeds.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
