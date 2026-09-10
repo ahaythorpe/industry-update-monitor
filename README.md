@@ -79,6 +79,9 @@ mid-article — and a section continued into the next message repeats its headin
 | `--limit` | 50 | Maximum items in the digest |
 | `--no-check-links` | off | Skip the HEAD/GET check that drops dead links |
 | `--per-flag` | 6 | Max items per flag in the WhatsApp newsletter |
+| `--brief` | `output/briefing.md` | Write a paste-ready briefing for an AI web tool |
+| `--import-summaries` | — | Merge summaries pasted back from an AI web tool |
+| `--digest` | `web/lib/digest.json` | The digest those two commands read and write |
 
 A source's `flag` in `data/sources.json` is a **prior**, not a verdict — it
 nudges the score in its direction, but the item's own words decide the flag.
@@ -90,6 +93,39 @@ it to be free, on the same host as `home`, and to look like a feed. Verify a new
 feed returns current items before adding it — some publishers serve a valid but
 stale or empty feed. ASIC, ABS and AFCA no longer offer usable feeds and stay
 bookmark-and-check.
+
+### Summaries without an API key
+
+Phase 3 with you as the transport. The tool writes a briefing, you paste it
+into an AI web tool, and you paste the reply back — no key, no cost, and the
+prompt is [SAFEGUARDS.md](SAFEGUARDS.md) section D verbatim with an ID added so
+replies can be matched to items.
+
+```bash
+python src/monitor.py --json                            # this week's digest
+python src/monitor.py --brief                           # output/briefing.md, ~15 items per paste
+#   paste each block into the AI web tool, save its reply as output/reply.md
+python src/monitor.py --import-summaries output/reply.md
+```
+
+Summaries land in the digest labelled `"ai_source": "manual"`, and the
+dashboard shows them under **Summarised by hand** so they never read as
+something this tool generated. They survive the next `--json` run, so a week's
+pasting is not thrown away by the following week's fetch. Reply lines whose ID
+is not in the digest are reported, never guessed at.
+
+Neither command touches the network: both read the digest already on disk.
+
+**What may be summarised this way.** Regulator PDFs — ASIC reports and media
+releases, Treasury consultation papers, AFCA determinations, ABS releases — are
+free public documents, so upload them to the AI tool whole. Trade-press
+articles are not: the input stays the feed's title and teaser, as
+[SAFEGUARDS.md](SAFEGUARDS.md) section A requires. That boundary is the same
+whether a summary is written by an API or by hand.
+
+The tool never downloads a document. Save the regulator PDFs yourself during
+the weekly sweep — no function in this codebase fetches a publisher document,
+and that is worth keeping literally true.
 
 ### Web dashboard (optional)
 

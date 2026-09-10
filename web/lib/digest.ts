@@ -12,6 +12,10 @@ export type DigestItem = {
   is_read: boolean
   created_at: string
   ai_summary?: string | null
+  // Where a summary came from. "manual" means it was written in a web AI tool
+  // and pasted back by hand — never presented as something this tool produced.
+  ai_source?: string | null
+  ai_generated_at?: string | null
   confidence?: number | null
   link_exactness?: LinkExactness
 }
@@ -87,6 +91,8 @@ export function normalizeIncomingItem(input: Partial<DigestItem> & Pick<DigestIt
     is_read: input.is_read ?? false,
     created_at: input.created_at || new Date().toISOString(),
     ai_summary: input.ai_summary ?? null,
+    ai_source: input.ai_source ?? null,
+    ai_generated_at: input.ai_generated_at ?? null,
     confidence: input.confidence ?? null,
     link_exactness: classifyLinkExactness(input.link),
   }

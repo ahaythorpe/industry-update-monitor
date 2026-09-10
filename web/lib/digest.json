@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T21:37:05.933406+00:00",
+  "generated_at": "2026-09-10T22:04:36.093711+00:00",
   "sources": [
     {
       "name": "FAAA",
@@ -40,6 +40,7 @@
   "items": [
     {
       "id": "https://www.financialstandard.com.au/news/asic-zeroes-in-on-recurring-compliance-breaches-179813924",
+      "ref": "96e24b",
       "title": "ASIC zeroes in on recurring compliance breaches",
       "teaser": "ASIC has warned financial advice licensees to address lapses in reference checking, professional indemnity insurance and superannuation advice practices in an update released this week.",
       "link": "https://www.financialstandard.com.au/news/asic-zeroes-in-on-recurring-compliance-breaches-179813924",
@@ -49,10 +50,13 @@
       "confidence": 0.84,
       "is_read": false,
       "created_at": "2026-09-10T02:18:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/02/insurer-sanctioned-over-serious-breaches",
+      "ref": "eff3b4",
       "title": "Insurer Sanctioned Over Serious Breaches",
       "teaser": "A life insurer has been sanctioned by the Life Insurance Code Compliance Committee after more than 10,000 breaches meant customers received annual notices that were inaccurate, incomplete or issued late.",
       "link": "https://riskinfo.com.au/news/2026/09/02/insurer-sanctioned-over-serious-breaches/",
@@ -62,10 +66,13 @@
       "confidence": 0.79,
       "is_read": false,
       "created_at": "2026-09-02T03:34:54+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.smsfadviser.com/asic-bans-former-sequoia-and-interprac-director-for-10-years",
+      "ref": "042aa8",
       "title": "ASIC bans former Sequoia and Interprac director for 10 years",
       "teaser": "ASIC’s concerns related to Crole’s role as a former director and former responsible manager of Interprac Financial Planning Pty Ltd (Interprac), a wholly owned subsidiary of Sequoia and holder of an Australian financial services licence.",
       "link": "https://www.smsfadviser.com/asic-bans-former-sequoia-and-interprac-director-for-10-years/",
@@ -75,10 +82,13 @@
       "confidence": 0.78,
       "is_read": false,
       "created_at": "2026-09-08T19:14:18+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.financialstandard.com.au/news/court-orders-asic-to-preserve-assets-from-doomed-trust-179813919",
+      "ref": "d47ada",
       "title": "Court orders ASIC to preserve assets from doomed trust",
       "teaser": "The New South Wales Supreme Court has ordered ASIC to protect assets in the Deckchair Trust after an associated member sought to take sole control of the trust following winding-up orders.",
       "link": "https://www.financialstandard.com.au/news/court-orders-asic-to-preserve-assets-from-doomed-trust-179813919",
@@ -88,10 +98,13 @@
       "confidence": 0.7,
       "is_read": false,
       "created_at": "2026-09-10T01:40:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.financialstandard.com.au/news/government-backs-enhance-regulatory-sandbox-overhaul-179813916",
+      "ref": "34d678",
       "title": "Government backs Enhance Regulatory Sandbox overhaul",
       "teaser": "The Federal Government has backed an overhaul of Australia's regulatory sandbox framework, agreeing to repeal the legislation underpinning the Enhance Regulatory Sandbox (ERS) and replace it with a more flexible model designed to support financial innovation.",
       "link": "https://www.financialstandard.com.au/news/government-backs-enhance-regulatory-sandbox-overhaul-179813916",
@@ -101,10 +114,13 @@
       "confidence": 0.63,
       "is_read": false,
       "created_at": "2026-09-09T06:13:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/victims-advocate-says-crole-banning-best-thing-asic-has-done",
+      "ref": "e22c60",
       "title": "Victims’ advocate says Crole banning ‘best thing ASIC has done’",
       "teaser": "A leading advocate for investors in the collapsed Shield and First Guardian master funds has welcomed the banning of the former chief executive of the licensee at the centre of investor losses.",
       "link": "https://www.professionalplanner.com.au/2026/09/victims-advocate-says-crole-banning-best-thing-asic-has-done/",
@@ -114,10 +130,13 @@
       "confidence": 0.62,
       "is_read": false,
       "created_at": "2026-09-08T06:18:47+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.smsfadviser.com/planned-new-home-builds-will-be-cancelled",
+      "ref": "dc119b",
       "title": "Planned new home builds will be cancelled",
       "teaser": "Hogan said off-the-plan apartment projects depend on SMSF buyers for early presales and without them, developers won’t get finance and the homes will never be built. “Labor has banned self-managed super funds from borrowing to buy residential property, including new builds.",
       "link": "https://www.smsfadviser.com/planned-new-home-builds-will-be-cancelled/",
@@ -127,10 +146,13 @@
       "confidence": 0.61,
       "is_read": false,
       "created_at": "2026-09-10T19:23:52+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.ifa.com.au/court-finds-comparison-site-misled-users-on-life-insurance",
+      "ref": "167bd6",
       "title": "Court finds comparison site misled users on life insurance",
       "teaser": "This comes not long after insurance comparison sites were seemingly spared from the government’s proposed changes to lead generation laws. According to ASIC, the Court found “Choosi made representations to consumers that conveyed it compared products from a range of funeral and life insurers”.",
       "link": "https://www.ifa.com.au/court-finds-comparison-site-misled-users-on-life-insurance/",
@@ -140,10 +162,13 @@
       "confidence": 0.61,
       "is_read": false,
       "created_at": "2026-09-09T05:30:45+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.ifa.com.au/cslr-special-levy-reforms-hit-the-senate",
+      "ref": "3f50da",
       "title": "CSLR special levy reforms hit the Senate",
       "teaser": "On 19 August, Financial Services Minister Daniel Mulino unveiled a suite of reforms covering several key areas of financial advice and superannuation, including the CSLR, and specifically the special levy disallowance period.",
       "link": "https://www.ifa.com.au/cslr-special-levy-reforms-hit-the-senate/",
@@ -153,10 +178,13 @@
       "confidence": 0.58,
       "is_read": false,
       "created_at": "2026-09-09T00:30:49+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.ifa.com.au/asic-fines-three-super-funds-118k",
+      "ref": "310efb",
       "title": "ASIC fines three super funds $118K",
       "teaser": "ASIC has issued six infringement notices for misleading investment disclosures to the Australian Retirement Trust (ART), Tetra Servicing (formerly Telstra Super), and Australian Meat Industry Superannuation (AMIST). The fine total $118,800, with each receiving two notices worth $39,600.",
       "link": "https://www.ifa.com.au/asic-fines-three-super-funds-118k/",
@@ -166,10 +194,13 @@
       "confidence": 0.58,
       "is_read": false,
       "created_at": "2026-09-09T00:15:41+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.moneymanagement.com.au/afsls-reminded-over-accurate-reports-after-pi-questioning",
+      "ref": "4924b4",
       "title": "AFSLs reminded over accurate reports after PI questioning",
       "teaser": "An ASIC review of AFSLs and their professional indemnity insurance (PI) found only one AFSL held inadequate PI, requiring a breach report to be submitted. The regulator’s annual AFSL data collection examined the PI insurance held by licensees, their policy excess and whether they have a claim paid.",
       "link": "https://www.moneymanagement.com.au/afsls-reminded-over-accurate-reports-after-pi-questioning/",
@@ -179,10 +210,13 @@
       "confidence": 0.54,
       "is_read": false,
       "created_at": "2026-09-10T20:30:09+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/punitive-pricing-wont-fix-the-licensee-scrutiny-gap-shuttleworth",
+      "ref": "6bbfbf",
       "title": "‘Punitive pricing’ won’t fix the licensee scrutiny gap: Shuttleworth",
       "teaser": "Centrepoint Alliance chief executive John Shuttleworth says shifting the bulk of funding the ASIC levy from individual advisers to licensees won’t fix the problem it’s designed to address.",
       "link": "https://www.professionalplanner.com.au/2026/09/punitive-pricing-wont-fix-the-licensee-scrutiny-gap-shuttleworth/",
@@ -192,10 +226,13 @@
       "confidence": 0.52,
       "is_read": false,
       "created_at": "2026-09-03T05:37:38+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://faaa.au/faaa-announces-the-upcoming-retirement-of-general-manager-policy-advocacy-and-standards-phil-anderson",
+      "ref": "450cb1",
       "title": "FAAA announces the upcoming retirement of General Manager, Policy, Advocacy and Standards – Phil Anderson",
       "teaser": "Phil Anderson, FAAA’s General Manager, Policy Advocacy and Standards, will be retiring on 27 November 2026 after over 30 years in the financial services industry, and much of the last…",
       "link": "https://faaa.au/faaa-announces-the-upcoming-retirement-of-general-manager-policy-advocacy-and-standards-phil-anderson/",
@@ -205,10 +242,13 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-08-25T23:32:54+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.ifa.com.au/boutique-advice-firm-joins-akumin",
+      "ref": "2af346",
       "title": "Boutique advice firm joins Akumin",
       "teaser": "Aperio Financial Services has been advising families, business owners and young professionals for roughly 40 years. Employing three staff in its financial planning division, Aperio offers services in tax matters, mortgage broking and loans.",
       "link": "https://www.ifa.com.au/boutique-advice-firm-joins-akumin/",
@@ -218,10 +258,13 @@
       "confidence": 0.91,
       "is_read": false,
       "created_at": "2026-09-09T23:45:32+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://faaa.au/faaa-calls-on-government-to-put-australian-consumers-at-the-centre-of-financial-sector-reform",
+      "ref": "66084c",
       "title": "FAAA calls on Government to put Australian consumers at the centre of financial sector reform",
       "teaser": "Sarah Abood, CEO of the Financial Advice Association Australia (FAAA), says Minister Mulino’s National Press Club address next week must put Australians’ access to affordable, trustworthy financial advice at the…",
       "link": "https://faaa.au/faaa-calls-on-government-to-put-australian-consumers-at-the-centre-of-financial-sector-reform/",
@@ -231,10 +274,13 @@
       "confidence": 0.91,
       "is_read": false,
       "created_at": "2026-08-13T00:05:42+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.moneymanagement.com.au/netwealth-appoints-general-manager-for-data-and-ai",
+      "ref": "fd83fb",
       "title": "Netwealth appoints general manager for data and AI",
       "teaser": "Netwealth has appointed data intelligence expert and technologist Silvio Giorgio as general manager for data and AI. He joins the platform at the outset of its ambition to double funds under advice by FY30, with a core focus on boosting operational efficiencies and creating new pathways for adviser productivity.",
       "link": "https://www.moneymanagement.com.au/netwealth-appoints-general-manager-for-data-and-ai/",
@@ -244,10 +290,13 @@
       "confidence": 0.88,
       "is_read": false,
       "created_at": "2026-09-10T20:00:30+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://faaa.au/faaa-welcomes-progress-on-shield-and-first-guardian-response-but-detail-is-critical",
+      "ref": "5a0b78",
       "title": "FAAA welcomes progress on Shield and First Guardian response, but detail is critical",
       "teaser": "Today’s National Press Club address by Assistant Treasurer and Minister for Financial Services Daniel Mulino included welcome progress on the response to Shield and First Guardian, but further action is…",
       "link": "https://faaa.au/faaa-welcomes-progress-on-shield-and-first-guardian-response-but-detail-is-critical/",
@@ -257,10 +306,13 @@
       "confidence": 0.88,
       "is_read": false,
       "created_at": "2026-08-19T06:06:52+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.ifa.com.au/super-apportionment-rationale-more-important-as-trustee-scrutiny-intensifies",
+      "ref": "5b13db",
       "title": "Super apportionment rationale more important as trustee scrutiny intensifies",
       "teaser": "ASIC is looking closely at super trustees in the wake of Shield and First Guardian which means advisers should expect greater scrutiny when it comes to clients paying for advice out of their super, according to Joel Ronchi, chief executive of Fourth Line.",
       "link": "https://www.ifa.com.au/super-apportionment-rationale-more-important-as-trustee-scrutiny-intensifies/",
@@ -270,10 +322,13 @@
       "confidence": 0.85,
       "is_read": false,
       "created_at": "2026-09-10T00:30:05+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/one-nation-super-pay-boost-at-odds-with-adequacy-and-retirement-plans",
+      "ref": "66be9d",
       "title": "One Nation ‘super pay boost’ at odds with adequacy, retirement plans",
       "teaser": "As new research reveals more than a third of Australians want a superannuation retirement balance of $1.25 million or more, One Nation has unveiled a plan to allow workers pocket 3 per cent of their super contributions, which could leave them tens of thousands of dollars short of their target.",
       "link": "https://www.professionalplanner.com.au/2026/09/one-nation-super-pay-boost-at-odds-with-adequacy-and-retirement-plans/",
@@ -283,10 +338,13 @@
       "confidence": 0.85,
       "is_read": false,
       "created_at": "2026-09-07T07:00:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/hewison-departure-will-open-door-to-fresh-voice-ideas-enthusiasm-for-3bn-advice-firm",
+      "ref": "d9c412",
       "title": "Hewison departure will open door to ‘fresh voice, ideas, enthusiasm’",
       "teaser": "Second-generation Hewison Private Wealth managing director Andrew Hewison tells Professional Planner there will be no changes to the business and no clients will be affected as a result of Pemba Capital Partners’ investment, followed by his departure at the end of the year.",
       "link": "https://www.professionalplanner.com.au/2026/09/hewison-departure-will-open-door-to-fresh-voice-ideas-enthusiasm-for-3bn-advice-firm/",
@@ -296,10 +354,13 @@
       "confidence": 0.85,
       "is_read": false,
       "created_at": "2026-09-04T05:55:25+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/the-250000-reasons-why-super-funds-must-nail-phase-1-of-retirement-now",
+      "ref": "28172b",
       "title": "The 250,000 reasons why super funds must nail Phase 1 of retirement now",
       "teaser": "Phase 1 of Retirement Income Strategy development, whereby funds aim to deliver retirement solutions and guidance regarding the member’s interest in the fund, is now well underway.",
       "link": "https://www.professionalplanner.com.au/2026/09/the-250000-reasons-why-super-funds-must-nail-phase-1-of-retirement-now/",
@@ -309,10 +370,13 @@
       "confidence": 0.85,
       "is_read": false,
       "created_at": "2026-09-02T06:14:39+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.ifa.com.au/australians-aiming-for-big-retirement-balances-mlc",
+      "ref": "87b0fd",
       "title": "Australians aiming for big retirement balances: MLC",
       "teaser": "This data comes as the rest of the retirement and super sector tries lift confidence amid growing anxiety within the market and Australia faces down a ‘Silver Tsunami’ of retirees.",
       "link": "https://www.ifa.com.au/australians-aiming-for-big-retirement-balances-mlc/",
@@ -322,10 +386,13 @@
       "confidence": 0.83,
       "is_read": false,
       "created_at": "2026-09-10T05:30:31+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.financialstandard.com.au/news/nz-super-names-head-of-strategic-titling-179813909",
+      "ref": "7759c6",
       "title": "NZ Super names head of strategic titling",
       "teaser": "The Guardians of New Zealand Superannuation, the manager of the NZ Super Fund, has named its new head of strategic tilting.",
       "link": "https://www.financialstandard.com.au/news/nz-super-names-head-of-strategic-titling-179813909",
@@ -335,10 +402,13 @@
       "confidence": 0.83,
       "is_read": false,
       "created_at": "2026-09-09T03:34:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/advisers-key-role-in-addressing-4-8tr-super-systems-confidence-problem",
+      "ref": "306519",
       "title": "Advisers’ key role in addressing $4.8tr super system’s confidence problem",
       "teaser": "The Government has made welcome progress on advice reform, but the job is far from finished. AMP chief executive officer Blair Vernon writes that advice is central to confidence in the system, but int's only one of five issues that must be addressed.",
       "link": "https://www.professionalplanner.com.au/2026/09/advisers-key-role-in-addressing-4-8tr-super-systems-confidence-problem/",
@@ -348,10 +418,13 @@
       "confidence": 0.83,
       "is_read": false,
       "created_at": "2026-09-03T04:58:21+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.smsfadviser.com/lower-pension-spending-should-not-be-the-sole-measure-of-retirement-success",
+      "ref": "fd058f",
       "title": "Lower pension spending should not be the sole measure of retirement success",
       "teaser": "Richard Webb, CPA Australia Superannuation Lead, said Australia risks focusing too heavily on reducing Age Pension costs rather than ensuring retirees enjoy adequate retirement incomes.",
       "link": "https://www.smsfadviser.com/lower-pension-spending-should-not-be-the-sole-measure-of-retirement-success/",
@@ -361,10 +434,13 @@
       "confidence": 0.8,
       "is_read": false,
       "created_at": "2026-09-10T19:19:35+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.smsfadviser.com/smsf-record-growth-highlights-appeal-of-retirement-control",
+      "ref": "e33ff0",
       "title": "SMSF record growth highlights appeal of retirement control",
       "teaser": "The report, released on 8 September, found that there are now 680,301 SMSFs in Australia, with more than 52,000 new entries since June 2025. The June 2026 quarter saw 12,264 new entrants.",
       "link": "https://www.smsfadviser.com/smsf-record-growth-highlights-appeal-of-retirement-control/",
@@ -374,10 +450,13 @@
       "confidence": 0.8,
       "is_read": false,
       "created_at": "2026-09-09T19:23:17+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.moneymanagement.com.au/melbourne-advisory-firm-aperio-joins-akumin",
+      "ref": "1fde29",
       "title": "Melbourne advisory firm Aperio joins Akumin",
       "teaser": "Boutique advisory firm Aperio Financial Services is partnering with the licensing and business services firm Akumin, just weeks after the same move by Ironbark Advice. According to Akumin, advisers are expressing “strong demand” for support, reflected in this move for Aperio to gain scale.",
       "link": "https://www.moneymanagement.com.au/melbourne-advisory-firm-aperio-joins-akumin/",
@@ -387,10 +466,13 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-09T20:30:04+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/akumin-wants-to-support-ambitious-firms",
+      "ref": "2555a8",
       "title": "Akumin wants to support ambitious quality firms",
       "teaser": "Akumin has welcomed firms with as few as two advisers to more than 100 in 2026, CEO Matt Lawler tells Professional Planner that the licensee’s growth strategy is focused on the ambitions and quality of potential target firms, not their size.",
       "link": "https://www.professionalplanner.com.au/2026/09/akumin-wants-to-support-ambitious-firms/",
@@ -400,10 +482,13 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-09T06:30:38+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.financialstandard.com.au/news/nsx-to-focus-on-dual-listings-over-the-next-12-179813906",
+      "ref": "37ab59",
       "title": "NSX to focus on dual listings over the next 12 months",
       "teaser": "Following the departure of its chief operating officer, National Stock Exchange of Australia chief executive Max Cunningham told Financial Standard about his plans for the exchange in the near future, including its first-ever listing of a Canadian company next week.",
       "link": "https://www.financialstandard.com.au/news/nsx-to-focus-on-dual-listings-over-the-next-12-179813906",
@@ -413,10 +498,13 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-09T02:40:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.ifa.com.au/acclaim-expands-leadership-to-strengthen-adviser-relationships",
+      "ref": "916810",
       "title": "Acclaim expands leadership to strengthen adviser relationships",
       "teaser": "Acclaim has named Tony Smith to the new position, stating the appointment will help deepen adviser relationships and support its next phase of growth under recently appointed chief executive Julie Hamilton and COO Aimie West.",
       "link": "https://www.ifa.com.au/acclaim-expands-leadership-to-strengthen-adviser-relationships/",
@@ -426,10 +514,13 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-08T23:45:19+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/integro-and-coastline-merger-a-vote-of-confidence-in-the-value-of-risk-advice",
+      "ref": "f9cf4e",
       "title": "Integro and Coastline merger a vote of confidence in the value of risk advice",
       "teaser": "The merger of Coastline Private Wealth with fellow WA-based financial advice firm Integro Private Wealth is a vote of confidence by Integro in the value of risk advice, its partner and private wealth adviser Justin Gilmour says.",
       "link": "https://www.professionalplanner.com.au/2026/09/integro-and-coastline-merger-a-vote-of-confidence-in-the-value-of-risk-advice/",
@@ -439,10 +530,13 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-07T07:06:10+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.financialstandard.com.au/news/easy-peasy-done-senate-rips-equity-trustees-checklist-governance-179813925",
+      "ref": "6a4615",
       "title": "'Easy peasy, done': Senate rips Equity Trustees' checklist governance",
       "teaser": "A Senate committee tore into Equity Trustees' governance at a hearing today, with one senator calling its approach to onboarding Shield and First Guardian a \"checklist model\", a characterisation the trustee rejected.",
       "link": "https://www.financialstandard.com.au/news/easy-peasy-done-senate-rips-equity-trustees-checklist-governance-179813925",
@@ -452,10 +546,13 @@
       "confidence": 0.74,
       "is_read": false,
       "created_at": "2026-09-10T02:23:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.moneymanagement.com.au/iress-extends-capital-haus-partnership",
+      "ref": "b28281",
       "title": "Iress extends Capital Haus partnership",
       "teaser": "Iress has extended its partnership with advice and wealth management group Capital Haus to provide it with a technology foundation.",
       "link": "https://www.moneymanagement.com.au/iress-extends-capital-haus-partnership/",
@@ -465,10 +562,13 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-10T20:00:48+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.financialstandard.com.au/news/end-of-an-era-as-bowater-leaves-frontier-179813928",
+      "ref": "e91019",
       "title": "End of an era as Bowater leaves Frontier",
       "teaser": "Industry veteran Kim Bowater is leaving Frontier Advisors after 24 years, marking the departure of one of the asset consultant's most senior figures.",
       "link": "https://www.financialstandard.com.au/news/end-of-an-era-as-bowater-leaves-frontier-179813928",
@@ -478,10 +578,13 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-10T04:14:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/07/tal-risk-academy-retirement-month-focuses-on-advisers-role",
+      "ref": "ae8ab1",
       "title": "TAL Risk Academy Retirement Month Focuses on Advisers’ Role",
       "teaser": "TAL Risk Academy will run a series of retirement-focused webinars this month to help advisers meet growing demand for trusted guidance before and during retirement.",
       "link": "https://riskinfo.com.au/news/2026/09/07/tal-risk-academy-retirement-month-focuses-on-advisers-role/",
@@ -491,10 +594,13 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-07T01:54:03+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/sequoia-sells-down-centrepoint-stake-as-cash-raising-plan-takes-shape",
+      "ref": "9b4f02",
       "title": "Sequoia sells down Centrepoint stake as cash-raising plan takes shape",
       "teaser": "After telling shareholders of material uncertainty over its ability to continue as a going concern and flagging plans to raise cash to shore up its financial position, Sequoia Financial Group appears to have kicked off that process with the sale of more than 15 million shares in rival Centrepoint Alliance.",
       "link": "https://www.professionalplanner.com.au/2026/09/sequoia-sells-down-centrepoint-stake-as-cash-raising-plan-takes-shape/",
@@ -504,10 +610,13 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-01T06:18:46+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/01/lack-of-adviser-support-for-nca",
+      "ref": "48d54e",
       "title": "Lack of Adviser Support for NCA",
       "teaser": "Only one in four of those taking our latest poll (25%) support the announcement that the yet-to-be-legislated new class of adviser will initially be limited to life companies and super funds. Two in three (67%) do not support this move, with the rest unsure.",
       "link": "https://riskinfo.com.au/news/2026/09/01/lack-of-adviser-support-for-nca/",
@@ -517,10 +626,13 @@
       "confidence": 0.69,
       "is_read": false,
       "created_at": "2026-09-01T06:32:28+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.financialstandard.com.au/news/netwealth-recruits-ai-expert-to-boost-in-house-advice-tech-179813927",
+      "ref": "622d96",
       "title": "Netwealth recruits AI expert to boost in-house advice tech",
       "teaser": "Aiming to double its funds under advice by 2030, Netwealth has turned outside financial services for its latest AI hire.",
       "link": "https://www.financialstandard.com.au/news/netwealth-recruits-ai-expert-to-boost-in-house-advice-tech-179813927",
@@ -530,10 +642,13 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-10T02:34:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.ifa.com.au/aged-care-fee-models-rebuilt-as-adviser-workload-climbs",
+      "ref": "436b94",
       "title": "Aged care fee models rebuilt as adviser workload climbs",
       "teaser": "Advisers are charging upfront for initial aged care meetings and billing separately for government liaison, as practices move to recover time the new system has added to client files.",
       "link": "https://www.ifa.com.au/aged-care-fee-models-rebuilt-as-adviser-workload-climbs/",
@@ -543,10 +658,13 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-10T00:15:17+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.smsfadviser.com/chalmers-puts-super-at-forefront-of-next-election",
+      "ref": "cf7a3f",
       "title": "Chalmers puts super at forefront of next election",
       "teaser": "In a speech to the Super Members Council on Wednesday, Chalmers gave a glimpse of the latest Intergeneration Report findings and said superannuation is a “broader antidote” to the serious intergenerational pressures facing Australia.",
       "link": "https://www.smsfadviser.com/chalmers-puts-super-at-forefront-of-next-election/",
@@ -556,10 +674,13 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-09T19:28:32+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/asset-based-fees-dwindle-as-firms-price-for-complexity-not-wealth",
+      "ref": "6befe6",
       "title": "Asset-based fees dwindle as firms price for complexity, not wealth",
       "teaser": "New research has found that the shift away from asset-based fees is gathering pace, with advice fees increasingly being based on the complexity of the client, not on portfolio size.",
       "link": "https://www.professionalplanner.com.au/2026/09/asset-based-fees-dwindle-as-firms-price-for-complexity-not-wealth/",
@@ -569,10 +690,13 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-10T05:57:13+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.financialstandard.com.au/news/first-mover-costs-stifle-digital-finance-report-179813926",
+      "ref": "0f0d24",
       "title": "First-mover costs stifle digital finance: report",
       "teaser": "Despite Australia boasting the technology and institutional capabilities for digital finance, several factors, including high barriers to first-movers, are derailing growth.",
       "link": "https://www.financialstandard.com.au/news/first-mover-costs-stifle-digital-finance-report-179813926",
@@ -582,10 +706,13 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-10T02:26:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.financialstandard.com.au/news/eqt-ramps-up-investments-on-asia-pacific-mid-market-plays-179813921",
+      "ref": "75309e",
       "title": "EQT ramps up investments on Asia-Pacific mid-market plays",
       "teaser": "EQT has launched an evergreen private markets strategy focused on Asia Pacific, giving eligible individual and institutional investors access to the investment manager's regional private equity platform through a single vehicle.",
       "link": "https://www.financialstandard.com.au/news/eqt-ramps-up-investments-on-asia-pacific-mid-market-plays-179813921",
@@ -595,10 +722,13 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-10T01:59:00+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/competence-judgement-diligence-the-minimum-required-of-licensees",
+      "ref": "fb907c",
       "title": "Competence, judgement, diligence the minimum required of licensees",
       "teaser": "ASIC's finding that former InterPrac boss Garry Crole was neither fit and proper nor competent, and lacked diligence and judgement, is a timely warning: licensee leadership isn't always what advisers assume.",
       "link": "https://www.professionalplanner.com.au/2026/09/competence-judgement-diligence-the-minimum-required-of-licensees/",
@@ -608,10 +738,13 @@
       "confidence": 0.63,
       "is_read": false,
       "created_at": "2026-09-09T06:24:17+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.smsfadviser.com/minimum-tax-on-trusts-another-masterclass-in-inept-tax-reform",
+      "ref": "17caa7",
       "title": "Minimum tax on trusts another masterclass in inept tax reform",
       "teaser": "In what has been the pattern with all legislation since the May announcements, the new rules: were clearly finalised well before the misleadingly and deceptively named ‘consultation’ process finished; add material complexity to an already outrageously complicated regime; are almost certain to be rushed through into…",
       "link": "https://www.smsfadviser.com/minimum-tax-on-trusts-another-masterclass-in-inept-tax-reform/",
@@ -621,10 +754,13 @@
       "confidence": 0.61,
       "is_read": false,
       "created_at": "2026-09-09T19:00:11+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/opposition-and-peak-smsf-body-call-for-a-stop-to-tinkering-with-rules",
+      "ref": "34225b",
       "title": "Opposition and peak SMSF body call for a stop to tinkering with rules",
       "teaser": "Four substantive changes in just five months has led the Shadow Minister for Financial Services Kevin Hogan to call on the government to quit tinkering with the rules. His plea for greater stability and certainty is supported by the peak SMSF industry body.",
       "link": "https://www.professionalplanner.com.au/2026/09/opposition-and-peak-smsf-body-call-for-a-stop-to-tinkering-with-rules/",
@@ -634,10 +770,13 @@
       "confidence": 0.56,
       "is_read": false,
       "created_at": "2026-09-10T05:54:50+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.smsfadviser.com/get-noi-right-first-time-to-avoid-issues",
+      "ref": "31f263",
       "title": "Get NOI right first time to avoid issues",
       "teaser": "Busoli said as the deadline approached for the self-managed super fund annual report, it is not uncommon for advisers to be informed by SMSF members that the amount they had advised in the notice of intent to claim a tax deduction was in error.",
       "link": "https://www.smsfadviser.com/get-noi-right-first-time-to-avoid-issues/",
@@ -647,10 +786,13 @@
       "confidence": 0.54,
       "is_read": false,
       "created_at": "2026-09-08T19:16:27+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.moneymanagement.com.au/fund-managers-share-updated-tech-sector-outlook",
+      "ref": "b4d727",
       "title": "Fund managers share updated tech sector outlook",
       "teaser": "Fund managers Schroders and Fidelity have both updated their views on tech, software and AI, identifying growth opportunities from expanded capex spending. Appearing on two separate webinars, portfolio managers at the two firms discussed the effect of AI and its vast capex spending.",
       "link": "https://www.moneymanagement.com.au/fund-managers-share-updated-tech-sector-outlook/",
@@ -660,10 +802,13 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-09-10T20:00:28+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/faaa-opens-nominations-for-three-new-directors",
+      "ref": "714276",
       "title": "FAAA opens nominations for three new directors",
       "teaser": "The Financial Advice Association Australia has called for nominations for the election of three new directors, with two to fill existing positions and one to fill a new position. The new appointees will start along with chair-elect Michelle Veitch in November.",
       "link": "https://www.professionalplanner.com.au/2026/09/faaa-opens-nominations-for-three-new-directors/",
@@ -673,10 +818,13 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-09-02T06:59:52+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/01/do-it-delegate-it-or-dump-it",
+      "ref": "7e91e4",
       "title": "Do It, Delegate It or Dump It",
       "teaser": "Advisers struggling to find enough hours in the day might benefit from asking a simple question about every task they perform: Should I do it, delegate it or dump it?",
       "link": "https://riskinfo.com.au/news/2026/09/01/do-it-delegate-it-or-dump-it/",
@@ -686,7 +834,9 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-09-01T04:21:11+00:00",
-      "ai_summary": null
+      "ai_summary": null,
+      "ai_source": null,
+      "ai_generated_at": null
     }
   ]
 }

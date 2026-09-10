@@ -834,34 +834,164 @@ def _bibliography(items, sources=None):
 
 def export_json(items, path, sources=None):
     """Write the digest as JSON for the web dashboard to read."""
+    path = Path(path)
+    kept = _existing_summaries(path)
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "sources": _bibliography(items, sources),
-        "items": [
-            {
-                "id": normalise_link(item.get("link", "")) or item.get("title", ""),
-                "title": item.get("title", ""),
-                "teaser": item.get("summary", ""),
-                "link": item.get("link", ""),
-                "source_name": item.get("source_name", ""),
-                "flag": item.get("flag", "NOTE"),
-                "topic": topic_for(item.get("title", ""), item.get("summary", "")),
-                "confidence": item.get("confidence"),
-                "is_read": False,
-                "created_at": (
-                    item["published"].isoformat()
-                    if isinstance(item.get("published"), datetime)
-                    else datetime.now(timezone.utc).isoformat()
-                ),
-                "ai_summary": None,
-            }
-            for item in items
-        ],
+        "items": [],
     }
-    path = Path(path)
+    for item in items:
+        item_id = normalise_link(item.get("link", "")) or item.get("title", "")
+        exported = {
+            "id": item_id,
+            "ref": summary_ref(item.get("link", ""), item.get("title", "")),
+            "title": item.get("title", ""),
+            "teaser": item.get("summary", ""),
+            "link": item.get("link", ""),
+            "source_name": item.get("source_name", ""),
+            "flag": item.get("flag", "NOTE"),
+            "topic": topic_for(item.get("title", ""), item.get("summary", "")),
+            "confidence": item.get("confidence"),
+            "is_read": False,
+            "created_at": (
+                item["published"].isoformat()
+                if isinstance(item.get("published"), datetime)
+                else datetime.now(timezone.utc).isoformat()
+            ),
+            "ai_summary": None,
+            "ai_source": None,
+            "ai_generated_at": None,
+        }
+        # A summary you wrote by hand survives the next fetch. Without this,
+        # re-running --json every week silently threw away the work of pasting
+        # the briefing into a web AI tool.
+        exported.update(kept.get(item_id, {}))
+        payload["items"].append(exported)
+
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
     return path
+
+
+def _existing_summaries(path):
+    """Summaries already recorded in the digest at this path, keyed by item id."""
+    try:
+        previous = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    kept = {}
+    for item in previous.get("items", []):
+        if item.get("ai_summary"):
+            kept[item.get("id")] = {
+                "ai_summary": item["ai_summary"],
+                "ai_source": item.get("ai_source"),
+                "ai_generated_at": item.get("ai_generated_at"),
+            }
+    return kept
+
+
+# ---------- Part 6: the manual AI round trip ----------
+# Phase 3 without an API key: the tool writes a briefing, you paste it into a
+# web AI tool, and you paste the reply back. Section D of SAFEGUARDS.md is the
+# prompt, verbatim, with an ID added so the reply can be matched to an item.
+# When an API key is eventually justified, only the middle step changes.
+BRIEF_PROMPT = """You are helping a trainee financial adviser triage this week's Australian
+advice-industry news. You will be given items, each with an ID, a TITLE, a public TEASER, and a
+LINK. For each item output one line: `ID | FLAG | one-sentence summary | LINK`. FLAG is ACT
+(changes what an adviser must do), KNOW (useful context), or NOTE (background/data). Rules:
+summarise ONLY from the teaser given; never invent detail or add facts not present; if the teaser
+is too thin, write "thin — open source"; always keep the ID and the LINK unchanged; do not attempt
+to access anything beyond the text provided."""
+
+# Roughly a comfortable paste for one chat message. Items are never split
+# across blocks.
+BRIEF_CHUNK = 15
+
+
+def summary_ref(link, title=""):
+    """A short, stable handle for one item, for the round trip through a chat."""
+    import hashlib
+
+    basis = normalise_link(link) or (title or "")
+    return hashlib.sha1(basis.encode("utf-8")).hexdigest()[:6]
+
+
+def format_briefing(items, chunk_size=BRIEF_CHUNK):
+    """Render the digest as paste-ready blocks for a web AI tool."""
+    blocks = []
+    for start in range(0, len(items), chunk_size):
+        batch = items[start:start + chunk_size]
+        lines = [BRIEF_PROMPT, ""]
+        for item in batch:
+            ref = item.get("ref") or summary_ref(item.get("link", ""), item.get("title", ""))
+            lines.append(f"ID: {ref}")
+            lines.append(f"TITLE: {item.get('title', '')}")
+            lines.append(f"TEASER: {item.get('teaser') or item.get('summary') or '(none)'}")
+            lines.append(f"LINK: {item.get('link', '')}")
+            lines.append("")
+        blocks.append("\n".join(lines).strip())
+    return blocks
+
+
+def write_briefing(items, path, chunk_size=BRIEF_CHUNK):
+    """Write the briefing blocks to a file, one paste per block."""
+    blocks = format_briefing(items, chunk_size)
+    parts = []
+    for number, block in enumerate(blocks, start=1):
+        parts.append(f"<!-- paste {number} of {len(blocks)} -->\n\n{block}")
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n\n---\n\n".join(parts) + "\n", encoding="utf-8")
+    return path, len(blocks)
+
+
+# The reply comes back through a chat window, so it may arrive bulleted,
+# bolded, numbered or fenced. Only the pipe-separated shape has to survive.
+SUMMARY_LINE = re.compile(
+    r"^\s*(?:[-*>]\s*|\d+[.)]\s*)?\**\s*(?P<ref>[0-9a-f]{6})\s*\**\s*\|"
+    r"\s*(?P<flag>ACT|KNOW|NOTE)?\s*\|?"
+    r"\s*(?P<summary>[^|]+?)\s*(?:\|\s*(?P<link>\S*)\s*)?$",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def parse_summaries(text):
+    """Pull `ID | FLAG | summary | LINK` lines out of a pasted reply."""
+    found = {}
+    for match in SUMMARY_LINE.finditer(text or ""):
+        summary = re.sub(r"\s+", " ", match.group("summary") or "").strip(" *_-")
+        if summary:
+            found[match.group("ref").lower()] = summary
+    return found
+
+
+def import_summaries(reply_path, digest_path):
+    """
+    Merge summaries written by hand into the digest the dashboard reads.
+
+    Returns (matched, unmatched_refs, total_in_reply). Nothing is invented: a
+    reply line whose ID is not in the digest is reported, never guessed at.
+    """
+    digest = json.loads(Path(digest_path).read_text(encoding="utf-8"))
+    replies = parse_summaries(Path(reply_path).read_text(encoding="utf-8"))
+    stamp = datetime.now(timezone.utc).isoformat()
+
+    matched = 0
+    seen = set()
+    for item in digest.get("items", []):
+        ref = item.get("ref") or summary_ref(item.get("link", ""), item.get("title", ""))
+        if ref in replies:
+            item["ai_summary"] = replies[ref]
+            # Labelled as hand-made so the dashboard never presents it as
+            # something this tool generated.
+            item["ai_source"] = "manual"
+            item["ai_generated_at"] = stamp
+            matched += 1
+            seen.add(ref)
+
+    Path(digest_path).write_text(json.dumps(digest, indent=2, ensure_ascii=False), encoding="utf-8")
+    return matched, sorted(set(replies) - seen), len(replies)
 
 
 def _load_email_sender():
@@ -895,7 +1025,36 @@ if __name__ == "__main__":
     parser.add_argument("--limit", type=int, default=50, help="Maximum items in the digest (1-100)")
     parser.add_argument("--no-check-links", action="store_true", help="Skip the link health check (faster, but dead links may ship)")
     parser.add_argument("--sources", action="store_true", help="Print the source list before the digest")
+    parser.add_argument("--brief", nargs="?", const="output/briefing.md", default=None,
+                        help="Write a paste-ready briefing for a web AI tool (default: output/briefing.md)")
+    parser.add_argument("--import-summaries", metavar="PATH", default=None,
+                        help="Merge summaries pasted back from a web AI tool into the digest JSON")
+    parser.add_argument("--digest", default="web/lib/digest.json",
+                        help="Digest JSON that --brief reads and --import-summaries writes")
     args = parser.parse_args()
+
+    root = Path(__file__).resolve().parent.parent
+    digest_path = root / args.digest
+
+    # Both halves of the manual round trip work from the digest already on
+    # disk: no feeds are fetched, so they cost nothing and work offline.
+    if args.brief is not None or args.import_summaries:
+        if not digest_path.exists():
+            raise SystemExit(f"❌ No digest at {digest_path}. Run: python src/monitor.py --json")
+
+        if args.brief is not None:
+            digest = json.loads(digest_path.read_text(encoding="utf-8"))
+            written, blocks = write_briefing(digest.get("items", []), root / args.brief)
+            print(f"📝 Briefing written to {written} — {blocks} paste{'s' if blocks != 1 else ''}.")
+            print("   Paste each block into your AI web tool, then bring the reply back with:")
+            print("   python src/monitor.py --import-summaries output/reply.md")
+
+        if args.import_summaries:
+            matched, unmatched, total = import_summaries(root / args.import_summaries, digest_path)
+            print(f"🧾 {matched} of {total} summaries merged into {digest_path}.")
+            if unmatched:
+                print(f"⚠️  {len(unmatched)} reply line(s) had an ID not in this digest: {', '.join(unmatched)}")
+        raise SystemExit(0)
 
     if args.sources:
         show_sources()
@@ -936,9 +1095,7 @@ if __name__ == "__main__":
     print(f"🏷️  Digest: {len(digest_items)} items — ACT {counts['ACT']}, KNOW {counts['KNOW']}, NOTE {counts['NOTE']}")
 
     if args.json:
-        written = export_json(
-            digest_items, Path(__file__).resolve().parent.parent / args.json, sources
-        )
+        written = export_json(digest_items, root / args.json, sources)
         print(f"🗂️  Digest JSON written to {written}")
 
     if args.preview:
