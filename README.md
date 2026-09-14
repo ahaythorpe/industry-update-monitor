@@ -29,6 +29,10 @@ The project only reads content the publisher has made public, and it treats AI/e
 
 ## Quick start
 
+New here, or setting up on another machine? **[SETUP.md](SETUP.md)** walks the
+whole thing from prerequisites to a working digest, and links every optional
+add-on with what it costs. The short version:
+
 ### Python CLI
 ```bash
 cd /Users/bella/Projects/advice-monitor
