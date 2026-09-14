@@ -636,76 +636,93 @@ export default function Dashboard({
             </div>
 
             <div className="mt-4 border-t border-slate-800/80 pt-3 text-xs">
-              {briefing.pastes === 0 ? (
-                <span className="text-slate-500">Nothing to download — widen the filters above.</span>
+              {/*
+                The count, and — when nothing is selected — why. This used to
+                wrap the file picker too, so unticking every file hid the
+                picker and left no way back except changing a filter.
+              */}
+              {briefingFiles.length === 0 ? (
+                <span className="text-slate-500">
+                  Nothing to download — widen the filters above.
+                </span>
+              ) : chosenFiles.length === 0 ? (
+                <span className="font-semibold text-amber-400">
+                  No files selected — tick at least one below.
+                </span>
               ) : (
-                <>
-                  <span className="font-semibold text-slate-300">
-                    {format === 'zip'
-                      ? `${chosenFiles.length}${
-                          excluded.size > 0 ? ` of ${briefingFiles.length}` : ''
-                        } file${chosenFiles.length === 1 ? '' : 's'}`
-                      : `1 file, ${briefing.pastes} paste${briefing.pastes === 1 ? '' : 's'}`}
-                    {' · '}
-                    {briefing.items} item{briefing.items === 1 ? '' : 's'}
-                    {format === 'zip' && biggestFile && grouping.length
-                      ? ` · biggest is ${biggestFile.label}, ${biggestFile.items} items`
-                      : ''}
-                  </span>
-                  {grouping.length ? (
-                    <div className="mt-3">
-                      <div className="mb-2 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-                        Files to include
-                        {excluded.size > 0 ? (
-                          <button
-                            onClick={() => setExcluded(new Set())}
-                            className="rounded-full border border-slate-700 px-2 py-0.5 normal-case tracking-normal text-slate-400 hover:border-slate-500"
-                          >
-                            Select all
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() =>
-                              setExcluded(new Set(briefingFiles.map((file) => file.name)))
-                            }
-                            className="rounded-full border border-slate-700 px-2 py-0.5 normal-case tracking-normal text-slate-400 hover:border-slate-500"
-                          >
-                            Clear all
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {briefingFiles.map((file) => {
-                          const included = !excluded.has(file.name)
-                          return (
-                            <button
-                              key={file.name}
-                              onClick={() => toggleFile(file.name)}
-                              title={file.name}
-                              className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                                included
-                                  ? 'border-sky-600/60 bg-sky-600/15 text-sky-200'
-                                  : 'border-slate-800 bg-slate-900 text-slate-600 line-through'
-                              }`}
-                            >
-                              {file.label}{' '}
-                              <span className={included ? 'text-sky-400/70' : ''}>
-                                ({file.items})
-                              </span>
-                            </button>
-                          )
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-                  {briefing.skipped > 0 ? (
-                    <div className="mt-1 text-amber-500/80">
-                      {briefing.skipped} item{briefing.skipped === 1 ? '' : 's'} left out — no ID to
-                      match a reply back to.
-                    </div>
-                  ) : null}
-                </>
+                <span className="font-semibold text-slate-300">
+                  {/* "1 of 15 file" — the plural follows the total, not the count. */}
+                  {format === 'zip'
+                    ? excluded.size > 0
+                      ? `${chosenFiles.length} of ${briefingFiles.length} files`
+                      : `${chosenFiles.length} file${chosenFiles.length === 1 ? '' : 's'}`
+                    : `1 file, ${briefing.pastes} paste${briefing.pastes === 1 ? '' : 's'}`}
+                  {' · '}
+                  {briefing.items} item{briefing.items === 1 ? '' : 's'}
+                  {format === 'zip' && biggestFile && grouping.length
+                    ? ` · biggest is ${biggestFile.label}, ${biggestFile.items} items`
+                    : ''}
+                </span>
               )}
+
+              {grouping.length > 0 && briefingFiles.length > 0 ? (
+                <div className="mt-3">
+                  <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+                    Files to include
+                    {/*
+                      Two buttons that each do one thing, always both present.
+                      A single button that swapped its label read as the state
+                      rather than the action: with everything ticked it said
+                      "Clear all", which is what you press to select all.
+                    */}
+                    <button
+                      onClick={() => setExcluded(new Set())}
+                      disabled={excluded.size === 0}
+                      className="rounded-full border border-slate-700 px-2 py-0.5 normal-case tracking-normal text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-600"
+                    >
+                      Select all
+                    </button>
+                    <button
+                      onClick={() => setExcluded(new Set(briefingFiles.map((file) => file.name)))}
+                      disabled={excluded.size === briefingFiles.length}
+                      className="rounded-full border border-slate-700 px-2 py-0.5 normal-case tracking-normal text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-600"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5">
+                    {briefingFiles.map((file) => {
+                      const included = !excluded.has(file.name)
+                      return (
+                        <button
+                          key={file.name}
+                          onClick={() => toggleFile(file.name)}
+                          title={file.name}
+                          aria-pressed={included}
+                          className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                            included
+                              ? 'border-sky-600/60 bg-sky-600/15 text-sky-200'
+                              : 'border-slate-800 bg-slate-900/60 text-slate-500 hover:border-slate-700'
+                          }`}
+                        >
+                          <span className="mr-1">{included ? '✓' : '+'}</span>
+                          {file.label}{' '}
+                          <span className={included ? 'text-sky-400/70' : 'text-slate-600'}>
+                            ({file.items})
+                          </span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+              ) : null}
+
+              {briefing.skipped > 0 ? (
+                <div className="mt-2 text-amber-500/80">
+                  {briefing.skipped} item{briefing.skipped === 1 ? '' : 's'} left out — no ID to
+                  match a reply back to.
+                </div>
+              ) : null}
             </div>
           </div>
 
