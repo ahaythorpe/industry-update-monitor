@@ -27,8 +27,24 @@ summarise ONLY from the teaser given; never invent detail or add facts not prese
 is too thin, write "thin — open source"; always keep the ID and the LINK unchanged; do not attempt
 to access anything beyond the text provided.`
 
+// src/monitor.py DEEP_PROMPT: the second pass, for a narrowed set of items.
+export const DEEP_PROMPT = `You are helping a trainee financial adviser understand this week's Australian
+advice-industry news in depth. You will be given items, each with an ID, a TITLE, a SOURCE, a
+DATE, the publisher's own text, and a LINK. For each item output one line:
+\`ID | FLAG | summary | LINK\`. FLAG is ACT (changes what an adviser must do), KNOW (useful
+context), or NOTE (background/data). Write two to four sentences, on a single line, and lead with
+the specific facts — figures, dates, names, what changed — rather than the framing. Rules: use
+ONLY the text provided; never invent detail or add facts not present; if the text runs to less
+than about eighty words, write "thin — open source" and nothing else; say so if the DATE means a
+figure or a poll may have been overtaken; always keep the ID and the LINK unchanged; do not
+attempt to access anything beyond the text provided.`
+
 // src/monitor.py BRIEF_CHUNK: a comfortable paste for one chat message.
 export const BRIEF_CHUNK = 15
+
+// src/monitor.py DEEP_CHUNK: deep items carry the publisher's own article
+// text, so far fewer fit in one paste.
+export const DEEP_CHUNK = 6
 
 // src/monitor.py FALLBACK_TOPIC: where an item goes when no rule scores.
 // Only used for an item that somehow arrived without a category — the digest
@@ -118,11 +134,15 @@ function itemBlock(item: DigestItem): string {
 }
 
 /** Render items as paste-ready blocks, never splitting one across two. */
-export function formatBriefing(items: DigestItem[], chunkSize = BRIEF_CHUNK): string[] {
+export function formatBriefing(
+  items: DigestItem[],
+  chunkSize = BRIEF_CHUNK,
+  prompt = BRIEF_PROMPT
+): string[] {
   const blocks: string[] = []
   for (let start = 0; start < items.length; start += chunkSize) {
     const batch = items.slice(start, start + chunkSize)
-    blocks.push([BRIEF_PROMPT, '', ...batch.map((item) => `${itemBlock(item)}\n`)].join('\n').trim())
+    blocks.push([prompt, '', ...batch.map((item) => `${itemBlock(item)}\n`)].join('\n').trim())
   }
   return blocks
 }
@@ -182,12 +202,13 @@ export function buildBriefingFiles(
   items: DigestItem[],
   grouping: Grouping,
   topicOrder: string[],
-  chunkSize = BRIEF_CHUNK
+  chunkSize = BRIEF_CHUNK,
+  prompt = BRIEF_PROMPT
 ): BriefingEntry[] {
   const usable = items.filter((item) => Boolean(item.ref))
 
   return groupItems(usable, grouping, topicOrder).map((group) => {
-    const blocks = formatBriefing(group.items, chunkSize)
+    const blocks = formatBriefing(group.items, chunkSize, prompt)
     const text = blocks
       .map((block, index) => {
         const counter = `paste ${index + 1} of ${blocks.length}`

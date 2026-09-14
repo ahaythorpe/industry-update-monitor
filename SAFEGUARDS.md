@@ -12,7 +12,13 @@ within these, don't build it.
 locked text.**
 
 Safe (do these):
-- Read RSS feeds the publisher publishes on purpose.
+- Read RSS feeds the publisher publishes on purpose, **including the article
+  text they put in `content:encoded`**. That text is part of the feed the
+  publisher generates and serves; reading it fetches nothing, visits no article
+  page and passes no wall. A publisher who does not want it there does not put
+  it there. (Amended 2026-09-15: the rule below used to say title and summary
+  only, which threw away most of what the feed offered and made every summary a
+  one-liner.)
 - Read free newsletters that arrived in your inbox.
 - Read the free headline/teaser a publisher shows above its paywall.
 - Search free sources (ASIC, AFCA, FAAA, Treasury, ABS, free news) for the same story.
@@ -27,9 +33,17 @@ Why it's built this way: working only from feeds + free sources means the tool N
 the wall, so there's nothing to bypass. This is also simpler to build than the risky version.
 
 How to enforce it in code:
-- Phase 4's input is the feed's `title` + `summary` fields ONLY. Never the article URL's body.
+- Input is what the feed hands over: `title`, `summary`, and `content:encoded`
+  where the publisher supplies it. Never the article URL's body.
+- Feed content is capped (`FEED_BODY_LIMIT`, 1,500 characters) and every item
+  records `body_source` — `feed_content` or `feed_summary` — so it is always
+  visible which one a summary was written from.
 - No function in the codebase should fetch a publisher article page. If you're writing a
   `requests.get(article_url)` against a trade-press URL, stop — that's the line.
+
+The distinction that matters: **what the publisher sends you is safe; what you
+go and take is not.** A feed is delivered. An article page is fetched. Nothing
+here fetches one.
 
 ## B. The "AI triages, source confirms" rule
 

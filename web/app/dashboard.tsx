@@ -3,6 +3,10 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { type DigestItem, type DigestSource, type Flag } from '@/lib/digest'
 import {
+  BRIEF_CHUNK,
+  BRIEF_PROMPT,
+  DEEP_CHUNK,
+  DEEP_PROMPT,
   FALLBACK_TOPIC,
   type Grouping,
   briefingFilename,
@@ -74,6 +78,18 @@ const FORMATS = [
 ] as const
 
 type Format = (typeof FORMATS)[number]['value']
+
+/*
+ * Triage or detail. One prompt cannot do both: "one line each, only from the
+ * teaser" is right for sorting fifty items and guarantees one-liners, which is
+ * the opposite of what you want on the handful that matter.
+ */
+const DEPTHS = [
+  { value: 'brief', label: 'Triage — one line each', prompt: BRIEF_PROMPT, chunk: BRIEF_CHUNK },
+  { value: 'deep', label: 'Detailed — a short paragraph each', prompt: DEEP_PROMPT, chunk: DEEP_CHUNK },
+] as const
+
+type Depth = (typeof DEPTHS)[number]['value']
 
 const READ_STORAGE_KEY = 'advice-monitor:read-items'
 
@@ -166,6 +182,8 @@ export default function Dashboard({
     flag: true,
   })
   const [format, setFormat] = useState<Format>('zip')
+  const [depth, setDepth] = useState<Depth>('brief')
+  const [copied, setCopied] = useState<'idle' | 'copied' | 'failed'>('idle')
   /*
    * What the download leaves out, one set per dimension.
    *
@@ -306,9 +324,18 @@ export default function Dashboard({
     [filteredItems, excludedFlags, excludedTopics]
   )
 
+  const chosenDepth = DEPTHS.find((option) => option.value === depth) || DEPTHS[0]
+
   const briefingFiles = useMemo(
-    () => buildBriefingFiles(downloadItems, grouping, digestTopics),
-    [downloadItems, grouping, digestTopics]
+    () =>
+      buildBriefingFiles(
+        downloadItems,
+        grouping,
+        digestTopics,
+        chosenDepth.chunk,
+        chosenDepth.prompt
+      ),
+    [downloadItems, grouping, digestTopics, chosenDepth]
   )
 
   const briefing = useMemo(
@@ -353,6 +380,46 @@ export default function Dashboard({
    * no request and reaches no publisher. Either shape holds each item's title,
    * teaser and link and nothing else — the same fields the feed handed over.
    */
+  /**
+   * Put the briefing on the clipboard instead of on disk.
+   *
+   * The shortest route into an AI window: no file to find, and no format for a
+   * chat app to refuse — .zip in particular is not accepted as an upload.
+   *
+   * navigator.clipboard.writeText can sit unresolved rather than rejecting
+   * when the page does not have focus, which left the button saying "Copy"
+   * with no way to tell whether anything had happened. So the promise is
+   * raced against a timeout and the old textarea route is the fallback, and
+   * the button reports either outcome rather than only the happy one.
+   */
+  const copyBriefing = async () => {
+    const viaTextarea = () => {
+      const area = document.createElement('textarea')
+      area.value = briefing.text
+      area.style.position = 'fixed'
+      area.style.opacity = '0'
+      document.body.appendChild(area)
+      area.select()
+      const ok = document.execCommand('copy')
+      area.remove()
+      return ok
+    }
+
+    let ok = false
+    try {
+      await Promise.race([
+        navigator.clipboard.writeText(briefing.text),
+        new Promise((_, reject) => window.setTimeout(() => reject(new Error('timeout')), 1000)),
+      ])
+      ok = true
+    } catch {
+      ok = viaTextarea()
+    }
+
+    setCopied(ok ? 'copied' : 'failed')
+    window.setTimeout(() => setCopied('idle'), 2500)
+  }
+
   const downloadBriefing = () => {
     const zipped = format === 'zip'
     const blob = zipped
@@ -605,7 +672,7 @@ export default function Dashboard({
           </div>
 
           <div className="mb-8 rounded-2xl border border-sky-900/60 bg-sky-950/30 p-5">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="flex flex-col gap-4">
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <h3 className="text-base font-semibold text-white">Download for summarising</h3>
@@ -616,11 +683,10 @@ export default function Dashboard({
                     ⓘ Never scrapes paid sources
                   </button>
                 </div>
-                <p className="mt-1 max-w-2xl text-xs text-slate-400">
-                  Saves the {filteredItems.length} item{filteredItems.length === 1 ? '' : 's'} these
-                  filters show as a Markdown file of paste-ready blocks, each carrying the
-                  summarising prompt — each one its publisher&apos;s own headline and teaser plus
-                  the link, never article text. Paste a block into your own AI tool, save the reply,
+                <p className="mt-1 max-w-3xl text-xs text-slate-400">
+                  Paste-ready blocks carrying the summarising prompt and each item&apos;s own words
+                  — the headline, and whatever the publisher put in their public feed. Nothing is
+                  fetched from an article page. Paste a block into your own AI tool, save the reply,
                   and merge it back with{' '}
                   <code className="rounded bg-slate-800 px-1 py-0.5 text-[11px] text-slate-300">
                     python src/monitor.py --import-summaries output/reply.md
@@ -629,7 +695,7 @@ export default function Dashboard({
                 </p>
               </div>
 
-              <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end">
+              <div className="flex flex-wrap items-end gap-3">
                 <div className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                   Split files by
                   <div className="flex gap-2">
@@ -661,6 +727,21 @@ export default function Dashboard({
                 </div>
 
                 <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                  Detail
+                  <select
+                    value={depth}
+                    onChange={(event) => setDepth(event.target.value as Depth)}
+                    className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold normal-case tracking-normal text-white hover:border-slate-600"
+                  >
+                    {DEPTHS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                   Download as
                   <select
                     value={format}
@@ -675,13 +756,31 @@ export default function Dashboard({
                   </select>
                 </label>
 
-                <button
-                  onClick={downloadBriefing}
-                  disabled={briefing.pastes === 0}
-                  className="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
-                >
-                  Download
-                </button>
+                <div className="flex gap-2">
+                  {/*
+                    Copy first: pasting straight into a chat has no file for an
+                    AI app to refuse, and .zip in particular is not accepted as
+                    an upload by Claude or ChatGPT.
+                  */}
+                  <button
+                    onClick={copyBriefing}
+                    disabled={briefing.pastes === 0}
+                    className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:border-slate-800 disabled:bg-transparent disabled:text-slate-600 ${
+                      copied === 'failed'
+                        ? 'border-amber-600/60 bg-amber-600/15 text-amber-200'
+                        : 'border-sky-600/60 bg-sky-600/15 text-sky-200 hover:bg-sky-600/25'
+                    }`}
+                  >
+                    {copied === 'copied' ? '✓ Copied' : copied === 'failed' ? 'Copy failed' : 'Copy'}
+                  </button>
+                  <button
+                    onClick={downloadBriefing}
+                    disabled={briefing.pastes === 0}
+                    className="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
+                  >
+                    Download
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -795,6 +894,14 @@ export default function Dashboard({
                   {briefingFiles.map((file) => file.name).join('   ')}
                 </div>
               ) : null}
+
+              <div className="mt-2 text-[11px] text-slate-500">
+                {copied === 'failed'
+                  ? 'The browser refused the clipboard — use Download instead, or click the page once and retry.'
+                  : format === 'zip'
+                    ? 'Unzip first — Claude and ChatGPT do not accept .zip uploads. Upload the .md files, or use Copy to paste one straight in.'
+                    : 'Upload the .md file to Claude or ChatGPT, or use Copy to paste it straight in.'}
+              </div>
 
               {briefing.skipped > 0 ? (
                 <div className="mt-2 text-amber-500/80">

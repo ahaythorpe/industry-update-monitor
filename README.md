@@ -86,6 +86,7 @@ mid-article — and a section continued into the next message repeats its headin
 | `--gmail` | off | Also read newsletters from the Gmail label (read-only, opt-in) |
 | `--gmail-max` | 25 | Maximum newsletters to read |
 | `--brief` | `output/briefing.md` | Write a paste-ready briefing for an AI web tool |
+| `--deep` | off | Detailed prompt and smaller pastes; pair with `--flags ACT,KNOW` |
 | `--group-by` | — | Split that briefing into one file per group: `topic`, `flag`, or `topic,flag` |
 | `--topic` | — | Brief only these categories, e.g. `Compliance,Regulation` |
 | `--import-summaries` | — | Merge summaries pasted back from an AI web tool |

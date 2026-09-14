@@ -40,6 +40,33 @@ into "the KNOW items on tax" — 8 items on one subject — you get summaries wo
 reading, and you can skip the groups you do not care about this week. That is
 the entire reason the grouping exists.
 
+### Getting a file into an AI tool
+
+| Route | Notes |
+|---|---|
+| **Copy** button on the dashboard | Straight onto the clipboard, paste into the chat. Nothing to upload, nothing to be refused. |
+| Single Markdown file | `.md` uploads fine to Claude and ChatGPT. |
+| **Zip** | **Unzip first.** Neither Claude nor ChatGPT accepts a `.zip` upload — but the `.md` files inside are fine. |
+
+### Two passes: triage, then detail
+
+One prompt cannot do both jobs. *"One line each, only from the teaser"* is right
+for sorting fifty items, and it **guarantees** one-liners — the opposite of what
+you want on the handful that matter.
+
+So run the quick pass over everything, then a deep pass over what survived:
+
+```bash
+python src/monitor.py --brief --flags ACT,KNOW --deep
+```
+
+`--deep` swaps in a prompt that asks for two to four sentences, leading with
+figures, dates and names rather than framing; tells the model to say so when the
+DATE means a poll or a quarterly figure may already have been overtaken; and
+keeps "thin — open source" for anything under about eighty words. Pastes drop
+from 15 items to 6, because each item now carries far more text. On the
+dashboard it is the **Detail** dropdown.
+
 ### What comes back
 
 Each reply line is `ID | FLAG | one-sentence summary | LINK`. The ID is a hash
@@ -93,12 +120,28 @@ not after.
 The RSS file is fetched. That is a document the publisher generates and serves
 on purpose, for exactly this.
 
-### 3. Take two fields
+### 3. Take what the feed hands over
 
-From each entry: the **title**, and the **summary** — the teaser the publisher
-chose to put in public. Nothing else. The article URL is stored so you can click
-it; it is never fetched for its text. The teaser is capped at 600 characters,
-because a teaser is all there is.
+From each entry: the **title**, the **summary** (the teaser), and
+**`content:encoded`** — the article text the publisher chose to put in their own
+feed — where they supply it. In practice most do: 44 of 50 items in a recent
+digest came with it.
+
+That is still the feed, not the article page. Nothing is fetched, no wall is
+approached, and a publisher who does not want the text there does not put it
+there. It is capped at **1,500 characters** (`FEED_BODY_LIMIT`), trimmed back to
+a sentence boundary, because a briefing is pasted into a chat window and 9,000
+characters an item would blow the paste long before fifteen items.
+
+Every item records **`body_source`** — `feed_content` or `feed_summary` — so it
+is always visible which a summary was written from. The article URL is stored so
+you can click it; it is never fetched for its text.
+
+> This changed on 2026-09-15. Before it, only the title and a shortened teaser
+> were used, a briefing carried a median of 37 words an item, and every summary
+> that came back was a one-liner — because one-liners were all the input
+> supported. It is now 216. [SAFEGUARDS.md](SAFEGUARDS.md) section A was amended
+> to permit feed content explicitly.
 
 ### 4. Clean the teaser
 
@@ -145,6 +188,10 @@ operations. This one never calls `.read()`.*
 ## Why a paywall cannot be reached
 
 Not a policy the tool follows — **a capability it does not have.**
+
+**0. The distinction that does the work: what a publisher *sends* you is safe;
+what you *go and take* is not.** A feed is delivered. An article page is fetched.
+Nothing here fetches one.
 
 **1. There are exactly three places in the Python code that touch the network.**
 Fetching a feed. Checking a link resolves. Sending your own digest to your email

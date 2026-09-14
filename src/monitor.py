@@ -865,6 +865,45 @@ def show_sources():
 
 
 # ---------- Part 2a: fetch (RSS only — legitimate intake) ----------
+# How much of a feed's own article text to keep for summarising.
+#
+# Most publishers put the full story in content:encoded — part of the feed
+# they generate and serve on purpose, so reading it fetches nothing and visits
+# no article page. Capped anyway: a briefing is pasted into a chat window, and
+# 9,000 characters an item would blow the paste long before fifteen items.
+# The first few paragraphs carry the news; the rest is background.
+FEED_BODY_LIMIT = 1500
+
+
+def _trim_to_sentence(text, limit):
+    """Cut to `limit`, backing up to the last finished sentence if there is one."""
+    if len(text) <= limit:
+        return text
+    cut = text[:limit]
+    end = max(cut.rfind(". "), cut.rfind("! "), cut.rfind("? "))
+    # Only back up to a sentence if a reasonable amount survives; otherwise a
+    # single long opening paragraph would be thrown away entirely.
+    return cut[:end + 1] if end > limit * 0.4 else cut.rstrip() + "…"
+
+
+def feed_body(entry):
+    """
+    The article text the publisher put in their own feed, if any.
+
+    This is content:encoded, not the article page: nothing is fetched, no
+    paywall is approached, and a publisher who does not want it there does not
+    put it there. SAFEGUARDS.md section A permits it explicitly.
+    """
+    for block in entry.get("content") or []:
+        value = block.get("value") if isinstance(block, dict) else None
+        if not value:
+            continue
+        cleaned = clean_teaser(value)
+        if cleaned:
+            return _trim_to_sentence(cleaned, FEED_BODY_LIMIT)
+    return ""
+
+
 def _fetch_feed_bytes(url, timeout=FETCH_TIMEOUT):
     """Fetch the raw feed with an explicit agent and timeout."""
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
@@ -893,10 +932,16 @@ def fetch_feed_items(source, limit=10, timeout=FETCH_TIMEOUT):
         # 'summary' is the teaser the publisher CHOOSES to make public.
         # We use only this. We never fetch the full/locked article body.
         teaser = clean_teaser(entry.get("summary", ""))
+        # The feed's own article text where the publisher supplies it, the
+        # teaser where they do not. Recorded either way so a reader can tell
+        # which they are looking at.
+        body = feed_body(entry)
         items.append({
             "title": title,
             "summary": summarise_teaser(title, teaser),
             "teaser": teaser[:600],
+            "brief_text": body or teaser[:600],
+            "body_source": "feed_content" if body else "feed_summary",
             "link": entry.get("link", ""),
             "published": _entry_published(entry),
             "source_name": source.get("name", ""),
@@ -984,7 +1029,10 @@ def export_json(items, path, sources=None):
             # exporting only that quietly discarded up to two thirds of what
             # the feed gave us, so a briefing carried ~33 words an item and
             # the summaries that came back were one-liners.
-            "brief_text": item.get("teaser") or item.get("summary", ""),
+            "brief_text": item.get("brief_text") or item.get("teaser") or item.get("summary", ""),
+            # Where that text came from: the publisher's own feed content, or
+            # just their teaser. Never an article page — nothing fetches one.
+            "body_source": item.get("body_source", "feed_summary"),
             "link": item.get("link", ""),
             "source_name": item.get("source_name", ""),
             "intake": item.get("intake", "rss"),
@@ -1042,9 +1090,29 @@ summarise ONLY from the teaser given; never invent detail or add facts not prese
 is too thin, write "thin — open source"; always keep the ID and the LINK unchanged; do not attempt
 to access anything beyond the text provided."""
 
+# The second pass. One prompt cannot do triage and detail: "one line each,
+# only from the teaser" is right for sorting fifty items and guarantees
+# one-liners, which is exactly what you do not want on the handful that
+# matter. So the triage prompt above is left alone and this one is used on a
+# narrowed set, with the same output shape so replies import identically.
+DEEP_PROMPT = """You are helping a trainee financial adviser understand this week's Australian
+advice-industry news in depth. You will be given items, each with an ID, a TITLE, a SOURCE, a
+DATE, the publisher's own text, and a LINK. For each item output one line:
+`ID | FLAG | summary | LINK`. FLAG is ACT (changes what an adviser must do), KNOW (useful
+context), or NOTE (background/data). Write two to four sentences, on a single line, and lead with
+the specific facts — figures, dates, names, what changed — rather than the framing. Rules: use
+ONLY the text provided; never invent detail or add facts not present; if the text runs to less
+than about eighty words, write "thin — open source" and nothing else; say so if the DATE means a
+figure or a poll may have been overtaken; always keep the ID and the LINK unchanged; do not
+attempt to access anything beyond the text provided."""
+
 # Roughly a comfortable paste for one chat message. Items are never split
 # across blocks.
 BRIEF_CHUNK = 15
+
+# A deep item carries the publisher's own article text rather than a teaser,
+# so far fewer fit in one paste.
+DEEP_CHUNK = 6
 
 # The digest has carried a category per item since the dashboard started
 # grouping by one, but the briefing did not use it: pastes were chunked
@@ -1169,12 +1237,12 @@ def summary_ref(link, title=""):
     return hashlib.sha1(basis.encode("utf-8")).hexdigest()[:6]
 
 
-def format_briefing(items, chunk_size=BRIEF_CHUNK):
+def format_briefing(items, chunk_size=BRIEF_CHUNK, prompt=BRIEF_PROMPT):
     """Render the digest as paste-ready blocks for a web AI tool."""
     blocks = []
     for start in range(0, len(items), chunk_size):
         batch = items[start:start + chunk_size]
-        lines = [BRIEF_PROMPT, ""]
+        lines = [prompt, ""]
         for item in batch:
             ref = item.get("ref") or summary_ref(item.get("link", ""), item.get("title", ""))
             lines.append(f"ID: {ref}")
@@ -1193,14 +1261,14 @@ def format_briefing(items, chunk_size=BRIEF_CHUNK):
     return blocks
 
 
-def write_briefing(items, path, chunk_size=BRIEF_CHUNK, label=None):
+def write_briefing(items, path, chunk_size=BRIEF_CHUNK, label=None, prompt=BRIEF_PROMPT):
     """
     Write the briefing blocks to a file, one paste per block.
 
     `label` names the category in the paste marker, so a file split by
     category says which one it is without the reader counting files.
     """
-    blocks = format_briefing(items, chunk_size)
+    blocks = format_briefing(items, chunk_size, prompt)
     parts = []
     for number, block in enumerate(blocks, start=1):
         marker = f"paste {number} of {len(blocks)}"
@@ -1213,7 +1281,7 @@ def write_briefing(items, path, chunk_size=BRIEF_CHUNK, label=None):
     return path, len(blocks)
 
 
-def write_briefing_groups(directory, items, grouping, chunk_size=BRIEF_CHUNK):
+def write_briefing_groups(directory, items, grouping, chunk_size=BRIEF_CHUNK, prompt=BRIEF_PROMPT):
     """
     Write one briefing per group, so each paste is one coherent subject.
 
@@ -1227,7 +1295,7 @@ def write_briefing_groups(directory, items, grouping, chunk_size=BRIEF_CHUNK):
     written = []
     for label, name, group in group_items(items, grouping):
         path, blocks = write_briefing(
-            group, directory / f"{name}.md", chunk_size, label=label
+            group, directory / f"{name}.md", chunk_size, label=label, prompt=prompt
         )
         written.append((label, path, blocks, len(group)))
     return written
@@ -1318,6 +1386,8 @@ if __name__ == "__main__":
     parser.add_argument("--gmail-max", type=int, default=25, help="Maximum newsletters to read (1-50)")
     parser.add_argument("--brief", nargs="?", const="output/briefing.md", default=None,
                         help="Write a paste-ready briefing for a web AI tool (default: output/briefing.md)")
+    parser.add_argument("--deep", action="store_true",
+                        help="Use the detailed prompt and smaller pastes; pair with --flags ACT,KNOW")
     parser.add_argument("--group-by", default=None, metavar="DIMS",
                         help="Split the briefing into one file per group: topic, flag, or topic,flag")
     parser.add_argument("--topic", default=None,
@@ -1334,7 +1404,10 @@ if __name__ == "__main__":
     # Both flags only shape a briefing. Without --brief they would be read,
     # ignored, and a full fetch would run instead — so say so rather than
     # appearing to have filtered something.
-    if (args.group_by or args.topic) and args.brief is None:
+    if (args.group_by or args.topic or args.deep) and args.brief is None:
+        if args.deep:
+            raise SystemExit("❌ --deep shapes the briefing. Add --brief, e.g. "
+                             "python src/monitor.py --brief --deep --flags ACT,KNOW")
         name, value = ("--group-by", args.group_by) if args.group_by else ("--topic", args.topic)
         raise SystemExit(f"❌ {name} shapes the briefing. Add --brief, e.g. "
                          f"python src/monitor.py --brief {name} {value}")
@@ -1379,6 +1452,12 @@ if __name__ == "__main__":
                     f"Refresh it with: python src/monitor.py --json"
                 )
 
+            prompt = DEEP_PROMPT if args.deep else BRIEF_PROMPT
+            chunk = DEEP_CHUNK if args.deep else BRIEF_CHUNK
+            if args.deep and wanted_flags == set(FLAG_ORDER):
+                print("💡 --deep on every flag is a lot of pasting. "
+                      "Narrow it with --flags ACT,KNOW.")
+
             if args.group_by:
                 grouping, unknown = resolve_grouping(args.group_by)
                 if unknown:
@@ -1387,7 +1466,7 @@ if __name__ == "__main__":
                 # output/briefing.md -> output/briefing/compliance-know.md, so
                 # the default path still names the output without a second flag.
                 folder = (root / args.brief).with_suffix("")
-                written = write_briefing_groups(folder, brief_items, grouping)
+                written = write_briefing_groups(folder, brief_items, grouping, chunk, prompt)
                 pastes = sum(blocks for _, _, blocks, _ in written)
                 print(f"📝 {len(written)} group{'s' if len(written) != 1 else ''}, "
                       f"{pastes} paste{'s' if pastes != 1 else ''} written to {folder}/")
@@ -1395,7 +1474,7 @@ if __name__ == "__main__":
                     print(f"   {label}: {path.name} — {count} item{'s' if count != 1 else ''}, "
                           f"{blocks} paste{'s' if blocks != 1 else ''}")
             else:
-                written, blocks = write_briefing(brief_items, root / args.brief)
+                written, blocks = write_briefing(brief_items, root / args.brief, chunk, prompt=prompt)
                 print(f"📝 Briefing written to {written} — {blocks} paste{'s' if blocks != 1 else ''}.")
 
             print("   Paste each block into your AI web tool, then bring the reply back with:")
