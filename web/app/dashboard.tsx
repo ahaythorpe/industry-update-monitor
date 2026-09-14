@@ -46,44 +46,23 @@ const exactnessMeta = {
 /**
  * How a downloaded briefing is cut into pastes.
  *
- * Each option names what it actually produces, because "Category + flag" on
- * its own does not say whether you get compliance-act.md or act-compliance.md
- * — and both are worth having. Nesting flags inside categories suits reading
- * one subject at a time; nesting categories inside flags suits clearing all
- * the ACT items first.
+ * The options carry no hand-written description of what they produce. "Flag
+ * only" does not tell you that you get ACT, KNOW and NOTE, and a description
+ * written here would be a guess about a digest it cannot see — a week with no
+ * insurance stories has no Insurance file. Each label is built from the items
+ * actually on screen instead, so it names the real groups: "Compliance · ACT,
+ * Compliance · KNOW, …". See groupingOptions below.
  */
-const GROUPINGS: { value: string; label: string; summary: string; grouping: Grouping }[] = [
-  {
-    value: 'topic,flag',
-    label: 'Category, then flag',
-    summary: 'Compliance · ACT, Compliance · KNOW, Regulation · ACT, …',
-    grouping: ['topic', 'flag'],
-  },
-  {
-    value: 'flag,topic',
-    label: 'Flag, then category',
-    summary: 'ACT · Compliance, ACT · Regulation, KNOW · Compliance, …',
-    grouping: ['flag', 'topic'],
-  },
-  {
-    value: 'topic',
-    label: 'Category only',
-    summary: 'Compliance, Regulation, Super & tax, Insurance, …',
-    grouping: ['topic'],
-  },
-  {
-    value: 'flag',
-    label: 'Flag only',
-    summary: 'ACT, then KNOW, then NOTE',
-    grouping: ['flag'],
-  },
-  {
-    value: '',
-    label: 'No grouping',
-    summary: 'One run of up to 15 items per paste, in flag order',
-    grouping: [],
-  },
+const GROUPINGS: { value: string; label: string; grouping: Grouping }[] = [
+  { value: 'topic,flag', label: 'Category, then flag', grouping: ['topic', 'flag'] },
+  { value: 'flag,topic', label: 'Flag, then category', grouping: ['flag', 'topic'] },
+  { value: 'topic', label: 'Category only', grouping: ['topic'] },
+  { value: 'flag', label: 'Flag only', grouping: ['flag'] },
+  { value: '', label: 'No grouping', grouping: [] },
 ]
+
+// How many real group names to spell out before falling back to a count.
+const NAMES_SHOWN = 3
 
 const FORMATS = [
   { value: 'zip', label: 'Zip — one file per group' },
@@ -270,18 +249,46 @@ export default function Dashboard({
     return digestTopics.filter((topic) => present.has(topic))
   }, [digestItems, digestTopics])
 
-  const chosenGrouping = useMemo(
-    () => GROUPINGS.find((option) => option.value === grouping) || GROUPINGS[0],
-    [grouping]
+  /**
+   * Each grouping option, labelled with the groups it would actually produce.
+   *
+   * Built from the filtered items rather than written by hand, so the list
+   * names this week's real files — "Compliance · ACT, Compliance · KNOW, +13
+   * more" — and a category with no news this week never appears as an option
+   * that would produce an empty file.
+   */
+  const groupingOptions = useMemo(
+    () =>
+      GROUPINGS.map((option) => {
+        const files = buildBriefingFiles(filteredItems, option.grouping, digestTopics)
+        const names = files.map((file) => file.label)
+        const spelled = names.slice(0, NAMES_SHOWN).join(', ')
+        const rest = names.length > NAMES_SHOWN ? `, +${names.length - NAMES_SHOWN} more` : ''
+        const items = files.reduce((total, file) => total + file.items, 0)
+
+        return {
+          ...option,
+          files,
+          // What the dropdown shows: the option, then the real group names.
+          text: option.grouping.length
+            ? `${option.label}: ${spelled}${rest}`
+            : `${option.label}: one file of ${items} item${items === 1 ? '' : 's'}`,
+          // The same names in full, for the line under the controls.
+          fullNames: names.join(', '),
+        }
+      }),
+    [filteredItems, digestTopics]
   )
+
+  const chosenGrouping = useMemo(
+    () => groupingOptions.find((option) => option.value === grouping) || groupingOptions[0],
+    [groupingOptions, grouping]
+  )
+
+  const briefingFiles = chosenGrouping.files
 
   const briefing = useMemo(
     () => buildBriefing(filteredItems, chosenGrouping.grouping, digestTopics),
-    [filteredItems, chosenGrouping, digestTopics]
-  )
-
-  const briefingFiles = useMemo(
-    () => buildBriefingFiles(filteredItems, chosenGrouping.grouping, digestTopics),
     [filteredItems, chosenGrouping, digestTopics]
   )
 
@@ -559,9 +566,9 @@ export default function Dashboard({
                     onChange={(event) => setGrouping(event.target.value)}
                     className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold normal-case tracking-normal text-white hover:border-slate-600"
                   >
-                    {GROUPINGS.map((option) => (
+                    {groupingOptions.map((option) => (
                       <option key={option.value} value={option.value}>
-                        {option.label}
+                        {option.text}
                       </option>
                     ))}
                   </select>
@@ -602,7 +609,7 @@ export default function Dashboard({
                       ? `${briefingFiles.length} file${briefingFiles.length === 1 ? '' : 's'} in a zip`
                       : `1 file, ${briefing.pastes} paste${briefing.pastes === 1 ? '' : 's'}`}
                     , {briefing.items} item{briefing.items === 1 ? '' : 's'}
-                    {chosenGrouping.grouping.length ? ` — ${chosenGrouping.summary}` : ''}
+                    {chosenGrouping.grouping.length ? `: ${chosenGrouping.fullNames}` : ''}
                   </span>
                   {format === 'zip' && briefingFiles.length > 0 ? (
                     <span className="ml-1">
