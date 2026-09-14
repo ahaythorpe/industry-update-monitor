@@ -13,6 +13,7 @@ teaser, and the link. Never full article text.
 """
 
 import base64
+import json
 import os
 import urllib.error
 import urllib.parse
@@ -134,6 +135,51 @@ def format_whatsapp_digest(items: list, per_flag_limit: int = 6, week_of: str = 
     return messages
 
 
+# What Twilio's rejection codes mean in practice, and what to do about each.
+# Sending is freeform, so on the sandbox the 24-hour window is the one that
+# will bite: it closes, the weekly digest is refused, and the raw API response
+# says "63016" and a URL. Reading the code back as the fix keeps a failed
+# Monday send from looking like a broken tool.
+TWILIO_ERRORS = {
+    63016: ("The 24-hour window has closed. WhatsApp only allows a freeform message "
+            "within 24 hours of the recipient messaging you.\n"
+            "   Fix: send any message to the sandbox number from that phone, then re-run. "
+            "On the sandbox you have to do this every 72 hours."),
+    63015: ("The recipient has not joined the sandbox, or their join has lapsed.\n"
+            "   Fix: from that phone, message 'join <your-two-words>' to the sandbox number."),
+    63003: ("Twilio could not reach that recipient on WhatsApp.\n"
+            "   Fix: check WHATSAPP_TO is the number in full international form, e.g. +61412345678, "
+            "and that it has joined the sandbox."),
+    63007: ("No WhatsApp sender exists for TWILIO_WHATSAPP_NUMBER.\n"
+            "   Fix: use the sandbox number from the Twilio console exactly, e.g. +14155238886."),
+    21910: ("The From and To numbers are not both WhatsApp.\n"
+            "   Fix: check TWILIO_WHATSAPP_NUMBER is your sandbox number, not an SMS number."),
+    20003: ("Twilio refused the credentials.\n"
+            "   Fix: re-copy TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN from the console. "
+            "The SID starts with AC."),
+}
+
+
+def explain_twilio_error(status: int, body: str) -> str:
+    """
+    Turn a Twilio rejection into something that says what to do next.
+
+    Falls back to Twilio's own message when the code is not one we know, and
+    to the raw body when the response is not the JSON we expect — never
+    swallowing a failure just because it is unfamiliar.
+    """
+    try:
+        detail = json.loads(body)
+    except (ValueError, TypeError):
+        return f"Twilio rejected it ({status}): {body[:300]}"
+
+    code = detail.get("code")
+    known = TWILIO_ERRORS.get(code)
+    if known:
+        return f"{known}\n   (Twilio code {code}.)"
+    return f"Twilio rejected it ({status}, code {code}): {detail.get('message', body[:300])}"
+
+
 def _post(sid: str, token: str, payload: dict, timeout: int = 20) -> None:
     request = urllib.request.Request(
         TWILIO_API.format(sid=urllib.parse.quote(sid)),
@@ -182,8 +228,8 @@ def send_whatsapp_digest(items: list, to_number: str = None, per_flag_limit: int
         try:
             _post(cfg["sid"], cfg["token"], payload)
         except urllib.error.HTTPError as error:
-            detail = error.read().decode("utf-8", errors="replace")[:300]
-            print(f"❌ WhatsApp part {number} rejected by Twilio ({error.code}): {detail}")
+            body = error.read().decode("utf-8", errors="replace")
+            print(f"❌ WhatsApp part {number} not sent. {explain_twilio_error(error.code, body)}")
             return False
         except Exception as error:
             print(f"❌ WhatsApp part {number} failed: {type(error).__name__}: {error}")
