@@ -154,8 +154,48 @@ export function buildBriefing(
   }
 }
 
+export type BriefingEntry = { name: string; label: string; text: string; items: number; pastes: number }
+
+/**
+ * The same briefing as one file per group, for downloading as a folder.
+ *
+ * Each file is exactly what `--group-by` writes to
+ * output/briefing/<name>.md, so the two routes stay interchangeable.
+ */
+export function buildBriefingFiles(
+  items: DigestItem[],
+  grouping: Grouping,
+  topicOrder: string[],
+  chunkSize = BRIEF_CHUNK
+): BriefingEntry[] {
+  const usable = items.filter((item) => Boolean(item.ref))
+
+  return groupItems(usable, grouping, topicOrder).map((group) => {
+    const blocks = formatBriefing(group.items, chunkSize)
+    const text = blocks
+      .map((block, index) => {
+        const counter = `paste ${index + 1} of ${blocks.length}`
+        const marker = grouping.length ? `${group.label} — ${counter}` : counter
+        return `<!-- ${marker} -->\n\n${block}`
+      })
+      .join('\n\n---\n\n')
+
+    return {
+      name: `${group.name}.md`,
+      label: group.label,
+      text: text + '\n',
+      items: group.items.length,
+      pastes: blocks.length,
+    }
+  })
+}
+
 /** `briefing-topic-flag-2026-09-14.md` — says what it holds and when. */
-export function briefingFilename(grouping: Grouping, generatedAt: string): string {
+export function briefingFilename(
+  grouping: Grouping,
+  generatedAt: string,
+  extension: 'md' | 'zip' = 'md'
+): string {
   const day = (generatedAt || new Date().toISOString()).slice(0, 10)
-  return ['briefing', ...grouping, day].join('-') + '.md'
+  return ['briefing', ...grouping, day].join('-') + '.' + extension
 }

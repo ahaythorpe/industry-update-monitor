@@ -175,10 +175,18 @@ of these files imports exactly like any other.
 
 The dashboard has the same thing as a button. Filter to what you want — category,
 flag, source, date, search — then **Download for summarising** saves exactly what
-is on screen as a Markdown file, with **Group by** choosing how the pastes are
-cut. It is built in the browser from the digest already loaded, so it costs no
-request and reaches no publisher, and `web/lib/briefing.ts` produces the same
-bytes as `--brief` for the same items, so the reply imports the same way.
+is on screen.
+
+- **Group by** — category then flag, flag then category, either on its own, or
+  no grouping at all. Each option names what it produces.
+- **Download as** — a zip holding one Markdown file per group
+  (`compliance-act.md`, `compliance-know.md`, …), or a single Markdown file with
+  the groups one after another.
+
+It is built in the browser from the digest already loaded, so it costs no request
+and reaches no publisher. `web/lib/briefing.ts` produces the same bytes as
+`--brief` for the same items — checked against it over a real digest — so the
+reply imports the same way whichever route you took.
 
 Summaries land in the digest labelled `"ai_source": "manual"`, and the
 dashboard shows them under **Summarised by hand** so they never read as

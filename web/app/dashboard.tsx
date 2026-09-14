@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { type DigestItem, type DigestSource, type Flag } from '@/lib/digest'
-import { type Grouping, briefingFilename, buildBriefing } from '@/lib/briefing'
+import { type Grouping, briefingFilename, buildBriefing, buildBriefingFiles } from '@/lib/briefing'
+import { buildZip } from '@/lib/zip'
 import { formatDay, toDayKey } from '@/lib/utils'
 import { Calendar } from '@/components/Calendar'
 import { SettingsModal } from '@/components/SettingsModal'
@@ -42,15 +43,54 @@ const exactnessMeta = {
   broad: { label: 'Manual review', className: 'border-rose-500/40 bg-rose-500/10 text-rose-300' },
 } as const
 
-// How a downloaded briefing is cut into pastes. "Category + flag" is the one
-// worth having: "the KNOW items in Compliance" is a paste you can read in one
-// sitting, where "every KNOW item" is not.
-const GROUPINGS: { value: string; label: string; grouping: Grouping }[] = [
-  { value: 'topic,flag', label: 'Category + flag', grouping: ['topic', 'flag'] },
-  { value: 'topic', label: 'Category', grouping: ['topic'] },
-  { value: 'flag', label: 'Flag', grouping: ['flag'] },
-  { value: '', label: 'One run of 15', grouping: [] },
+/**
+ * How a downloaded briefing is cut into pastes.
+ *
+ * Each option names what it actually produces, because "Category + flag" on
+ * its own does not say whether you get compliance-act.md or act-compliance.md
+ * — and both are worth having. Nesting flags inside categories suits reading
+ * one subject at a time; nesting categories inside flags suits clearing all
+ * the ACT items first.
+ */
+const GROUPINGS: { value: string; label: string; summary: string; grouping: Grouping }[] = [
+  {
+    value: 'topic,flag',
+    label: 'Category, then flag',
+    summary: 'Compliance · ACT, Compliance · KNOW, Regulation · ACT, …',
+    grouping: ['topic', 'flag'],
+  },
+  {
+    value: 'flag,topic',
+    label: 'Flag, then category',
+    summary: 'ACT · Compliance, ACT · Regulation, KNOW · Compliance, …',
+    grouping: ['flag', 'topic'],
+  },
+  {
+    value: 'topic',
+    label: 'Category only',
+    summary: 'Compliance, Regulation, Super & tax, Insurance, …',
+    grouping: ['topic'],
+  },
+  {
+    value: 'flag',
+    label: 'Flag only',
+    summary: 'ACT, then KNOW, then NOTE',
+    grouping: ['flag'],
+  },
+  {
+    value: '',
+    label: 'No grouping',
+    summary: 'One run of up to 15 items per paste, in flag order',
+    grouping: [],
+  },
 ]
+
+const FORMATS = [
+  { value: 'zip', label: 'Zip — one file per group' },
+  { value: 'md', label: 'Single Markdown file' },
+] as const
+
+type Format = (typeof FORMATS)[number]['value']
 
 const READ_STORAGE_KEY = 'advice-monitor:read-items'
 
@@ -139,6 +179,7 @@ export default function Dashboard({
   const [selectedSource, setSelectedSource] = useState<string | null>(null)
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
   const [grouping, setGrouping] = useState(GROUPINGS[0].value)
+  const [format, setFormat] = useState<Format>('zip')
   const [selectedExactness, setSelectedExactness] = useState<Exactness>('all')
   const [dateRange, setDateRange] = useState<DateRange>('all')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -229,25 +270,40 @@ export default function Dashboard({
     return digestTopics.filter((topic) => present.has(topic))
   }, [digestItems, digestTopics])
 
-  const briefing = useMemo(() => {
-    const chosen = GROUPINGS.find((option) => option.value === grouping) || GROUPINGS[0]
-    return buildBriefing(filteredItems, chosen.grouping, digestTopics)
-  }, [filteredItems, grouping, digestTopics])
+  const chosenGrouping = useMemo(
+    () => GROUPINGS.find((option) => option.value === grouping) || GROUPINGS[0],
+    [grouping]
+  )
+
+  const briefing = useMemo(
+    () => buildBriefing(filteredItems, chosenGrouping.grouping, digestTopics),
+    [filteredItems, chosenGrouping, digestTopics]
+  )
+
+  const briefingFiles = useMemo(
+    () => buildBriefingFiles(filteredItems, chosenGrouping.grouping, digestTopics),
+    [filteredItems, chosenGrouping, digestTopics]
+  )
 
   /**
    * Save the briefing for whatever the filters currently show.
    *
    * Built in the browser from the digest already loaded, so downloading costs
-   * no request and reaches no publisher. The file holds each item's title,
+   * no request and reaches no publisher. Either shape holds each item's title,
    * teaser and link and nothing else — the same fields the feed handed over.
    */
   const downloadBriefing = () => {
-    const chosen = GROUPINGS.find((option) => option.value === grouping) || GROUPINGS[0]
-    const blob = new Blob([briefing.text], { type: 'text/markdown;charset=utf-8' })
+    const zipped = format === 'zip'
+    const blob = zipped
+      ? new Blob([buildZip(briefingFiles, new Date(digestGeneratedAt || Date.now()))], {
+          type: 'application/zip',
+        })
+      : new Blob([briefing.text], { type: 'text/markdown;charset=utf-8' })
+
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = briefingFilename(chosen.grouping, digestGeneratedAt)
+    anchor.download = briefingFilename(chosenGrouping.grouping, digestGeneratedAt, format)
     document.body.appendChild(anchor)
     anchor.click()
     anchor.remove()
@@ -495,15 +551,30 @@ export default function Dashboard({
                 </p>
               </div>
 
-              <div className="flex shrink-0 flex-wrap items-center gap-3">
-                <label className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+              <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end">
+                <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                   Group by
                   <select
                     value={grouping}
                     onChange={(event) => setGrouping(event.target.value)}
-                    className="rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:border-slate-600"
+                    className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold normal-case tracking-normal text-white hover:border-slate-600"
                   >
                     {GROUPINGS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                  Download as
+                  <select
+                    value={format}
+                    onChange={(event) => setFormat(event.target.value as Format)}
+                    className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold normal-case tracking-normal text-white hover:border-slate-600"
+                  >
+                    {FORMATS.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
@@ -514,22 +585,35 @@ export default function Dashboard({
                 <button
                   onClick={downloadBriefing}
                   disabled={briefing.pastes === 0}
-                  className="rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
+                  className="rounded-xl bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
                 >
-                  Download briefing
+                  Download
                 </button>
               </div>
             </div>
 
-            <div className="mt-3 text-xs text-slate-500">
+            <div className="mt-4 border-t border-slate-800/80 pt-3 text-xs text-slate-500">
               {briefing.pastes === 0 ? (
                 'Nothing to download — widen the filters above.'
               ) : (
                 <>
-                  {briefing.pastes} paste{briefing.pastes === 1 ? '' : 's'} from {briefing.items}{' '}
-                  item{briefing.items === 1 ? '' : 's'}. Each item goes in as its publisher&apos;s own
-                  headline and teaser plus the link — never article text, which this tool never
-                  fetches.
+                  <span className="text-slate-400">
+                    {format === 'zip'
+                      ? `${briefingFiles.length} file${briefingFiles.length === 1 ? '' : 's'} in a zip`
+                      : `1 file, ${briefing.pastes} paste${briefing.pastes === 1 ? '' : 's'}`}
+                    , {briefing.items} item{briefing.items === 1 ? '' : 's'}
+                    {chosenGrouping.grouping.length ? ` — ${chosenGrouping.summary}` : ''}
+                  </span>
+                  {format === 'zip' && briefingFiles.length > 0 ? (
+                    <span className="ml-1">
+                      Largest: {[...briefingFiles].sort((a, b) => b.items - a.items)[0].label} (
+                      {[...briefingFiles].sort((a, b) => b.items - a.items)[0].items} items).
+                    </span>
+                  ) : null}
+                  <span className="ml-1">
+                    Each item goes in as its publisher&apos;s own headline and teaser plus the link
+                    — never article text, which this tool never fetches.
+                  </span>
                   {briefing.skipped > 0
                     ? ` ${briefing.skipped} item${briefing.skipped === 1 ? '' : 's'} left out for having no ID to match a reply back to.`
                     : ''}
