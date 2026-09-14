@@ -47,16 +47,29 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
 
         <div className="mt-6 space-y-5 text-sm">
           <section className="rounded-2xl border border-slate-700 bg-slate-800/50 p-5">
-            <h3 className="font-semibold text-white">It only reads what publishers give away</h3>
+            <h3 className="font-semibold text-white">It only reads what publishers hand over</h3>
             <p className="mt-2 text-slate-300">
               Every item comes from an RSS feed the publisher chose to publish, or a newsletter that
-              arrived in your own inbox. What goes into a briefing is two fields from that feed —
-              the <strong className="text-white">headline</strong> and the{' '}
-              <strong className="text-white">teaser the publisher wrote for the public</strong> —
-              plus the link.
+              arrived in your own inbox. A briefing carries the{' '}
+              <strong className="text-white">headline</strong>, whatever text the publisher put in
+              that feed, and the link.
+            </p>
+            <p className="mt-2 text-slate-400">
+              Most publishers put the whole story in the feed. That is still the feed, not the
+              article page: a publisher who does not want the text there does not put it there.
+              Each item records which it came from — the feed&apos;s full text, or just a teaser.
             </p>
             <p className="mt-2 text-slate-400">
               The article URL is stored so you can click it. It is never fetched to read.
+            </p>
+          </section>
+
+          <section className="rounded-2xl border border-slate-700 bg-slate-800/50 p-5">
+            <h3 className="font-semibold text-white">The line, in one sentence</h3>
+            <p className="mt-2 text-slate-300">
+              What a publisher <strong className="text-white">sends you</strong> is safe. What you{' '}
+              <strong className="text-white">go and take</strong> is not. A feed is delivered; an
+              article page is fetched. Nothing here fetches one.
             </p>
           </section>
 
@@ -99,13 +112,13 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
             <p className="mt-2 text-slate-300">
               Every block you paste carries the instruction{' '}
               <em className="text-slate-200">
-                &ldquo;summarise ONLY from the teaser given&rdquo;
+                &ldquo;use ONLY the text provided&rdquo;
               </em>{' '}
               and{' '}
               <em className="text-slate-200">
                 &ldquo;do not attempt to access anything beyond the text provided&rdquo;
               </em>
-              . If a teaser is too thin to summarise, the correct answer is{' '}
+              . If there is too little text to summarise, the correct answer is{' '}
               <span className="text-white">&ldquo;thin — open source&rdquo;</span> — admit it rather
               than invent something.
             </p>
