@@ -253,6 +253,14 @@ cd /Users/bella/Projects/advice-monitor
 python -m pytest -q
 ```
 
+## Outside services
+
+Every external service this can use — Twilio, SMTP, the Gmail API, Vercel, the
+AI web tool — is listed in [INTEGRATIONS.md](INTEGRATIONS.md) with what it costs
+and how to keep it free. Nothing is on unless you configure it, and
+`/api/status` reports what the server can actually do rather than showing
+switches that do nothing.
+
 ## Safety and guardrails
 - No paywall bypassing
 - No login flow required for default usage
