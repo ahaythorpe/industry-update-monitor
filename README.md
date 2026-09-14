@@ -187,8 +187,14 @@ is on screen.
 - **Download as** — a zip holding one Markdown file per group, or one Markdown
   file with the groups one after another.
 
-Underneath, it names the files you are about to get and which is biggest, so
-nothing is a surprise. The reverse nesting (`act-compliance.md`) is not in the
+Underneath, **Files to include** lists the files you are about to get as tick
+chips with their item counts. Untick the ones you do not want — so "just the
+KNOW items on tax" is one click on `Super & tax · KNOW`, without disturbing the
+filters that decide what you are reading. Pick exactly one and the download is
+named after it (`super-tax-know-2026-09-14.md`).
+
+**ⓘ Never scrapes paid sources** in that panel opens a plain-English
+explanation of where the text comes from and why no article body can reach it. The reverse nesting (`act-compliance.md`) is not in the
 UI; it is `--group-by flag,topic` on the command line.
 
 It is built in the browser from the digest already loaded, so it costs no request

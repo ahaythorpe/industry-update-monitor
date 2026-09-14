@@ -120,7 +120,28 @@ export function formatBriefing(items: DigestItem[], chunkSize = BRIEF_CHUNK): st
 export type BriefingFile = { text: string; items: number; pastes: number; skipped: number }
 
 /**
+ * Join per-group files into one briefing.
+ *
+ * Takes the files rather than the items, so downloading a chosen few groups —
+ * just Super & tax · KNOW, say — produces exactly the text those groups would
+ * have had as separate files, with nothing renumbered or re-chunked.
+ */
+export function combineBriefing(files: BriefingEntry[], skipped = 0): BriefingFile {
+  // Each file ends with a newline of its own; the separator supplies its own.
+  const parts = files.map((file) => file.text.replace(/\n$/, ''))
+  return {
+    text: parts.join('\n\n---\n\n') + (parts.length ? '\n' : ''),
+    items: files.reduce((total, file) => total + file.items, 0),
+    pastes: files.reduce((total, file) => total + file.pastes, 0),
+    skipped,
+  }
+}
+
+/**
  * Build the whole downloadable briefing.
+ *
+ * Assembled from the per-group files so the zip and the single file cannot
+ * drift apart: one builder, two wrappers.
  *
  * An item with no ref is left out and counted, never given an invented ID: a
  * reply line whose ID matches nothing is reported by `--import-summaries`,
@@ -132,26 +153,11 @@ export function buildBriefing(
   topicOrder: string[],
   chunkSize = BRIEF_CHUNK
 ): BriefingFile {
-  const usable = items.filter((item) => Boolean(item.ref))
-  const parts: string[] = []
-  let pastes = 0
-
-  groupItems(usable, grouping, topicOrder).forEach((group) => {
-    const blocks = formatBriefing(group.items, chunkSize)
-    blocks.forEach((block, index) => {
-      const counter = `paste ${index + 1} of ${blocks.length}`
-      const marker = grouping.length ? `${group.label} — ${counter}` : counter
-      parts.push(`<!-- ${marker} -->\n\n${block}`)
-    })
-    pastes += blocks.length
-  })
-
-  return {
-    text: parts.join('\n\n---\n\n') + (parts.length ? '\n' : ''),
-    items: usable.length,
-    pastes,
-    skipped: items.length - usable.length,
-  }
+  const usable = items.filter((item) => Boolean(item.ref)).length
+  return combineBriefing(
+    buildBriefingFiles(items, grouping, topicOrder, chunkSize),
+    items.length - usable
+  )
 }
 
 export type BriefingEntry = { name: string; label: string; text: string; items: number; pastes: number }

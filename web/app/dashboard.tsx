@@ -2,11 +2,18 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { type DigestItem, type DigestSource, type Flag } from '@/lib/digest'
-import { type Grouping, briefingFilename, buildBriefing, buildBriefingFiles } from '@/lib/briefing'
+import {
+  type Grouping,
+  briefingFilename,
+  buildBriefingFiles,
+  combineBriefing,
+  slug,
+} from '@/lib/briefing'
 import { buildZip } from '@/lib/zip'
 import { formatDay, toDayKey } from '@/lib/utils'
 import { Calendar } from '@/components/Calendar'
 import { SettingsModal } from '@/components/SettingsModal'
+import { PaywallModal } from '@/components/PaywallModal'
 
 type Exactness = 'all' | 'exact' | 'fallback' | 'broad'
 type DateRange = 'week' | 'month' | 'all'
@@ -158,6 +165,10 @@ export default function Dashboard({
     flag: true,
   })
   const [format, setFormat] = useState<Format>('zip')
+  // Held as the groups left OUT, so a group that appears after you change a
+  // filter is included by default rather than silently missing.
+  const [excluded, setExcluded] = useState<Set<string>>(new Set())
+  const [paywallOpen, setPaywallOpen] = useState(false)
   const [selectedExactness, setSelectedExactness] = useState<Exactness>('all')
   const [dateRange, setDateRange] = useState<DateRange>('all')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -262,15 +273,28 @@ export default function Dashboard({
     [filteredItems, grouping, digestTopics]
   )
 
-  const briefing = useMemo(
-    () => buildBriefing(filteredItems, grouping, digestTopics),
-    [filteredItems, grouping, digestTopics]
+  const chosenFiles = useMemo(
+    () => briefingFiles.filter((file) => !excluded.has(file.name)),
+    [briefingFiles, excluded]
   )
 
+  const briefing = useMemo(() => {
+    const withoutRef = filteredItems.filter((item) => !item.ref).length
+    return combineBriefing(chosenFiles, withoutRef)
+  }, [chosenFiles, filteredItems])
+
   const biggestFile = useMemo(
-    () => [...briefingFiles].sort((a, b) => b.items - a.items)[0],
-    [briefingFiles]
+    () => [...chosenFiles].sort((a, b) => b.items - a.items)[0],
+    [chosenFiles]
   )
+
+  const toggleFile = (name: string) =>
+    setExcluded((current) => {
+      const next = new Set(current)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+      return next
+    })
 
   /**
    * Save the briefing for whatever the filters currently show.
@@ -282,15 +306,23 @@ export default function Dashboard({
   const downloadBriefing = () => {
     const zipped = format === 'zip'
     const blob = zipped
-      ? new Blob([buildZip(briefingFiles, new Date(digestGeneratedAt || Date.now()))], {
+      ? new Blob([buildZip(chosenFiles, new Date(digestGeneratedAt || Date.now()))], {
           type: 'application/zip',
         })
       : new Blob([briefing.text], { type: 'text/markdown;charset=utf-8' })
 
+    // One group on its own is named after that group, so a download of just
+    // Super & tax · KNOW arrives as super-tax-know-2026-09-14.md.
+    const day = (digestGeneratedAt || new Date().toISOString()).slice(0, 10)
+    const name =
+      chosenFiles.length === 1 && grouping.length
+        ? `${slug(chosenFiles[0].label)}-${day}.${format}`
+        : briefingFilename(grouping, digestGeneratedAt, format)
+
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = briefingFilename(grouping, digestGeneratedAt, format)
+    anchor.download = name
     document.body.appendChild(anchor)
     anchor.click()
     anchor.remove()
@@ -525,7 +557,15 @@ export default function Dashboard({
           <div className="mb-8 rounded-2xl border border-sky-900/60 bg-sky-950/30 p-5">
             <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <h3 className="text-base font-semibold text-white">Download for summarising</h3>
+                <div className="flex flex-wrap items-center gap-3">
+                  <h3 className="text-base font-semibold text-white">Download for summarising</h3>
+                  <button
+                    onClick={() => setPaywallOpen(true)}
+                    className="rounded-full border border-emerald-700/60 bg-emerald-950/40 px-3 py-1 text-[11px] font-semibold text-emerald-300 hover:border-emerald-500"
+                  >
+                    ⓘ Never scrapes paid sources
+                  </button>
+                </div>
                 <p className="mt-1 max-w-2xl text-xs text-slate-400">
                   Saves the {filteredItems.length} item{filteredItems.length === 1 ? '' : 's'} these
                   filters show as a Markdown file of paste-ready blocks, each carrying the
@@ -602,7 +642,9 @@ export default function Dashboard({
                 <>
                   <span className="font-semibold text-slate-300">
                     {format === 'zip'
-                      ? `${briefingFiles.length} file${briefingFiles.length === 1 ? '' : 's'}`
+                      ? `${chosenFiles.length}${
+                          excluded.size > 0 ? ` of ${briefingFiles.length}` : ''
+                        } file${chosenFiles.length === 1 ? '' : 's'}`
                       : `1 file, ${briefing.pastes} paste${briefing.pastes === 1 ? '' : 's'}`}
                     {' · '}
                     {briefing.items} item{briefing.items === 1 ? '' : 's'}
@@ -611,8 +653,49 @@ export default function Dashboard({
                       : ''}
                   </span>
                   {grouping.length ? (
-                    <div className="mt-1 text-slate-500">
-                      {briefingFiles.map((file) => file.name).join('   ')}
+                    <div className="mt-3">
+                      <div className="mb-2 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+                        Files to include
+                        {excluded.size > 0 ? (
+                          <button
+                            onClick={() => setExcluded(new Set())}
+                            className="rounded-full border border-slate-700 px-2 py-0.5 normal-case tracking-normal text-slate-400 hover:border-slate-500"
+                          >
+                            Select all
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() =>
+                              setExcluded(new Set(briefingFiles.map((file) => file.name)))
+                            }
+                            className="rounded-full border border-slate-700 px-2 py-0.5 normal-case tracking-normal text-slate-400 hover:border-slate-500"
+                          >
+                            Clear all
+                          </button>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {briefingFiles.map((file) => {
+                          const included = !excluded.has(file.name)
+                          return (
+                            <button
+                              key={file.name}
+                              onClick={() => toggleFile(file.name)}
+                              title={file.name}
+                              className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                                included
+                                  ? 'border-sky-600/60 bg-sky-600/15 text-sky-200'
+                                  : 'border-slate-800 bg-slate-900 text-slate-600 line-through'
+                              }`}
+                            >
+                              {file.label}{' '}
+                              <span className={included ? 'text-sky-400/70' : ''}>
+                                ({file.items})
+                              </span>
+                            </button>
+                          )
+                        })}
+                      </div>
                     </div>
                   ) : null}
                   {briefing.skipped > 0 ? (
@@ -838,6 +921,7 @@ export default function Dashboard({
       </div>
 
       <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <PaywallModal isOpen={paywallOpen} onClose={() => setPaywallOpen(false)} />
     </main>
   )
 }

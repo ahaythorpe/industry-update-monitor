@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { BRIEF_PROMPT, briefingFilename, buildBriefing, groupItems, slug } from './briefing'
+import {
+  BRIEF_PROMPT,
+  briefingFilename,
+  buildBriefing,
+  buildBriefingFiles,
+  combineBriefing,
+  groupItems,
+  slug,
+} from './briefing'
 import type { DigestItem } from './digest'
 
 const TOPICS = ['Compliance', 'Regulation', 'Super & tax', 'Insurance', 'People moves', 'Business', 'Industry']
@@ -130,6 +138,35 @@ describe('the downloaded briefing', () => {
 
   it('produces nothing at all when there is nothing to brief', () => {
     expect(buildBriefing([], ['topic'], TOPICS)).toMatchObject({ text: '', items: 0, pastes: 0 })
+  })
+
+  it('downloading one chosen group gives exactly that group\'s file', () => {
+    // The point of picking files: "just the KNOW items on tax", without
+    // touching the filters that decide what is on screen.
+    const files = buildBriefingFiles(MIXED, ['topic', 'flag'], TOPICS)
+    const one = files.filter((file) => file.name === 'compliance-know.md')
+    const combined = combineBriefing(one)
+
+    expect(combined.items).toBe(1)
+    expect(combined.text).toBe(one[0].text)
+    expect(combined.text).toContain('ID: a00002')
+    expect(combined.text).not.toContain('ID: a00001')
+  })
+
+  it('combining every group equals building the whole briefing', () => {
+    const files = buildBriefingFiles(MIXED, ['topic', 'flag'], TOPICS)
+    expect(combineBriefing(files).text).toBe(buildBriefing(MIXED, ['topic', 'flag'], TOPICS).text)
+  })
+
+  it('combining a chosen few adds up to their own counts', () => {
+    const files = buildBriefingFiles(MIXED, ['topic'], TOPICS)
+    const combined = combineBriefing(files.slice(0, 2))
+    expect(combined.items).toBe(files[0].items + files[1].items)
+    expect(combined.pastes).toBe(files[0].pastes + files[1].pastes)
+  })
+
+  it('combining nothing produces nothing rather than a stray separator', () => {
+    expect(combineBriefing([])).toMatchObject({ text: '', items: 0, pastes: 0 })
   })
 
   it('names the file after the grouping and the digest date', () => {
