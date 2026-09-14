@@ -82,6 +82,8 @@ mid-article — and a section continued into the next message repeats its headin
 | `--gmail` | off | Also read newsletters from the Gmail label (read-only, opt-in) |
 | `--gmail-max` | 25 | Maximum newsletters to read |
 | `--brief` | `output/briefing.md` | Write a paste-ready briefing for an AI web tool |
+| `--group-by` | — | Split that briefing into one file per group: `topic`, `flag`, or `topic,flag` |
+| `--topic` | — | Brief only these categories, e.g. `Compliance,Regulation` |
 | `--import-summaries` | — | Merge summaries pasted back from an AI web tool |
 | `--digest` | `web/lib/digest.json` | The digest those two commands read and write |
 
@@ -142,6 +144,41 @@ python src/monitor.py --brief                           # output/briefing.md, ~1
 #   paste each block into the AI web tool, save its reply as output/reply.md
 python src/monitor.py --import-summaries output/reply.md
 ```
+
+#### One paste per group
+
+Every item carries a category — Compliance, Regulation, Super & tax, Insurance,
+People moves, Business, or Industry for anything else — as well as its flag. A
+plain `--brief` chunks 15 items at a time in flag order, so one paste mixes
+People moves with Compliance. `--group-by` cuts it along either axis, or both:
+
+```bash
+python src/monitor.py --brief --group-by topic          # compliance.md, regulation.md, …
+python src/monitor.py --brief --group-by flag           # act.md, know.md, note.md
+python src/monitor.py --brief --group-by topic,flag     # compliance-act.md, compliance-know.md, …
+```
+
+`--topic` and `--flags` narrow what goes in before it is grouped, so a week's
+reading can be cut down to one paste:
+
+```bash
+python src/monitor.py --brief --topic Compliance,Regulation --flags KNOW
+```
+
+`--group-by` names the folder after `--brief`, so `output/briefing.md` becomes
+`output/briefing/`. A combination with nothing in it gets no file rather than an
+empty one, and a group too big for one paste is still split on item boundaries.
+The prompt, the IDs and `--import-summaries` are unchanged, so a reply from any
+of these files imports exactly like any other.
+
+#### Or download it from the dashboard
+
+The dashboard has the same thing as a button. Filter to what you want — category,
+flag, source, date, search — then **Download for summarising** saves exactly what
+is on screen as a Markdown file, with **Group by** choosing how the pastes are
+cut. It is built in the browser from the digest already loaded, so it costs no
+request and reaches no publisher, and `web/lib/briefing.ts` produces the same
+bytes as `--brief` for the same items, so the reply imports the same way.
 
 Summaries land in the digest labelled `"ai_source": "manual"`, and the
 dashboard shows them under **Summarised by hand** so they never read as

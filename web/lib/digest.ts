@@ -3,6 +3,10 @@ export type LinkExactness = 'exact' | 'fallback' | 'broad'
 
 export type DigestItem = {
   id: string
+  // The six-character handle a briefing round trip is matched on. Written by
+  // export_json; kept here so a briefing downloaded from the dashboard imports
+  // through `--import-summaries` exactly like one written by the CLI.
+  ref?: string | null
   title: string
   teaser: string
   link: string
@@ -85,6 +89,10 @@ export function classifyLinkExactness(url: string): LinkExactness {
 export function normalizeIncomingItem(input: Partial<DigestItem> & Pick<DigestItem, 'title' | 'link' | 'source_name' | 'flag' | 'topic'>): DigestItem {
   return {
     id: input.id || `item-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    // Never invented: the ref is a hash of the link computed by the monitor,
+    // so an item that arrived without one has no ID a reply could be matched
+    // back to, and the briefing builder leaves it out rather than guessing.
+    ref: input.ref ?? null,
     title: input.title,
     teaser: input.teaser || '',
     link: input.link,

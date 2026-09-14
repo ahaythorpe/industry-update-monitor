@@ -23,6 +23,7 @@ import json
 import os
 import re
 import argparse
+import itertools
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
@@ -954,6 +955,10 @@ def export_json(items, path, sources=None):
     kept = _existing_summaries(path)
     payload = {
         "generated_at": datetime.now(timezone.utc).isoformat(),
+        # The dashboard groups and downloads by category, so it needs the same
+        # label order the classifier used. Publishing it here means the two
+        # cannot drift the way a hardcoded copy in TypeScript would.
+        "topics": list(TOPIC_LABELS),
         "sources": _bibliography(items, sources),
         "items": [],
     }
@@ -1025,6 +1030,120 @@ to access anything beyond the text provided."""
 # across blocks.
 BRIEF_CHUNK = 15
 
+# The digest has carried a category per item since the dashboard started
+# grouping by one, but the briefing did not use it: pastes were chunked
+# 15-at-a-time in flag order, so a single paste mixed People moves with
+# Compliance. A summary reads better when the paste it came from is all one
+# subject, so the briefing can now be filtered or split the same way the
+# dashboard groups. "Industry" is the classifier's fallback label, so it
+# belongs in the list a user may ask for by name.
+TOPIC_LABELS = tuple(label for label, _ in TOPIC_RULES) + ("Industry",)
+
+
+def resolve_topics(names):
+    """
+    Match category names as typed to the labels the classifier actually uses.
+
+    Returns (resolved, unknown). Case and surrounding space are forgiven
+    because these are typed at a shell prompt; a misspelling is reported
+    rather than quietly dropped, which would otherwise read as "that category
+    had no news this week".
+    """
+    by_lower = {label.lower(): label for label in TOPIC_LABELS}
+    resolved, unknown = [], []
+    for name in names:
+        name = name.strip()
+        if not name:
+            continue
+        label = by_lower.get(name.lower())
+        if label is None:
+            unknown.append(name)
+        elif label not in resolved:
+            resolved.append(label)
+    return resolved, unknown
+
+
+def topic_of(item):
+    """An item's category, falling back to the classifier's own default."""
+    return item.get("topic") or "Industry"
+
+
+def filter_by_topic(items, topics):
+    """Keep only the items whose category is one of `topics`."""
+    wanted = {label.lower() for label in topics}
+    return [item for item in items if topic_of(item).lower() in wanted]
+
+
+def filter_by_flag(items, flags):
+    """Keep only the items carrying one of `flags`, e.g. just the KNOW ones."""
+    wanted = {flag.upper() for flag in flags}
+    return [item for item in items if (item.get("flag") or "").upper() in wanted]
+
+
+def slug(label):
+    """`Super & tax` -> `super-tax`, so a label can name a file."""
+    return re.sub(r"[^a-z0-9]+", "-", label.lower()).strip("-")
+
+
+# The two ways a digest can be cut, each as (key of an item, order of its
+# labels). Grouping by both at once is the useful case: "the KNOW items in
+# Compliance" is a paste you can actually read in one sitting, where "every
+# KNOW item" is not.
+GROUP_DIMENSIONS = {
+    "topic": (topic_of, TOPIC_LABELS),
+    "flag": (lambda item: item.get("flag") or "NOTE",
+             tuple(sorted(FLAG_ORDER, key=FLAG_ORDER.get))),
+}
+
+
+def resolve_grouping(spec):
+    """
+    Read `topic`, `flag` or `topic,flag` into an ordered tuple of dimensions.
+
+    Order is the caller's: `topic,flag` nests flags inside categories and
+    names the file compliance-know.md, `flag,topic` the other way round.
+    """
+    resolved, unknown = [], []
+    for name in (spec or "").split(","):
+        name = name.strip().lower()
+        if not name:
+            continue
+        if name not in GROUP_DIMENSIONS:
+            unknown.append(name)
+        elif name not in resolved:
+            resolved.append(name)
+    return tuple(resolved), unknown
+
+
+def group_items(items, grouping):
+    """
+    Split the digest by the combination of dimensions asked for.
+
+    Returns [(label, slug, items)] with empty combinations left out — a
+    category with no ACT items this week gets no file rather than one holding
+    nothing. An empty grouping returns a single group of everything, so the
+    caller has one code path whether or not it is splitting.
+    """
+    if not grouping:
+        return [("All items", "briefing", list(items))]
+
+    keyers = [GROUP_DIMENSIONS[name][0] for name in grouping]
+    orders = [GROUP_DIMENSIONS[name][1] for name in grouping]
+
+    buckets = {}
+    for item in items:
+        buckets.setdefault(tuple(key(item) for key in keyers), []).append(item)
+
+    groups = []
+    for combination in itertools.product(*orders):
+        if combination in buckets:
+            groups.append((
+                " · ".join(combination),
+                "-".join(slug(part) for part in combination),
+                buckets[combination],
+            ))
+    return groups
+
 
 def summary_ref(link, title=""):
     """A short, stable handle for one item, for the round trip through a chat."""
@@ -1051,16 +1170,44 @@ def format_briefing(items, chunk_size=BRIEF_CHUNK):
     return blocks
 
 
-def write_briefing(items, path, chunk_size=BRIEF_CHUNK):
-    """Write the briefing blocks to a file, one paste per block."""
+def write_briefing(items, path, chunk_size=BRIEF_CHUNK, label=None):
+    """
+    Write the briefing blocks to a file, one paste per block.
+
+    `label` names the category in the paste marker, so a file split by
+    category says which one it is without the reader counting files.
+    """
     blocks = format_briefing(items, chunk_size)
     parts = []
     for number, block in enumerate(blocks, start=1):
-        parts.append(f"<!-- paste {number} of {len(blocks)} -->\n\n{block}")
+        marker = f"paste {number} of {len(blocks)}"
+        if label:
+            marker = f"{label} — {marker}"
+        parts.append(f"<!-- {marker} -->\n\n{block}")
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n\n---\n\n".join(parts) + "\n", encoding="utf-8")
     return path, len(blocks)
+
+
+def write_briefing_groups(directory, items, grouping, chunk_size=BRIEF_CHUNK):
+    """
+    Write one briefing per group, so each paste is one coherent subject.
+
+    Returns [(label, path, blocks, item_count)] in label order. The prompt,
+    the IDs and the round trip back through --import-summaries are unchanged:
+    only the grouping of the pastes differs, so replies from these files
+    import exactly like replies from the single-file briefing.
+    """
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True)
+    written = []
+    for label, name, group in group_items(items, grouping):
+        path, blocks = write_briefing(
+            group, directory / f"{name}.md", chunk_size, label=label
+        )
+        written.append((label, path, blocks, len(group)))
+    return written
 
 
 # The reply comes back through a chat window, so it may arrive bulleted,
@@ -1148,6 +1295,10 @@ if __name__ == "__main__":
     parser.add_argument("--gmail-max", type=int, default=25, help="Maximum newsletters to read (1-50)")
     parser.add_argument("--brief", nargs="?", const="output/briefing.md", default=None,
                         help="Write a paste-ready briefing for a web AI tool (default: output/briefing.md)")
+    parser.add_argument("--group-by", default=None, metavar="DIMS",
+                        help="Split the briefing into one file per group: topic, flag, or topic,flag")
+    parser.add_argument("--topic", default=None,
+                        help="Comma-separated categories to brief, e.g. Compliance,Regulation")
     parser.add_argument("--import-summaries", metavar="PATH", default=None,
                         help="Merge summaries pasted back from a web AI tool into the digest JSON")
     parser.add_argument("--digest", default="web/lib/digest.json",
@@ -1157,6 +1308,14 @@ if __name__ == "__main__":
     root = Path(__file__).resolve().parent.parent
     digest_path = root / args.digest
 
+    # Both flags only shape a briefing. Without --brief they would be read,
+    # ignored, and a full fetch would run instead — so say so rather than
+    # appearing to have filtered something.
+    if (args.group_by or args.topic) and args.brief is None:
+        name, value = ("--group-by", args.group_by) if args.group_by else ("--topic", args.topic)
+        raise SystemExit(f"❌ {name} shapes the briefing. Add --brief, e.g. "
+                         f"python src/monitor.py --brief {name} {value}")
+
     # Both halves of the manual round trip work from the digest already on
     # disk: no feeds are fetched, so they cost nothing and work offline.
     if args.brief is not None or args.import_summaries:
@@ -1165,8 +1324,57 @@ if __name__ == "__main__":
 
         if args.brief is not None:
             digest = json.loads(digest_path.read_text(encoding="utf-8"))
-            written, blocks = write_briefing(digest.get("items", []), root / args.brief)
-            print(f"📝 Briefing written to {written} — {blocks} paste{'s' if blocks != 1 else ''}.")
+            brief_items = digest.get("items", [])
+
+            asked_for = []
+            if args.topic:
+                topics, unknown = resolve_topics(args.topic.split(","))
+                if unknown:
+                    raise SystemExit(
+                        f"❌ Unknown categor{'ies' if len(unknown) > 1 else 'y'}: "
+                        f"{', '.join(unknown)}. Choose from {', '.join(TOPIC_LABELS)}."
+                    )
+                brief_items = filter_by_topic(brief_items, topics)
+                asked_for.extend(topics)
+
+            # --flags already narrows a fetch; it narrows a briefing the same
+            # way, so "just this week's KNOW items" needs no new flag.
+            wanted_flags = {f.strip().upper() for f in args.flags.split(",") if f.strip()}
+            if wanted_flags != set(FLAG_ORDER):
+                unknown = wanted_flags - set(FLAG_ORDER)
+                if unknown:
+                    raise SystemExit(f"❌ Unknown flag(s): {', '.join(sorted(unknown))}. "
+                                     f"Choose from ACT, KNOW, NOTE.")
+                brief_items = filter_by_flag(brief_items, wanted_flags)
+                asked_for.extend(sorted(wanted_flags, key=FLAG_ORDER.get))
+
+            if not brief_items:
+                # An empty briefing file would read as "nothing to do"; say
+                # what was asked for instead.
+                raise SystemExit(
+                    f"❌ No {' · '.join(asked_for) if asked_for else ''} items in this digest. "
+                    f"Refresh it with: python src/monitor.py --json"
+                )
+
+            if args.group_by:
+                grouping, unknown = resolve_grouping(args.group_by)
+                if unknown:
+                    raise SystemExit(f"❌ Cannot group by {', '.join(unknown)}. "
+                                     f"Choose from {', '.join(GROUP_DIMENSIONS)}.")
+                # output/briefing.md -> output/briefing/compliance-know.md, so
+                # the default path still names the output without a second flag.
+                folder = (root / args.brief).with_suffix("")
+                written = write_briefing_groups(folder, brief_items, grouping)
+                pastes = sum(blocks for _, _, blocks, _ in written)
+                print(f"📝 {len(written)} group{'s' if len(written) != 1 else ''}, "
+                      f"{pastes} paste{'s' if pastes != 1 else ''} written to {folder}/")
+                for label, path, blocks, count in written:
+                    print(f"   {label}: {path.name} — {count} item{'s' if count != 1 else ''}, "
+                          f"{blocks} paste{'s' if blocks != 1 else ''}")
+            else:
+                written, blocks = write_briefing(brief_items, root / args.brief)
+                print(f"📝 Briefing written to {written} — {blocks} paste{'s' if blocks != 1 else ''}.")
+
             print("   Paste each block into your AI web tool, then bring the reply back with:")
             print("   python src/monitor.py --import-summaries output/reply.md")
 

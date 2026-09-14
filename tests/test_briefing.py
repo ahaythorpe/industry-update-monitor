@@ -1,18 +1,27 @@
 """Tests for the manual AI round trip: briefing out, summaries back in."""
 
 import json
+import re
 import tempfile
 import unittest
 from pathlib import Path
 
 from src.monitor import (
     BRIEF_PROMPT,
+    TOPIC_LABELS,
     export_json,
+    filter_by_flag,
+    filter_by_topic,
     format_briefing,
+    group_items,
     import_summaries,
     parse_summaries,
+    resolve_grouping,
+    resolve_topics,
+    slug,
     summary_ref,
     write_briefing,
+    write_briefing_groups,
 )
 
 
@@ -28,6 +37,17 @@ def _items(count):
         }
         for n in range(count)
     ]
+
+
+def _categorised():
+    """One week's digest as the classifier leaves it: mixed categories."""
+    categories = ["Compliance", "Compliance", "Regulation", "People moves", "Industry"]
+    flags = ["ACT", "KNOW", "ACT", "NOTE", "KNOW"]
+    items = _items(len(categories))
+    for item, topic, flag in zip(items, categories, flags):
+        item["topic"] = topic
+        item["flag"] = flag
+    return items
 
 
 class RefTests(unittest.TestCase):
@@ -71,6 +91,135 @@ class BriefingTests(unittest.TestCase):
         self.assertEqual(blocks, 3)
         self.assertIn("<!-- paste 1 of 3 -->", text)
         self.assertIn("<!-- paste 3 of 3 -->", text)
+
+
+class CategoryTests(unittest.TestCase):
+    """Briefing by category: the gap that made a paste mix unrelated subjects."""
+
+    def test_a_category_is_matched_however_it_is_typed(self):
+        resolved, unknown = resolve_topics(["compliance", " SUPER & TAX "])
+        self.assertEqual(resolved, ["Compliance", "Super & tax"])
+        self.assertEqual(unknown, [])
+
+    def test_a_misspelled_category_is_reported_not_silently_dropped(self):
+        resolved, unknown = resolve_topics(["Compliance", "Complience"])
+        self.assertEqual((resolved, unknown), (["Compliance"], ["Complience"]))
+
+    def test_the_classifier_fallback_label_can_be_asked_for_by_name(self):
+        # "Industry" is not a rule, it is what topic_for returns when no rule
+        # scores, so it would otherwise be the one category nobody could brief.
+        self.assertIn("Industry", TOPIC_LABELS)
+        self.assertEqual(resolve_topics(["Industry"])[0], ["Industry"])
+
+    def test_filtering_keeps_only_the_categories_asked_for(self):
+        kept = filter_by_topic(_categorised(), ["Compliance", "Regulation"])
+        self.assertEqual([item["topic"] for item in kept], ["Compliance", "Compliance", "Regulation"])
+
+    def test_an_item_with_no_category_filters_as_industry(self):
+        kept = filter_by_topic([{"title": "Uncategorised", "link": "https://a.test/x"}], ["Industry"])
+        self.assertEqual(len(kept), 1)
+
+    def test_filtering_keeps_only_the_flags_asked_for(self):
+        kept = filter_by_flag(_categorised(), {"KNOW"})
+        self.assertEqual([item["flag"] for item in kept], ["KNOW", "KNOW"])
+
+    def test_grouping_follows_the_classifiers_own_label_order(self):
+        labels = [label for label, _, _ in group_items(_categorised(), ("topic",))]
+        self.assertEqual(labels, ["Compliance", "Regulation", "People moves", "Industry"])
+
+    def test_grouping_by_flag_runs_act_first(self):
+        labels = [label for label, _, _ in group_items(_categorised(), ("flag",))]
+        self.assertEqual(labels, ["ACT", "KNOW", "NOTE"])
+
+    def test_grouping_by_both_nests_in_the_order_asked_for(self):
+        # The point of the whole feature: "the KNOW items in Compliance".
+        groups = group_items(_categorised(), ("topic", "flag"))
+        self.assertEqual(
+            [(label, name) for label, name, _ in groups],
+            [("Compliance · ACT", "compliance-act"),
+             ("Compliance · KNOW", "compliance-know"),
+             ("Regulation · ACT", "regulation-act"),
+             ("People moves · NOTE", "people-moves-note"),
+             ("Industry · KNOW", "industry-know")],
+        )
+        self.assertTrue(all(len(items) == 1 for _, _, items in groups))
+
+    def test_the_reverse_order_groups_the_other_way_round(self):
+        groups = group_items(_categorised(), ("flag", "topic"))
+        self.assertEqual(groups[0][:2], ("ACT · Compliance", "act-compliance"))
+
+    def test_a_combination_with_nothing_in_it_is_absent_not_empty(self):
+        labels = [label for label, _, _ in group_items(_categorised(), ("topic", "flag"))]
+        self.assertNotIn("Compliance · NOTE", labels)
+        self.assertNotIn("Insurance · ACT", labels)
+
+    def test_no_grouping_is_one_group_of_everything(self):
+        groups = group_items(_categorised(), ())
+        self.assertEqual(len(groups), 1)
+        self.assertEqual(len(groups[0][2]), 5)
+
+    def test_a_grouping_is_read_in_the_order_given(self):
+        self.assertEqual(resolve_grouping("topic,flag"), (("topic", "flag"), []))
+        self.assertEqual(resolve_grouping("flag, topic"), (("flag", "topic"), []))
+        self.assertEqual(resolve_grouping("TOPIC"), (("topic",), []))
+
+    def test_an_unsupported_grouping_is_reported(self):
+        self.assertEqual(resolve_grouping("topic,source"), (("topic",), ["source"]))
+
+    def test_a_label_becomes_a_safe_filename(self):
+        self.assertEqual(slug("Super & tax"), "super-tax")
+        self.assertEqual(slug("People moves"), "people-moves")
+
+    def test_one_file_per_group_each_holding_only_its_own_items(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            written = write_briefing_groups(Path(tmp) / "briefing", _categorised(), ("topic",))
+            names = sorted(path.name for _, path, _, _ in written)
+            compliance = next(path for label, path, _, _ in written if label == "Compliance")
+            text = compliance.read_text(encoding="utf-8")
+
+        self.assertEqual(names, ["compliance.md", "industry.md", "people-moves.md", "regulation.md"])
+        self.assertEqual(text.count("ID: "), 2)
+
+    def test_a_split_paste_still_carries_the_safeguards_prompt(self):
+        # The round trip is unchanged: only the grouping of pastes differs.
+        with tempfile.TemporaryDirectory() as tmp:
+            written = write_briefing_groups(Path(tmp) / "briefing", _categorised(), ("topic",))
+            text = next(path for label, path, _, _ in written if label == "Regulation").read_text()
+
+        self.assertIn("summarise ONLY from the teaser given", text)
+        self.assertIn("<!-- Regulation — paste 1 of 1 -->", text)
+
+    def test_a_group_too_big_for_one_paste_is_still_chunked(self):
+        items = _items(7)
+        for item in items:
+            item["topic"] = "Compliance"
+        with tempfile.TemporaryDirectory() as tmp:
+            written = write_briefing_groups(Path(tmp) / "briefing", items, ("topic",), chunk_size=3)
+            label, path, blocks, count = written[0]
+            text = path.read_text(encoding="utf-8")
+
+        self.assertEqual((label, blocks, count), ("Compliance", 3, 7))
+        self.assertIn("<!-- Compliance — paste 3 of 3 -->", text)
+        self.assertEqual(text.count("ID: "), 7)
+
+    def test_summaries_from_a_split_briefing_import_like_any_other(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            digest_path = Path(tmp) / "digest.json"
+            export_json(_categorised(), digest_path, None)
+            digest = json.loads(digest_path.read_text(encoding="utf-8"))
+
+            written = write_briefing_groups(Path(tmp) / "briefing", digest["items"], ("topic", "flag"))
+            brief = next(path for label, path, _, _ in written if label == "Regulation · ACT")
+            ref = re.search(r"ID: ([0-9a-f]{6})", brief.read_text(encoding="utf-8")).group(1)
+
+            reply = Path(tmp) / "reply.md"
+            reply.write_text(f"{ref} | ACT | From the Regulation paste. | https://a.test/x")
+            matched, unmatched, total = import_summaries(reply, digest_path)
+            stored = [i for i in json.loads(digest_path.read_text())["items"] if i["ref"] == ref][0]
+
+        self.assertEqual((matched, unmatched, total), (1, [], 1))
+        self.assertEqual(stored["ai_summary"], "From the Regulation paste.")
+        self.assertEqual(stored["ai_source"], "manual")
 
 
 class ParseReplyTests(unittest.TestCase):

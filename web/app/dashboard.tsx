@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { type DigestItem, type DigestSource, type Flag } from '@/lib/digest'
+import { type Grouping, briefingFilename, buildBriefing } from '@/lib/briefing'
 import { formatDay, toDayKey } from '@/lib/utils'
 import { Calendar } from '@/components/Calendar'
 import { SettingsModal } from '@/components/SettingsModal'
@@ -40,6 +41,16 @@ const exactnessMeta = {
   fallback: { label: 'Section page', className: 'border-amber-500/40 bg-amber-500/10 text-amber-300' },
   broad: { label: 'Manual review', className: 'border-rose-500/40 bg-rose-500/10 text-rose-300' },
 } as const
+
+// How a downloaded briefing is cut into pastes. "Category + flag" is the one
+// worth having: "the KNOW items in Compliance" is a paste you can read in one
+// sitting, where "every KNOW item" is not.
+const GROUPINGS: { value: string; label: string; grouping: Grouping }[] = [
+  { value: 'topic,flag', label: 'Category + flag', grouping: ['topic', 'flag'] },
+  { value: 'topic', label: 'Category', grouping: ['topic'] },
+  { value: 'flag', label: 'Flag', grouping: ['flag'] },
+  { value: '', label: 'One run of 15', grouping: [] },
+]
 
 const READ_STORAGE_KEY = 'advice-monitor:read-items'
 
@@ -113,10 +124,12 @@ function useReadItems() {
 export default function Dashboard({
   items: digestItems,
   sources: digestSources,
+  topics: digestTopics,
   generatedAt: digestGeneratedAt,
 }: {
   items: DigestItem[]
   sources: DigestSource[]
+  topics: string[]
   generatedAt: string
 }) {
   const { readIds, toggle: toggleRead, clear: clearRead } = useReadItems()
@@ -124,6 +137,8 @@ export default function Dashboard({
   const [query, setQuery] = useState('')
   const [selectedFlag, setSelectedFlag] = useState<Flag | null>(null)
   const [selectedSource, setSelectedSource] = useState<string | null>(null)
+  const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
+  const [grouping, setGrouping] = useState(GROUPINGS[0].value)
   const [selectedExactness, setSelectedExactness] = useState<Exactness>('all')
   const [dateRange, setDateRange] = useState<DateRange>('all')
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -165,6 +180,7 @@ export default function Dashboard({
     return digestItems.filter((item) => {
       if (selectedFlag && item.flag !== selectedFlag) return false
       if (selectedSource && item.source_name !== selectedSource) return false
+      if (selectedTopic && item.topic !== selectedTopic) return false
       if (selectedExactness !== 'all' && (item.link_exactness || 'broad') !== selectedExactness) return false
       if (cutoff && new Date(item.created_at) < cutoff) return false
       if (hideRead && readIds.has(item.id)) return false
@@ -174,7 +190,7 @@ export default function Dashboard({
       }
       return true
     })
-  }, [digestItems, query, selectedFlag, selectedSource, selectedExactness, dateRange, hideRead, readIds, mountedAt])
+  }, [digestItems, query, selectedFlag, selectedSource, selectedTopic, selectedExactness, dateRange, hideRead, readIds, mountedAt])
 
   const filteredItems = useMemo(
     () =>
@@ -205,8 +221,41 @@ export default function Dashboard({
     return grouped
   }, [filteredItems])
 
+  // Offered in the order the monitor classified them, but only the ones this
+  // digest actually has: a category with no news this week is not a filter
+  // worth clicking.
+  const topics = useMemo(() => {
+    const present = new Set(digestItems.map((item) => item.topic))
+    return digestTopics.filter((topic) => present.has(topic))
+  }, [digestItems, digestTopics])
+
+  const briefing = useMemo(() => {
+    const chosen = GROUPINGS.find((option) => option.value === grouping) || GROUPINGS[0]
+    return buildBriefing(filteredItems, chosen.grouping, digestTopics)
+  }, [filteredItems, grouping, digestTopics])
+
+  /**
+   * Save the briefing for whatever the filters currently show.
+   *
+   * Built in the browser from the digest already loaded, so downloading costs
+   * no request and reaches no publisher. The file holds each item's title,
+   * teaser and link and nothing else — the same fields the feed handed over.
+   */
+  const downloadBriefing = () => {
+    const chosen = GROUPINGS.find((option) => option.value === grouping) || GROUPINGS[0]
+    const blob = new Blob([briefing.text], { type: 'text/markdown;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = briefingFilename(chosen.grouping, digestGeneratedAt)
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    URL.revokeObjectURL(url)
+  }
+
   const filtersActive =
-    Boolean(query || selectedFlag || selectedSource || selectedDate || hideRead) ||
+    Boolean(query || selectedFlag || selectedSource || selectedTopic || selectedDate || hideRead) ||
     selectedExactness !== 'all' ||
     dateRange !== 'all'
 
@@ -214,6 +263,7 @@ export default function Dashboard({
     setQuery('')
     setSelectedFlag(null)
     setSelectedSource(null)
+    setSelectedTopic(null)
     setSelectedExactness('all')
     setDateRange('all')
     setSelectedDate(null)
@@ -348,6 +398,19 @@ export default function Dashboard({
               </select>
 
               <select
+                value={selectedTopic || ''}
+                onChange={(event) => setSelectedTopic(event.target.value || null)}
+                className="rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:border-slate-600"
+              >
+                <option value="">All categories</option>
+                {topics.map((topic) => (
+                  <option key={topic} value={topic}>
+                    {topic}
+                  </option>
+                ))}
+              </select>
+
+              <select
                 value={dateRange}
                 onChange={(event) => setDateRange(event.target.value as DateRange)}
                 className="rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:border-slate-600"
@@ -414,6 +477,65 @@ export default function Dashboard({
           <div className="mb-6 text-xs text-slate-400">
             &quot;Article links only&quot; keeps items whose link points at the story itself. Section pages and
             manual-review items are follow-ups to open by hand, not verified article links.
+          </div>
+
+          <div className="mb-8 rounded-2xl border border-sky-900/60 bg-sky-950/30 p-5">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div>
+                <h3 className="text-base font-semibold text-white">Download for summarising</h3>
+                <p className="mt-1 max-w-2xl text-xs text-slate-400">
+                  Saves the {filteredItems.length} item{filteredItems.length === 1 ? '' : 's'} these
+                  filters show as a Markdown file of paste-ready blocks, each carrying the
+                  summarising prompt. Paste a block into your own AI tool, save the reply, and merge
+                  it back with{' '}
+                  <code className="rounded bg-slate-800 px-1 py-0.5 text-[11px] text-slate-300">
+                    python src/monitor.py --import-summaries output/reply.md
+                  </code>
+                  .
+                </p>
+              </div>
+
+              <div className="flex shrink-0 flex-wrap items-center gap-3">
+                <label className="flex items-center gap-2 text-xs font-semibold text-slate-400">
+                  Group by
+                  <select
+                    value={grouping}
+                    onChange={(event) => setGrouping(event.target.value)}
+                    className="rounded-full border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:border-slate-600"
+                  >
+                    {GROUPINGS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <button
+                  onClick={downloadBriefing}
+                  disabled={briefing.pastes === 0}
+                  className="rounded-full bg-sky-600 px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-sky-500 disabled:cursor-not-allowed disabled:bg-slate-800 disabled:text-slate-500"
+                >
+                  Download briefing
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-3 text-xs text-slate-500">
+              {briefing.pastes === 0 ? (
+                'Nothing to download — widen the filters above.'
+              ) : (
+                <>
+                  {briefing.pastes} paste{briefing.pastes === 1 ? '' : 's'} from {briefing.items}{' '}
+                  item{briefing.items === 1 ? '' : 's'}. Each item goes in as its publisher&apos;s own
+                  headline and teaser plus the link — never article text, which this tool never
+                  fetches.
+                  {briefing.skipped > 0
+                    ? ` ${briefing.skipped} item${briefing.skipped === 1 ? '' : 's'} left out for having no ID to match a reply back to.`
+                    : ''}
+                </>
+              )}
+            </div>
           </div>
 
           <div className="space-y-8">

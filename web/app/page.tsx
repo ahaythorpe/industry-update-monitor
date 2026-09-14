@@ -8,6 +8,11 @@ export const dynamic = 'force-dynamic'
 export default function Home() {
   const digest = loadDigest()
   return (
-    <Dashboard items={digest.items} sources={digest.sources} generatedAt={digest.generatedAt} />
+    <Dashboard
+      items={digest.items}
+      sources={digest.sources}
+      topics={digest.topics}
+      generatedAt={digest.generatedAt}
+    />
   )
 }
