@@ -41,7 +41,7 @@ def _items(count):
 
 def _categorised():
     """One week's digest as the classifier leaves it: mixed categories."""
-    categories = ["Compliance", "Compliance", "Regulation", "People moves", "Industry"]
+    categories = ["Compliance", "Compliance", "Regulation", "Key personnel movements", "General"]
     flags = ["ACT", "KNOW", "ACT", "NOTE", "KNOW"]
     items = _items(len(categories))
     for item, topic, flag in zip(items, categories, flags):
@@ -106,17 +106,17 @@ class CategoryTests(unittest.TestCase):
         self.assertEqual((resolved, unknown), (["Compliance"], ["Complience"]))
 
     def test_the_classifier_fallback_label_can_be_asked_for_by_name(self):
-        # "Industry" is not a rule, it is what topic_for returns when no rule
+        # "General" is not a rule, it is what topic_for returns when no rule
         # scores, so it would otherwise be the one category nobody could brief.
-        self.assertIn("Industry", TOPIC_LABELS)
-        self.assertEqual(resolve_topics(["Industry"])[0], ["Industry"])
+        self.assertIn("General", TOPIC_LABELS)
+        self.assertEqual(resolve_topics(["General"])[0], ["General"])
 
     def test_filtering_keeps_only_the_categories_asked_for(self):
         kept = filter_by_topic(_categorised(), ["Compliance", "Regulation"])
         self.assertEqual([item["topic"] for item in kept], ["Compliance", "Compliance", "Regulation"])
 
     def test_an_item_with_no_category_filters_as_industry(self):
-        kept = filter_by_topic([{"title": "Uncategorised", "link": "https://a.test/x"}], ["Industry"])
+        kept = filter_by_topic([{"title": "Uncategorised", "link": "https://a.test/x"}], ["General"])
         self.assertEqual(len(kept), 1)
 
     def test_filtering_keeps_only_the_flags_asked_for(self):
@@ -125,7 +125,7 @@ class CategoryTests(unittest.TestCase):
 
     def test_grouping_follows_the_classifiers_own_label_order(self):
         labels = [label for label, _, _ in group_items(_categorised(), ("topic",))]
-        self.assertEqual(labels, ["Compliance", "Regulation", "People moves", "Industry"])
+        self.assertEqual(labels, ["Compliance", "Regulation", "Key personnel movements", "General"])
 
     def test_grouping_by_flag_runs_act_first(self):
         labels = [label for label, _, _ in group_items(_categorised(), ("flag",))]
@@ -139,8 +139,8 @@ class CategoryTests(unittest.TestCase):
             [("Compliance · ACT", "compliance-act"),
              ("Compliance · KNOW", "compliance-know"),
              ("Regulation · ACT", "regulation-act"),
-             ("People moves · NOTE", "people-moves-note"),
-             ("Industry · KNOW", "industry-know")],
+             ("Key personnel movements · NOTE", "key-personnel-movements-note"),
+             ("General · KNOW", "general-know")],
         )
         self.assertTrue(all(len(items) == 1 for _, _, items in groups))
 
@@ -168,7 +168,7 @@ class CategoryTests(unittest.TestCase):
 
     def test_a_label_becomes_a_safe_filename(self):
         self.assertEqual(slug("Super & tax"), "super-tax")
-        self.assertEqual(slug("People moves"), "people-moves")
+        self.assertEqual(slug("Key personnel movements"), "key-personnel-movements")
 
     def test_one_file_per_group_each_holding_only_its_own_items(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -177,7 +177,7 @@ class CategoryTests(unittest.TestCase):
             compliance = next(path for label, path, _, _ in written if label == "Compliance")
             text = compliance.read_text(encoding="utf-8")
 
-        self.assertEqual(names, ["compliance.md", "industry.md", "people-moves.md", "regulation.md"])
+        self.assertEqual(names, ["compliance.md", "general.md", "key-personnel-movements.md", "regulation.md"])
         self.assertEqual(text.count("ID: "), 2)
 
     def test_a_split_paste_still_carries_the_safeguards_prompt(self):

@@ -10,7 +10,7 @@ import {
 } from './briefing'
 import type { DigestItem } from './digest'
 
-const TOPICS = ['Compliance', 'Regulation', 'Super & tax', 'Insurance', 'People moves', 'Business', 'Industry']
+const TOPICS = ['Compliance', 'Regulation', 'Super & tax', 'Insurance', 'Key personnel movements', 'Business', 'General']
 
 function item(overrides: Partial<DigestItem> & { ref?: string | null }): DigestItem {
   return {
@@ -32,7 +32,7 @@ const MIXED = [
   item({ ref: 'a00001', link: 'https://a.test/1', topic: 'Compliance', flag: 'ACT' }),
   item({ ref: 'a00002', link: 'https://a.test/2', topic: 'Compliance', flag: 'KNOW' }),
   item({ ref: 'a00003', link: 'https://a.test/3', topic: 'Regulation', flag: 'ACT' }),
-  item({ ref: 'a00004', link: 'https://a.test/4', topic: 'People moves', flag: 'NOTE' }),
+  item({ ref: 'a00004', link: 'https://a.test/4', topic: 'Key personnel movements', flag: 'NOTE' }),
 ]
 
 describe('grouping', () => {
@@ -40,7 +40,7 @@ describe('grouping', () => {
     expect(groupItems(MIXED, ['topic'], TOPICS).map((group) => group.label)).toEqual([
       'Compliance',
       'Regulation',
-      'People moves',
+      'Key personnel movements',
     ])
   })
 
@@ -57,7 +57,7 @@ describe('grouping', () => {
       'compliance-act',
       'compliance-know',
       'regulation-act',
-      'people-moves-note',
+      'key-personnel-movements-note',
     ])
   })
 
@@ -82,7 +82,7 @@ describe('grouping', () => {
 
   it('makes a safe filename from a label', () => {
     expect(slug('Super & tax')).toBe('super-tax')
-    expect(slug('People moves')).toBe('people-moves')
+    expect(slug('Key personnel movements')).toBe('key-personnel-movements')
   })
 })
 

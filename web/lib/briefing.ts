@@ -30,6 +30,11 @@ to access anything beyond the text provided.`
 // src/monitor.py BRIEF_CHUNK: a comfortable paste for one chat message.
 export const BRIEF_CHUNK = 15
 
+// src/monitor.py FALLBACK_TOPIC: where an item goes when no rule scores.
+// Only used for an item that somehow arrived without a category — the digest
+// publishes the real label list, so this is a floor, not a second opinion.
+export const FALLBACK_TOPIC = 'General'
+
 export type Dimension = 'topic' | 'flag'
 export type Grouping = Dimension[]
 
@@ -61,13 +66,13 @@ export function groupItems(
   if (!grouping.length) return [{ label: 'All items', name: 'briefing', items: [...items] }]
 
   const keyOf: Record<Dimension, (item: DigestItem) => string> = {
-    topic: (item) => item.topic || 'Industry',
+    topic: (item) => item.topic || FALLBACK_TOPIC,
     flag: (item) => item.flag,
   }
   const orderOf: Record<Dimension, string[]> = {
     // A category present in the items but missing from the published order
     // still gets a group, after the ones the classifier named.
-    topic: [...topicOrder, ...items.map((item) => item.topic || 'Industry')].filter(
+    topic: [...topicOrder, ...items.map((item) => item.topic || FALLBACK_TOPIC)].filter(
       (label, index, all) => all.indexOf(label) === index
     ),
     flag: FLAG_SEQUENCE,

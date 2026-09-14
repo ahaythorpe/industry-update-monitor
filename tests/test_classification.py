@@ -212,8 +212,8 @@ class TopicTests(unittest.TestCase):
         # 2 for Compliance; the breach is what the reader has to act on.
         self.assertEqual(topic_for("Insurer sanctioned over serious breaches", ""), "Compliance")
 
-    def test_an_unmatched_item_falls_back_to_industry(self):
-        self.assertEqual(topic_for("Markets drift sideways", "A quiet week for equities."), "Industry")
+    def test_an_unmatched_item_falls_back_to_the_general_pile(self):
+        self.assertEqual(topic_for("Markets drift sideways", "A quiet week for equities."), "General")
 
 
 if __name__ == "__main__":

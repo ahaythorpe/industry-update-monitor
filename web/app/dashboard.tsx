@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
 import { type DigestItem, type DigestSource, type Flag } from '@/lib/digest'
 import {
+  FALLBACK_TOPIC,
   type Grouping,
   briefingFilename,
   buildBriefingFiles,
@@ -287,7 +288,7 @@ export default function Dashboard({
   )
 
   const topicsPresent = useMemo(
-    () => digestTopics.filter((topic) => filteredItems.some((i) => (i.topic || 'Industry') === topic)),
+    () => digestTopics.filter((topic) => filteredItems.some((i) => (i.topic || FALLBACK_TOPIC) === topic)),
     [filteredItems, digestTopics]
   )
 
@@ -300,7 +301,7 @@ export default function Dashboard({
     () =>
       filteredItems.filter(
         (item) =>
-          !excludedFlags.has(item.flag) && !excludedTopics.has(item.topic || 'Industry')
+          !excludedFlags.has(item.flag) && !excludedTopics.has(item.topic || FALLBACK_TOPIC)
       ),
     [filteredItems, excludedFlags, excludedTopics]
   )
@@ -330,12 +331,12 @@ export default function Dashboard({
    */
   const countForFlag = (flag: string) =>
     filteredItems.filter(
-      (item) => item.flag === flag && !excludedTopics.has(item.topic || 'Industry')
+      (item) => item.flag === flag && !excludedTopics.has(item.topic || FALLBACK_TOPIC)
     ).length
 
   const countForTopic = (topic: string) =>
     filteredItems.filter(
-      (item) => (item.topic || 'Industry') === topic && !excludedFlags.has(item.flag)
+      (item) => (item.topic || FALLBACK_TOPIC) === topic && !excludedFlags.has(item.flag)
     ).length
 
   const toggleIn = (set: Set<string>, value: string) => {

@@ -152,9 +152,11 @@ python src/monitor.py --import-summaries output/reply.md
 #### One paste per group
 
 Every item carries a category — Compliance, Regulation, Super & tax, Insurance,
-People moves, Business, or Industry for anything else — as well as its flag. A
-plain `--brief` chunks 15 items at a time in flag order, so one paste mixes
-People moves with Compliance. `--group-by` cuts it along either axis, or both:
+Key personnel movements, Business, or **General** when no rule matches — as well
+as its flag. General is the fallback, not a subject: a large pile there means
+rules are missing, not that there is a theme to read end to end. A plain
+`--brief` chunks 15 items at a time in flag order, so one paste mixes staff
+changes with Compliance. `--group-by` cuts it along either axis, or both:
 
 ```bash
 python src/monitor.py --brief --group-by topic          # compliance.md, regulation.md, …

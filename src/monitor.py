@@ -549,12 +549,22 @@ def check_links(items, workers=8, timeout=FETCH_TIMEOUT):
 # ---------- Part 4: collation ----------
 # Topic labels for the web dashboard. Order matters only for ties: a
 # regulatory label wins a draw, matching the ACT-first ordering elsewhere.
+# Where an item goes when no rule scores. Named as the leftovers rather than
+# as a subject, because it is the biggest bucket and a reader should see it as
+# "no rule matched this yet", not as a theme to read end to end.
+FALLBACK_TOPIC = "General"
+
 TOPIC_RULES = (
     ("Compliance", re.compile(r"\bcompliance\b|\bobligation|\bbreach|code of ethics|best interests|fee consent|\bcpd\b|professional standards", re.I)),
     ("Regulation", re.compile(r"\basic\b|\bafca\b|\bapra\b|\baustrac\b|legislation|regulator|consultation|\bcslr\b|\bdbfo\b|\bqar\b|\bnca\b|\blev(y|ies)\b", re.I)),
-    ("Super & tax", re.compile(r"division ?296|\bdiv ?296\b|\blrba|\bsmsf\b|super(annuation)?|contribution cap|transfer balance|\bato\b|preservation age", re.I)),
+    ("Super & tax", re.compile(r"division ?296|\bdiv ?296\b|\blrba|\bsmsf\b|super(annuation)?|contribution cap|transfer balance|\bato\b|preservation age|\bpension|\bretiree|retirement (income|balance|savings|phase|spending)", re.I)),
     ("Insurance", re.compile(r"\binsurance\b|\binsurer(s)?\b|\btpd\b|life compan|\bclaims?\b|risk advice", re.I)),
-    ("People moves", re.compile(r"\bappoint|\bhire|\bjoins\b|steps down|\bresign|retirement|chief executive|\bceo\b|\bchair", re.I)),
+    # "retirement" used to be here and was the single worst term in the file:
+    # it means a person leaving a job AND the whole subject of retirement
+    # income, so four stories about retirement balances and retirees were
+    # filed under staff changes. A departure is reported as "retires" or
+    # "steps down"; the noun belongs to Super & tax.
+    ("Key personnel movements", re.compile(r"\bappoint|\bhire|\bjoins\b|steps down|\bresign|\bretir(es|ing|ed)\b|chief executive|\bceo\b|\bchair", re.I)),
     ("Business", re.compile(r"\bacqui|\bmerge|takeover|\bstake\b|licensee|platform", re.I)),
 )
 
@@ -571,7 +581,7 @@ def topic_for(title, summary=""):
     """
     title_text = title or ""
     body = summary or ""
-    best_label, best_score = "Industry", 0
+    best_label, best_score = FALLBACK_TOPIC, 0
     for label, pattern in TOPIC_RULES:
         score = TITLE_WEIGHT * len(pattern.findall(title_text)) + len(pattern.findall(body))
         if score > best_score:
@@ -1035,9 +1045,9 @@ BRIEF_CHUNK = 15
 # 15-at-a-time in flag order, so a single paste mixed People moves with
 # Compliance. A summary reads better when the paste it came from is all one
 # subject, so the briefing can now be filtered or split the same way the
-# dashboard groups. "Industry" is the classifier's fallback label, so it
+# dashboard groups. The fallback label is included too, so it
 # belongs in the list a user may ask for by name.
-TOPIC_LABELS = tuple(label for label, _ in TOPIC_RULES) + ("Industry",)
+TOPIC_LABELS = tuple(label for label, _ in TOPIC_RULES) + (FALLBACK_TOPIC,)
 
 
 def resolve_topics(names):
@@ -1065,7 +1075,7 @@ def resolve_topics(names):
 
 def topic_of(item):
     """An item's category, falling back to the classifier's own default."""
-    return item.get("topic") or "Industry"
+    return item.get("topic") or FALLBACK_TOPIC
 
 
 def filter_by_topic(items, topics):
