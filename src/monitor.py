@@ -555,8 +555,8 @@ def check_links(items, workers=8, timeout=FETCH_TIMEOUT):
 FALLBACK_TOPIC = "General"
 
 TOPIC_RULES = (
-    ("Compliance", re.compile(r"\bcompliance\b|\bobligation|\bbreach|code of ethics|best interests|fee consent|\bcpd\b|professional standards", re.I)),
-    ("Regulation", re.compile(r"\basic\b|\bafca\b|\bapra\b|\baustrac\b|legislation|regulator|consultation|\bcslr\b|\bdbfo\b|\bqar\b|\bnca\b|\blev(y|ies)\b", re.I)),
+    ("Compliance", re.compile(r"\bcompliance\b|\bobligation|\bbreach|code of ethics|best interests|fee consent|\bcpd\b|professional standards|\bgovernance\b", re.I)),
+    ("Regulation", re.compile(r"\basic\b|\bafca\b|\bapra\b|\baustrac\b|legislation|regulator|consultation|\bcslr\b|\bdbfo\b|\bqar\b|\bnca\b|\blev(y|ies)\b|\btribunal\b|\bbann(ed|ing)\b|\bbans\b", re.I)),
     ("Super & tax", re.compile(r"division ?296|\bdiv ?296\b|\blrba|\bsmsf\b|super(annuation)?|contribution cap|transfer balance|\bato\b|preservation age|\bpension|\bretiree|retirement (income|balance|savings|phase|spending)", re.I)),
     ("Insurance", re.compile(r"\binsurance\b|\binsurer(s)?\b|\btpd\b|life compan|\bclaims?\b|risk advice", re.I)),
     # "retirement" used to be here and was the single worst term in the file:
@@ -564,8 +564,17 @@ TOPIC_RULES = (
     # income, so four stories about retirement balances and retirees were
     # filed under staff changes. A departure is reported as "retires" or
     # "steps down"; the noun belongs to Super & tax.
-    ("Key personnel movements", re.compile(r"\bappoint|\bhire|\bjoins\b|steps down|\bresign|\bretir(es|ing|ed)\b|chief executive|\bceo\b|\bchair", re.I)),
+    ("Key personnel movements", re.compile(r"\bappoint|\bhire|\bjoins\b|steps down|\bresign|\bretir(es|ing|ed)\b|\bdeparture|\bsuccession\b|\bexits\b|adds? .{0,25}\bteam\b|chief executive|\bceo\b|\bchair", re.I)),
     ("Business", re.compile(r"\bacqui|\bmerge|takeover|\bstake\b|licensee|platform", re.I)),
+    # Markets and product news: mostly NOTE-level background, and the largest
+    # thing that had no rule at all. Worth its own label precisely so it can be
+    # skipped — an adviser reading for obligations does not need the ETF count.
+    ("Markets & investing", re.compile(r"\betf\b|\bfunds? manager|managed portfolio|managed fund|private (credit|asset)|outflow|inflow|nasdaq|\basx\b|equit(y|ies) market|listed .{0,12}trust|tokenis|index fund|asset class|billionaire|\bmarkets?\b|\binvestors?\b|\bai boom\b|long-term growth", re.I)),
+    # What an adviser charges and how. Distinct from Business (who owns whom)
+    # and from Compliance (fee consent, which is an obligation).
+    ("Fees & pricing", re.compile(r"pricing of advice|asset-based fee|advice fees|fee model|cost of advice|price for complexity|fee structure", re.I)),
+    # Running the practice, and the software for it.
+    ("Practice & technology", re.compile(r"digital advice|practice management|advice tech|\bsoftware\b|\bdelegate\b|workflow|paraplann", re.I)),
 )
 
 

@@ -213,7 +213,34 @@ class TopicTests(unittest.TestCase):
         self.assertEqual(topic_for("Insurer sanctioned over serious breaches", ""), "Compliance")
 
     def test_an_unmatched_item_falls_back_to_the_general_pile(self):
-        self.assertEqual(topic_for("Markets drift sideways", "A quiet week for equities."), "General")
+        # Deliberately about nothing the rules cover. The example used to be a
+        # markets headline, which stopped being unmatched the day Markets &
+        # investing was added — a fallback test has to use something no rule
+        # could ever plausibly claim.
+        self.assertEqual(
+            topic_for("Storms disrupt travel in regional areas", "Flights were delayed."),
+            "General",
+        )
+
+    def test_markets_news_is_labelled_rather_than_left_in_the_general_pile(self):
+        # 19 of 50 items had no rule at all, and most of them were this.
+        self.assertEqual(
+            topic_for("Active ETF launches push ETF products past 500", ""),
+            "Markets & investing",
+        )
+
+    def test_a_tribunal_banning_is_regulation(self):
+        self.assertEqual(
+            topic_for("ART reviews five-year bans of two former advisers", ""),
+            "Regulation",
+        )
+
+    def test_what_an_adviser_charges_is_not_the_same_as_who_owns_whom(self):
+        # Business is acquisitions and licensees; this is pricing.
+        self.assertEqual(
+            topic_for("Asset-based fees dwindle as firms price for complexity", ""),
+            "Fees & pricing",
+        )
 
 
 if __name__ == "__main__":

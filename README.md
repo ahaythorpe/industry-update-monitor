@@ -152,10 +152,15 @@ python src/monitor.py --import-summaries output/reply.md
 
 #### One paste per group
 
-Every item carries a category — Compliance, Regulation, Super & tax, Insurance,
-Key personnel movements, Business, or **General** when no rule matches — as well
-as its flag. General is the fallback, not a subject: a large pile there means
-rules are missing, not that there is a theme to read end to end. A plain
+Every item carries a category as well as its flag: Compliance, Regulation,
+Super & tax, Insurance, Key personnel movements, Business, Markets & investing,
+Fees & pricing, Practice & technology, or **General** when no rule matches.
+
+General is the fallback, not a subject: a large pile there means rules are
+missing, not that there is a theme to read end to end. It sat at 19 of 50 items
+until Markets & investing, Fees & pricing and Practice & technology were added
+to cover what was actually in it; it is now 2. If a recognisable subject starts
+collecting there again, that is the signal to write another rule. A plain
 `--brief` chunks 15 items at a time in flag order, so one paste mixes staff
 changes with Compliance. `--group-by` cuts it along either axis, or both:
 
