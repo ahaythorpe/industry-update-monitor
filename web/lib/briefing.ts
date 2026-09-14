@@ -102,12 +102,17 @@ export function groupItems(
     .filter((group) => group.items.length > 0)
 }
 
-/** One item as the four lines the prompt describes. */
+/** One item, in the shape src/monitor.py writes. */
 function itemBlock(item: DigestItem): string {
   return [
     `ID: ${item.ref}`,
     `TITLE: ${item.title}`,
-    `TEASER: ${item.teaser || '(none)'}`,
+    // Who published it and when: a masthead's view is not a regulator's, and
+    // a poll or a quarterly figure can already have been overtaken.
+    `SOURCE: ${item.source_name || '(unknown)'}`,
+    `DATE: ${(item.created_at || '').slice(0, 10) || '(unknown)'}`,
+    // brief_text is the fuller teaser; teaser is the short display version.
+    `TEASER: ${item.brief_text || item.teaser || '(none)'}`,
     `LINK: ${item.link}`,
   ].join('\n')
 }

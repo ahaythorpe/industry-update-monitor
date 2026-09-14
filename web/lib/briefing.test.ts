@@ -104,10 +104,12 @@ describe('the downloaded briefing', () => {
     expect(text).toContain('<!-- paste 1 of 1 -->')
   })
 
-  it('carries only the title, teaser and link of each item', () => {
+  it('carries the title, source, date, teaser and link of each item', () => {
     const { text } = buildBriefing([MIXED[0]], [], TOPICS)
     expect(text).toContain('ID: a00001')
     expect(text).toContain('TITLE: ASIC bans a director')
+    expect(text).toContain('SOURCE: Test Source')
+    expect(text).toContain('DATE: 2026-09-13')
     expect(text).toContain('TEASER: The regulator banned a director for ten years.')
     expect(text).toContain('LINK: https://a.test/1')
     // Nothing else of the item reaches the file: no body, no source metadata.
@@ -167,6 +169,15 @@ describe('the downloaded briefing', () => {
 
   it('combining nothing produces nothing rather than a stray separator', () => {
     expect(combineBriefing([])).toMatchObject({ text: '', items: 0, pastes: 0 })
+  })
+
+  it('prefers the fuller teaser over the short display one', () => {
+    const { text } = buildBriefing(
+      [item({ ref: 'a00010', brief_text: 'The longer version with the detail in it.' })],
+      [],
+      TOPICS
+    )
+    expect(text).toContain('TEASER: The longer version with the detail in it.')
   })
 
   it('names the file after the grouping and the digest date', () => {

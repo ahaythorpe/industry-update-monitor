@@ -979,6 +979,12 @@ def export_json(items, path, sources=None):
             "ref": summary_ref(item.get("link", ""), item.get("title", "")),
             "title": item.get("title", ""),
             "teaser": item.get("summary", ""),
+            # The fuller teaser, for summarising. "teaser" above is the
+            # two-sentence display version the dashboard shows on a card;
+            # exporting only that quietly discarded up to two thirds of what
+            # the feed gave us, so a briefing carried ~33 words an item and
+            # the summaries that came back were one-liners.
+            "brief_text": item.get("teaser") or item.get("summary", ""),
             "link": item.get("link", ""),
             "source_name": item.get("source_name", ""),
             "intake": item.get("intake", "rss"),
@@ -1173,7 +1179,14 @@ def format_briefing(items, chunk_size=BRIEF_CHUNK):
             ref = item.get("ref") or summary_ref(item.get("link", ""), item.get("title", ""))
             lines.append(f"ID: {ref}")
             lines.append(f"TITLE: {item.get('title', '')}")
-            lines.append(f"TEASER: {item.get('teaser') or item.get('summary') or '(none)'}")
+            # Who published it and when. Without these a reader cannot tell a
+            # masthead's own view from a regulator's, and cannot tell that a
+            # poll or a set of quarterly figures has already been overtaken.
+            lines.append(f"SOURCE: {item.get('source_name') or '(unknown)'}")
+            lines.append(f"DATE: {(item.get('created_at') or '')[:10] or '(unknown)'}")
+            lines.append(
+                f"TEASER: {item.get('brief_text') or item.get('teaser') or item.get('summary') or '(none)'}"
+            )
             lines.append(f"LINK: {item.get('link', '')}")
             lines.append("")
         blocks.append("\n".join(lines).strip())

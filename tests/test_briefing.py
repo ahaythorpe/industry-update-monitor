@@ -31,6 +31,7 @@ def _items(count):
             "title": f"ASIC bans director number {n}",
             "teaser": f"The regulator banned director {n} for ten years.",
             "link": f"https://a.test/asic-bans-director-{n}",
+            "created_at": "2026-09-14T00:00:00+00:00",
             "flag": "ACT",
             "confidence": 0.8,
             "source_name": "Test Source",
@@ -79,6 +80,30 @@ class BriefingTests(unittest.TestCase):
         block = format_briefing(_items(1))[0]
         self.assertIn("TEASER: The regulator banned director 0", block)
         self.assertIn("LINK: https://a.test/asic-bans-director-0", block)
+
+    def test_each_item_says_who_published_it_and_when(self):
+        # Without these a masthead's own view reads the same as a regulator's,
+        # and a stale poll reads as current.
+        block = format_briefing(_items(1))[0]
+        self.assertIn("SOURCE: Test Source", block)
+        self.assertIn("DATE: 2026-09-14", block)
+
+    def test_an_item_with_no_source_or_date_says_unknown(self):
+        block = format_briefing([{"title": "A headline", "link": "https://a.test/x"}])[0]
+        self.assertIn("SOURCE: (unknown)", block)
+        self.assertIn("DATE: (unknown)", block)
+
+    def test_the_fuller_teaser_is_preferred_over_the_display_one(self):
+        # export_json writes both: the card shows the short one, the briefing
+        # gets everything the feed gave us.
+        block = format_briefing([{
+            "title": "A headline",
+            "link": "https://a.test/x",
+            "teaser": "The short display version.",
+            "brief_text": "The longer version the feed actually supplied, with the detail in it.",
+        }])[0]
+        self.assertIn("TEASER: The longer version the feed actually supplied", block)
+        self.assertNotIn("The short display version.", block)
 
     def test_an_item_with_no_teaser_says_so_rather_than_showing_nothing(self):
         block = format_briefing([{"title": "A headline", "link": "https://a.test/x"}])[0]
