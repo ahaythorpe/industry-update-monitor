@@ -165,9 +165,20 @@ export default function Dashboard({
     flag: true,
   })
   const [format, setFormat] = useState<Format>('zip')
-  // Held as the groups left OUT, so a group that appears after you change a
-  // filter is included by default rather than silently missing.
-  const [excluded, setExcluded] = useState<Set<string>>(new Set())
+  /*
+   * What the download leaves out, one set per dimension.
+   *
+   * These were once a set of combinations — a chip per file — which repeated
+   * "Super & tax" three times and "ACT" seven, fifteen chips to say what ten
+   * can. Urgency and category are independent, so they are chosen
+   * independently and applied together.
+   *
+   * Held as what is excluded rather than what is kept, so a category that
+   * appears when you change a filter is included by default rather than
+   * silently missing from the download.
+   */
+  const [excludedFlags, setExcludedFlags] = useState<Set<string>>(new Set())
+  const [excludedTopics, setExcludedTopics] = useState<Set<string>>(new Set())
   const [paywallOpen, setPaywallOpen] = useState(false)
   const [selectedExactness, setSelectedExactness] = useState<Exactness>('all')
   const [dateRange, setDateRange] = useState<DateRange>('all')
@@ -268,33 +279,71 @@ export default function Dashboard({
     [groupBy]
   )
 
+  // Which urgencies and categories this week's items actually have, in the
+  // order they are ranked and classified.
+  const flagsPresent = useMemo(
+    () => (Object.keys(flagMeta) as Flag[]).filter((flag) => filteredItems.some((i) => i.flag === flag)),
+    [filteredItems]
+  )
+
+  const topicsPresent = useMemo(
+    () => digestTopics.filter((topic) => filteredItems.some((i) => (i.topic || 'Industry') === topic)),
+    [filteredItems, digestTopics]
+  )
+
+  const keptFlags = flagsPresent.filter((flag) => !excludedFlags.has(flag))
+  const keptTopics = topicsPresent.filter((topic) => !excludedTopics.has(topic))
+
+  // The two choices narrow together: KNOW plus Super & tax is the KNOW items
+  // on tax, not everything KNOW and everything on tax.
+  const downloadItems = useMemo(
+    () =>
+      filteredItems.filter(
+        (item) =>
+          !excludedFlags.has(item.flag) && !excludedTopics.has(item.topic || 'Industry')
+      ),
+    [filteredItems, excludedFlags, excludedTopics]
+  )
+
   const briefingFiles = useMemo(
-    () => buildBriefingFiles(filteredItems, grouping, digestTopics),
-    [filteredItems, grouping, digestTopics]
+    () => buildBriefingFiles(downloadItems, grouping, digestTopics),
+    [downloadItems, grouping, digestTopics]
   )
 
-  const chosenFiles = useMemo(
-    () => briefingFiles.filter((file) => !excluded.has(file.name)),
-    [briefingFiles, excluded]
+  const briefing = useMemo(
+    () => combineBriefing(briefingFiles, downloadItems.filter((item) => !item.ref).length),
+    [briefingFiles, downloadItems]
   )
-
-  const briefing = useMemo(() => {
-    const withoutRef = filteredItems.filter((item) => !item.ref).length
-    return combineBriefing(chosenFiles, withoutRef)
-  }, [chosenFiles, filteredItems])
 
   const biggestFile = useMemo(
-    () => [...chosenFiles].sort((a, b) => b.items - a.items)[0],
-    [chosenFiles]
+    () => [...briefingFiles].sort((a, b) => b.items - a.items)[0],
+    [briefingFiles]
   )
 
-  const toggleFile = (name: string) =>
-    setExcluded((current) => {
-      const next = new Set(current)
-      if (next.has(name)) next.delete(name)
-      else next.add(name)
-      return next
-    })
+  /*
+   * What a chip would contribute if it were ticked, given the other row.
+   *
+   * So with KNOW ticked on its own, Compliance reads the number of KNOW items
+   * in Compliance rather than its total — and the number does not change when
+   * you tick the chip itself, which would make it look like the count was
+   * reacting to the wrong thing.
+   */
+  const countForFlag = (flag: string) =>
+    filteredItems.filter(
+      (item) => item.flag === flag && !excludedTopics.has(item.topic || 'Industry')
+    ).length
+
+  const countForTopic = (topic: string) =>
+    filteredItems.filter(
+      (item) => (item.topic || 'Industry') === topic && !excludedFlags.has(item.flag)
+    ).length
+
+  const toggleIn = (set: Set<string>, value: string) => {
+    const next = new Set(set)
+    if (next.has(value)) next.delete(value)
+    else next.add(value)
+    return next
+  }
 
   /**
    * Save the briefing for whatever the filters currently show.
@@ -306,7 +355,7 @@ export default function Dashboard({
   const downloadBriefing = () => {
     const zipped = format === 'zip'
     const blob = zipped
-      ? new Blob([buildZip(chosenFiles, new Date(digestGeneratedAt || Date.now()))], {
+      ? new Blob([buildZip(briefingFiles, new Date(digestGeneratedAt || Date.now()))], {
           type: 'application/zip',
         })
       : new Blob([briefing.text], { type: 'text/markdown;charset=utf-8' })
@@ -315,8 +364,8 @@ export default function Dashboard({
     // Super & tax · KNOW arrives as super-tax-know-2026-09-14.md.
     const day = (digestGeneratedAt || new Date().toISOString()).slice(0, 10)
     const name =
-      chosenFiles.length === 1 && grouping.length
-        ? `${slug(chosenFiles[0].label)}-${day}.${format}`
+      briefingFiles.length === 1 && grouping.length
+        ? `${slug(briefingFiles[0].label)}-${day}.${format}`
         : briefingFilename(grouping, digestGeneratedAt, format)
 
     const url = URL.createObjectURL(blob)
@@ -641,21 +690,20 @@ export default function Dashboard({
                 wrap the file picker too, so unticking every file hid the
                 picker and left no way back except changing a filter.
               */}
-              {briefingFiles.length === 0 ? (
+              {keptFlags.length === 0 || keptTopics.length === 0 ? (
+                <span className="font-semibold text-amber-400">
+                  {keptFlags.length === 0
+                    ? 'No urgency selected — tick ACT, KNOW or NOTE below.'
+                    : 'No category selected — tick at least one below.'}
+                </span>
+              ) : briefingFiles.length === 0 ? (
                 <span className="text-slate-500">
                   Nothing to download — widen the filters above.
                 </span>
-              ) : chosenFiles.length === 0 ? (
-                <span className="font-semibold text-amber-400">
-                  No files selected — tick at least one below.
-                </span>
               ) : (
                 <span className="font-semibold text-slate-300">
-                  {/* "1 of 15 file" — the plural follows the total, not the count. */}
                   {format === 'zip'
-                    ? excluded.size > 0
-                      ? `${chosenFiles.length} of ${briefingFiles.length} files`
-                      : `${chosenFiles.length} file${chosenFiles.length === 1 ? '' : 's'}`
+                    ? `${briefingFiles.length} file${briefingFiles.length === 1 ? '' : 's'}`
                     : `1 file, ${briefing.pastes} paste${briefing.pastes === 1 ? '' : 's'}`}
                   {' · '}
                   {briefing.items} item{briefing.items === 1 ? '' : 's'}
@@ -665,55 +713,85 @@ export default function Dashboard({
                 </span>
               )}
 
-              {grouping.length > 0 && briefingFiles.length > 0 ? (
-                <div className="mt-3">
-                  <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
-                    Files to include
-                    {/*
-                      Two buttons that each do one thing, always both present.
-                      A single button that swapped its label read as the state
-                      rather than the action: with everything ticked it said
-                      "Clear all", which is what you press to select all.
-                    */}
-                    <button
-                      onClick={() => setExcluded(new Set())}
-                      disabled={excluded.size === 0}
-                      className="rounded-full border border-slate-700 px-2 py-0.5 normal-case tracking-normal text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-600"
-                    >
-                      Select all
-                    </button>
-                    <button
-                      onClick={() => setExcluded(new Set(briefingFiles.map((file) => file.name)))}
-                      disabled={excluded.size === briefingFiles.length}
-                      className="rounded-full border border-slate-700 px-2 py-0.5 normal-case tracking-normal text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:border-slate-800 disabled:text-slate-600"
-                    >
-                      Clear all
-                    </button>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {briefingFiles.map((file) => {
-                      const included = !excluded.has(file.name)
-                      return (
+              {/*
+                Two rows, not one chip per combination. Urgency and category
+                are independent, so they are picked independently and applied
+                together: KNOW plus Super & tax is the KNOW items on tax.
+              */}
+              <div className="mt-3 space-y-2">
+                {[
+                  {
+                    key: 'flag',
+                    label: 'Urgency',
+                    values: flagsPresent as string[],
+                    excluded: excludedFlags,
+                    setExcluded: setExcludedFlags,
+                    count: countForFlag,
+                  },
+                  {
+                    key: 'topic',
+                    label: 'Category',
+                    values: topicsPresent,
+                    excluded: excludedTopics,
+                    setExcluded: setExcludedTopics,
+                    count: countForTopic,
+                  },
+                ].map((row) =>
+                  row.values.length === 0 ? null : (
+                    <div key={row.key} className="flex flex-wrap items-center gap-1.5">
+                      <span className="w-16 shrink-0 text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-500">
+                        {row.label}
+                      </span>
+                      {row.values.map((value) => {
+                        const included = !row.excluded.has(value)
+                        const count = row.count(value)
+                        return (
+                          <button
+                            key={value}
+                            onClick={() => row.setExcluded(toggleIn(row.excluded, value))}
+                            aria-pressed={included}
+                            title={
+                              included && count === 0
+                                ? 'Nothing here with the other row’s choice, so no file'
+                                : undefined
+                            }
+                            // A ticked chip with nothing in it is muted rather
+                            // than bright: it is still on, but it will not
+                            // produce a file, and bright blue implied it would.
+                            className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
+                              !included
+                                ? 'border-slate-800 bg-slate-900/60 text-slate-500 hover:border-slate-700'
+                                : count === 0
+                                  ? 'border-slate-700 bg-slate-800/40 text-slate-500'
+                                  : 'border-sky-600/60 bg-sky-600/15 text-sky-200'
+                            }`}
+                          >
+                            <span className="mr-1">{included ? '✓' : '+'}</span>
+                            {value}{' '}
+                            <span
+                              className={included && count > 0 ? 'text-sky-400/70' : 'text-slate-600'}
+                            >
+                              ({count})
+                            </span>
+                          </button>
+                        )
+                      })}
+                      {row.excluded.size > 0 ? (
                         <button
-                          key={file.name}
-                          onClick={() => toggleFile(file.name)}
-                          title={file.name}
-                          aria-pressed={included}
-                          className={`rounded-lg border px-2.5 py-1 text-[11px] font-medium transition-colors ${
-                            included
-                              ? 'border-sky-600/60 bg-sky-600/15 text-sky-200'
-                              : 'border-slate-800 bg-slate-900/60 text-slate-500 hover:border-slate-700'
-                          }`}
+                          onClick={() => row.setExcluded(new Set())}
+                          className="rounded-full border border-slate-700 px-2 py-0.5 text-[11px] text-slate-400 hover:border-slate-500"
                         >
-                          <span className="mr-1">{included ? '✓' : '+'}</span>
-                          {file.label}{' '}
-                          <span className={included ? 'text-sky-400/70' : 'text-slate-600'}>
-                            ({file.items})
-                          </span>
+                          All
                         </button>
-                      )
-                    })}
-                  </div>
+                      ) : null}
+                    </div>
+                  )
+                )}
+              </div>
+
+              {grouping.length > 0 && briefingFiles.length > 0 ? (
+                <div className="mt-2 text-[11px] text-slate-600">
+                  {briefingFiles.map((file) => file.name).join('   ')}
                 </div>
               ) : null}
 

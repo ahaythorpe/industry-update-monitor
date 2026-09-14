@@ -187,11 +187,14 @@ is on screen.
 - **Download as** — a zip holding one Markdown file per group, or one Markdown
   file with the groups one after another.
 
-Underneath, **Files to include** lists the files you are about to get as tick
-chips with their item counts. Untick the ones you do not want — so "just the
-KNOW items on tax" is one click on `Super & tax · KNOW`, without disturbing the
-filters that decide what you are reading. Pick exactly one and the download is
-named after it (`super-tax-know-2026-09-14.md`).
+Underneath are two rows of tick chips, **Urgency** and **Category**, that scope
+the download without disturbing the filters deciding what you are reading. They
+apply together: leave only `KNOW` ticked in one row and only `Super & tax` in
+the other and you get the KNOW items on tax, nothing else. Each chip carries
+the count it would contribute given the other row's choice, so a category with
+no KNOW items this week reads `(0)` and is greyed rather than promising a file.
+Narrow to a single group and the download is named after it
+(`super-tax-know-2026-09-14.md`).
 
 **ⓘ Never scrapes paid sources** in that panel opens a plain-English
 explanation of where the text comes from and why no article body can reach it. The reverse nesting (`act-compliance.md`) is not in the
