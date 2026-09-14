@@ -44,25 +44,21 @@ const exactnessMeta = {
 } as const
 
 /**
- * How a downloaded briefing is cut into pastes.
+ * How a downloaded briefing is split into files.
  *
- * The options carry no hand-written description of what they produce. "Flag
- * only" does not tell you that you get ACT, KNOW and NOTE, and a description
- * written here would be a guess about a digest it cannot see — a week with no
- * insurance stories has no Insurance file. Each label is built from the items
- * actually on screen instead, so it names the real groups: "Compliance · ACT,
- * Compliance · KNOW, …". See groupingOptions below.
+ * There are only two things to split on, so there are two checkboxes rather
+ * than one list of every combination. That list had to name the combinations
+ * to be any use ("Category, then flag: Compliance · ACT, Regulation · ACT,
+ * +12 more") and was unreadable by the time it did.
+ *
+ * Ticking both splits by category first, so the files read compliance-act.md.
+ * The reverse nesting is still there on the command line as
+ * `--group-by flag,topic` for anyone who wants to clear every ACT item first.
  */
-const GROUPINGS: { value: string; label: string; grouping: Grouping }[] = [
-  { value: 'topic,flag', label: 'Category, then flag', grouping: ['topic', 'flag'] },
-  { value: 'flag,topic', label: 'Flag, then category', grouping: ['flag', 'topic'] },
-  { value: 'topic', label: 'Category only', grouping: ['topic'] },
-  { value: 'flag', label: 'Flag only', grouping: ['flag'] },
-  { value: '', label: 'No grouping', grouping: [] },
+const DIMENSIONS = [
+  { key: 'topic' as const, label: 'Category', example: 'Compliance, Regulation, Super & tax…' },
+  { key: 'flag' as const, label: 'Urgency', example: 'ACT, KNOW, NOTE' },
 ]
-
-// How many real group names to spell out before falling back to a count.
-const NAMES_SHOWN = 3
 
 const FORMATS = [
   { value: 'zip', label: 'Zip — one file per group' },
@@ -157,7 +153,10 @@ export default function Dashboard({
   const [selectedFlag, setSelectedFlag] = useState<Flag | null>(null)
   const [selectedSource, setSelectedSource] = useState<string | null>(null)
   const [selectedTopic, setSelectedTopic] = useState<string | null>(null)
-  const [grouping, setGrouping] = useState(GROUPINGS[0].value)
+  const [groupBy, setGroupBy] = useState<Record<'topic' | 'flag', boolean>>({
+    topic: true,
+    flag: true,
+  })
   const [format, setFormat] = useState<Format>('zip')
   const [selectedExactness, setSelectedExactness] = useState<Exactness>('all')
   const [dateRange, setDateRange] = useState<DateRange>('all')
@@ -249,47 +248,28 @@ export default function Dashboard({
     return digestTopics.filter((topic) => present.has(topic))
   }, [digestItems, digestTopics])
 
-  /**
-   * Each grouping option, labelled with the groups it would actually produce.
-   *
-   * Built from the filtered items rather than written by hand, so the list
-   * names this week's real files — "Compliance · ACT, Compliance · KNOW, +13
-   * more" — and a category with no news this week never appears as an option
-   * that would produce an empty file.
-   */
-  const groupingOptions = useMemo(
+  // Category first when both are ticked, so a file reads compliance-act.md.
+  const grouping = useMemo(
     () =>
-      GROUPINGS.map((option) => {
-        const files = buildBriefingFiles(filteredItems, option.grouping, digestTopics)
-        const names = files.map((file) => file.label)
-        const spelled = names.slice(0, NAMES_SHOWN).join(', ')
-        const rest = names.length > NAMES_SHOWN ? `, +${names.length - NAMES_SHOWN} more` : ''
-        const items = files.reduce((total, file) => total + file.items, 0)
-
-        return {
-          ...option,
-          files,
-          // What the dropdown shows: the option, then the real group names.
-          text: option.grouping.length
-            ? `${option.label}: ${spelled}${rest}`
-            : `${option.label}: one file of ${items} item${items === 1 ? '' : 's'}`,
-          // The same names in full, for the line under the controls.
-          fullNames: names.join(', '),
-        }
-      }),
-    [filteredItems, digestTopics]
+      DIMENSIONS.filter((dimension) => groupBy[dimension.key]).map(
+        (dimension) => dimension.key
+      ) as Grouping,
+    [groupBy]
   )
 
-  const chosenGrouping = useMemo(
-    () => groupingOptions.find((option) => option.value === grouping) || groupingOptions[0],
-    [groupingOptions, grouping]
+  const briefingFiles = useMemo(
+    () => buildBriefingFiles(filteredItems, grouping, digestTopics),
+    [filteredItems, grouping, digestTopics]
   )
-
-  const briefingFiles = chosenGrouping.files
 
   const briefing = useMemo(
-    () => buildBriefing(filteredItems, chosenGrouping.grouping, digestTopics),
-    [filteredItems, chosenGrouping, digestTopics]
+    () => buildBriefing(filteredItems, grouping, digestTopics),
+    [filteredItems, grouping, digestTopics]
+  )
+
+  const biggestFile = useMemo(
+    () => [...briefingFiles].sort((a, b) => b.items - a.items)[0],
+    [briefingFiles]
   )
 
   /**
@@ -310,7 +290,7 @@ export default function Dashboard({
     const url = URL.createObjectURL(blob)
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = briefingFilename(chosenGrouping.grouping, digestGeneratedAt, format)
+    anchor.download = briefingFilename(grouping, digestGeneratedAt, format)
     document.body.appendChild(anchor)
     anchor.click()
     anchor.remove()
@@ -549,8 +529,9 @@ export default function Dashboard({
                 <p className="mt-1 max-w-2xl text-xs text-slate-400">
                   Saves the {filteredItems.length} item{filteredItems.length === 1 ? '' : 's'} these
                   filters show as a Markdown file of paste-ready blocks, each carrying the
-                  summarising prompt. Paste a block into your own AI tool, save the reply, and merge
-                  it back with{' '}
+                  summarising prompt — each one its publisher&apos;s own headline and teaser plus
+                  the link, never article text. Paste a block into your own AI tool, save the reply,
+                  and merge it back with{' '}
                   <code className="rounded bg-slate-800 px-1 py-0.5 text-[11px] text-slate-300">
                     python src/monitor.py --import-summaries output/reply.md
                   </code>
@@ -559,20 +540,35 @@ export default function Dashboard({
               </div>
 
               <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-end">
-                <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
-                  Group by
-                  <select
-                    value={grouping}
-                    onChange={(event) => setGrouping(event.target.value)}
-                    className="rounded-xl border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-semibold normal-case tracking-normal text-white hover:border-slate-600"
-                  >
-                    {groupingOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.text}
-                      </option>
+                <div className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
+                  Split files by
+                  <div className="flex gap-2">
+                    {DIMENSIONS.map((dimension) => (
+                      <label
+                        key={dimension.key}
+                        title={dimension.example}
+                        className={`flex cursor-pointer items-center gap-2 rounded-xl border px-4 py-2 text-sm font-semibold normal-case tracking-normal transition-colors ${
+                          groupBy[dimension.key]
+                            ? 'border-sky-500 bg-sky-600/20 text-white'
+                            : 'border-slate-700 bg-slate-800 text-slate-400 hover:border-slate-600'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={groupBy[dimension.key]}
+                          onChange={(event) =>
+                            setGroupBy((current) => ({
+                              ...current,
+                              [dimension.key]: event.target.checked,
+                            }))
+                          }
+                          className="h-4 w-4 accent-sky-500"
+                        />
+                        {dimension.label}
+                      </label>
                     ))}
-                  </select>
-                </label>
+                  </div>
+                </div>
 
                 <label className="flex flex-col gap-1 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
                   Download as
@@ -599,31 +595,32 @@ export default function Dashboard({
               </div>
             </div>
 
-            <div className="mt-4 border-t border-slate-800/80 pt-3 text-xs text-slate-500">
+            <div className="mt-4 border-t border-slate-800/80 pt-3 text-xs">
               {briefing.pastes === 0 ? (
-                'Nothing to download — widen the filters above.'
+                <span className="text-slate-500">Nothing to download — widen the filters above.</span>
               ) : (
                 <>
-                  <span className="text-slate-400">
+                  <span className="font-semibold text-slate-300">
                     {format === 'zip'
-                      ? `${briefingFiles.length} file${briefingFiles.length === 1 ? '' : 's'} in a zip`
+                      ? `${briefingFiles.length} file${briefingFiles.length === 1 ? '' : 's'}`
                       : `1 file, ${briefing.pastes} paste${briefing.pastes === 1 ? '' : 's'}`}
-                    , {briefing.items} item{briefing.items === 1 ? '' : 's'}
-                    {chosenGrouping.grouping.length ? `: ${chosenGrouping.fullNames}` : ''}
+                    {' · '}
+                    {briefing.items} item{briefing.items === 1 ? '' : 's'}
+                    {format === 'zip' && biggestFile && grouping.length
+                      ? ` · biggest is ${biggestFile.label}, ${biggestFile.items} items`
+                      : ''}
                   </span>
-                  {format === 'zip' && briefingFiles.length > 0 ? (
-                    <span className="ml-1">
-                      Largest: {[...briefingFiles].sort((a, b) => b.items - a.items)[0].label} (
-                      {[...briefingFiles].sort((a, b) => b.items - a.items)[0].items} items).
-                    </span>
+                  {grouping.length ? (
+                    <div className="mt-1 text-slate-500">
+                      {briefingFiles.map((file) => file.name).join('   ')}
+                    </div>
                   ) : null}
-                  <span className="ml-1">
-                    Each item goes in as its publisher&apos;s own headline and teaser plus the link
-                    — never article text, which this tool never fetches.
-                  </span>
-                  {briefing.skipped > 0
-                    ? ` ${briefing.skipped} item${briefing.skipped === 1 ? '' : 's'} left out for having no ID to match a reply back to.`
-                    : ''}
+                  {briefing.skipped > 0 ? (
+                    <div className="mt-1 text-amber-500/80">
+                      {briefing.skipped} item{briefing.skipped === 1 ? '' : 's'} left out — no ID to
+                      match a reply back to.
+                    </div>
+                  ) : null}
                 </>
               )}
             </div>

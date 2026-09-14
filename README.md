@@ -181,11 +181,15 @@ The dashboard has the same thing as a button. Filter to what you want — catego
 flag, source, date, search — then **Download for summarising** saves exactly what
 is on screen.
 
-- **Group by** — category then flag, flag then category, either on its own, or
-  no grouping at all. Each option names what it produces.
-- **Download as** — a zip holding one Markdown file per group
-  (`compliance-act.md`, `compliance-know.md`, …), or a single Markdown file with
-  the groups one after another.
+- **Split files by** — two tick boxes, **Category** and **Urgency**. Tick both
+  for `compliance-act.md`, `compliance-know.md`, …; tick one for
+  `compliance.md` or `act.md`; untick both for a single undivided file.
+- **Download as** — a zip holding one Markdown file per group, or one Markdown
+  file with the groups one after another.
+
+Underneath, it names the files you are about to get and which is biggest, so
+nothing is a surprise. The reverse nesting (`act-compliance.md`) is not in the
+UI; it is `--group-by flag,topic` on the command line.
 
 It is built in the browser from the digest already loaded, so it costs no request
 and reaches no publisher. `web/lib/briefing.ts` produces the same bytes as
