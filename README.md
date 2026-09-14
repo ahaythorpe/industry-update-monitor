@@ -280,6 +280,13 @@ and how to keep it free. Nothing is on unless you configure it, and
 `/api/status` reports what the server can actually do rather than showing
 switches that do nothing.
 
+## How articles are collected and filtered
+
+[HOW_IT_WORKS.md](HOW_IT_WORKS.md) walks the seven stages from source list to
+digest and names the guard at each — including why a paid source cannot even be
+configured, and the one honest caveat about the link check. It also covers
+summarising with no API cost, which is the recommended way to use this.
+
 ## Safety and guardrails
 - No paywall bypassing
 - No login flow required for default usage

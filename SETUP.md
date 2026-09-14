@@ -91,8 +91,9 @@ No API key and no per-run cost. The tool writes a briefing, you paste it into
 Claude or ChatGPT, you paste the reply back.
 
 **From the dashboard:** filter to what you want → **Download for summarising** →
-choose **Group by** and **Download as** → you get a zip of Markdown files, one
-per group.
+tick **Split files by** (Category, Urgency, or both), scope it with the Urgency
+and Category chips, and press **Download** for a zip of Markdown files, one per
+group.
 
 **Or from the command line:**
 
@@ -113,6 +114,11 @@ use. The prompt that travels with every paste is
 [SAFEGUARDS.md](SAFEGUARDS.md) section D verbatim — it forbids inventing detail
 and forbids the AI going and fetching the article.
 
+**Why no API key?** One would mean a balance to watch, a bill to cap and a key
+to keep out of git — to pay a second time for a model you already subscribe to.
+[HOW_IT_WORKS.md](HOW_IT_WORKS.md#summarising-with-no-api-cost) explains the loop
+and why the files are split small.
+
 ---
 
 ## Optional add-ons
@@ -125,7 +131,7 @@ has the costs, and how to keep each one free.
 |---|---|---|---|
 | **[Gmail app password](https://myaccount.google.com/apppasswords)** | Weekly digest by email | Free | [EMAIL_SETUP.md](EMAIL_SETUP.md) |
 | **[Gmail API](https://console.cloud.google.com/)** | Reads newsletters from one label into the digest | Free | [README](README.md#newsletters-from-gmail) |
-| **[Twilio](https://www.twilio.com/try-twilio)** | Digest to WhatsApp | Free trial credit, then cents | [WHATSAPP_SETUP.md](web/WHATSAPP_SETUP.md) · **read the cautions below** |
+| **[Twilio](https://www.twilio.com/try-twilio)** | Digest to WhatsApp | Free trial credit, then cents | [WHATSAPP_SETUP.md](WHATSAPP_SETUP.md) · **read the cautions below** |
 | **[Vercel](https://vercel.com/signup)** | Dashboard hosted on a URL | Free Hobby tier | `cd web && npx vercel deploy` |
 
 ### News sources to sign up to
