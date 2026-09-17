@@ -200,17 +200,32 @@ Requirements:
 
 ## 8. Keep the current work on the shelf copy, and off this laptop
 
-As of 17 September 2026 every commit of the previous three weeks sits on
-`fix/classification-and-delivery`. `main` is still at 31 August, and there is no git remote, so
-the only copy of the work is this machine.
+Updated 17 September 2026. **The merge half of this item is done.** `main` is at `adf1079`, and
+every branch — `fix/classification-and-delivery`, `docs/whatsapp-implementation`,
+`docs/handover-whatsapp-ollama-zip`, `feat/ollama-and-summaries-everywhere` — is fully contained
+in it, none of them ahead by a single commit. The shelf copy no longer misrepresents the project.
+
+What is left is the off-this-laptop half, and it is blocked. There is still no git remote, so
+this machine is still the only copy of the work.
+
+**The name is taken, by something else.** `github.com/ahaythorpe/advice-monitor` already exists
+and is **public**. It was created 1 September 2026 with a history unrelated to this repo, and it
+holds the `web/` dashboard only — the Next.js app, `app/`, `components/`, `next.config.ts`. The
+local `web/.vercel` folder suggests it is what Vercel deploys. Pushing this repo to that remote
+would overwrite a live public site with unrelated history. Do not do it.
 
 Requirements:
 
-- Merge the branch into `main` so the shelf copy stops misrepresenting the project.
-- Then push to a private GitHub repo. `README.md` already documents the push and assumes it has
-  happened.
-- Confirm before the first push that nothing secret goes with it. `.env`, `credentials.json` and
-  `token.json` are git-ignored; verify rather than assume.
+- Push to a **separate, private** repo under a different name, and check with whoever published
+  the demo before choosing it, so two repos with near-identical names do not become a trap later.
+- Private rather than public, because of what travels with this repo and does not travel with the
+  demo: which newsletters are subscribed to (`free_subscriptions/`), a filed advice document
+  (`data/filed_example_2026-08-19.md`), and the mailbox setup. None of that is a credential; all
+  of it is a working life, and none of it has to be world-readable to be backed up. The demo is
+  public on purpose — it is a shop window with nothing behind it. Different thing, different call.
+- Secrets verified on 17 September 2026 rather than assumed: `.env`, `.env.*`, `credentials.json`
+  and `token.json` are git-ignored, and `git log --all` shows that none of them has ever been
+  committed, on any branch.
 - Free: a private GitHub repo costs nothing at this size.
 
 ## 9. Correct the plans that describe things that were never built
@@ -333,3 +348,35 @@ Requirements, if this is taken further:
 - Do not scrape a media centre page to fake a feed. The rule is feeds in, free sources out, and
   a page is not a feed.
 - Costs nothing either way: both routes are free public publishing.
+
+## 14. Government bodies that are not on the source list at all
+
+Item 13 covers the bodies already on the list that publish no feed. This one covers the bodies
+that were never added. Probed 17 September 2026, to the same standard item 13 sets: a feed counts
+only if it carries *current* items, because a valid stale feed is the trap.
+
+- **Tax Practitioners Board (TPB)** — `tpb.gov.au/rss.xml` is live and current: 10 entries,
+  newest dated 17 September 2026, recent items covering sanctions-power guidance and registration
+  terminations. The strongest candidate on this list, and an ACT prior on the face of it, since
+  the TPB registers tax (financial) advisers and its terminations and guidance change what an
+  adviser may do. The only working government feed found in this probe.
+- **AUSTRAC** — no feed. `austrac.gov.au/rss.xml`, `/feed` and `/news/rss` all 404, and the news
+  and media page advertises none in its HTML. Bookmark-and-check would be the intake. Worth
+  weighing because the AML/CTF changes reach into advice practices rather than staying with banks.
+- **CSLR** — `cslr.org.au/feed` parses and carries 10 entries, but the newest is 2 July 2026, so
+  it is a low-volume publisher rather than a live wire. Relevant — the CSLR levy is what the
+  filed example of 19 August 2026 is about — but it would earn a NOTE prior, not an ACT one.
+- **Federal Register of Legislation** — `legislation.gov.au/rss.xml` returns HTML, not a feed.
+  Nothing to configure.
+
+Requirements, if this is taken further:
+
+- Add nothing on the strength of this probe alone. A source earns its place by publishing things
+  worth reading over a few weeks, not by having a feed that responds.
+- Watch reading time before the flag. TPB looks to publish roughly weekly; an ACT prior puts every
+  one of those items in front of you at every sweep, which is the cost that item 3 is protecting.
+- Record what was probed in `data/sources.json`, the way ASIC, ATO and Treasury already record
+  theirs, so the next probe is quick.
+- Do not scrape a media centre to fake a feed for AUSTRAC. Same rule as item 13: a page is not a
+  feed.
+- Costs nothing either way: all four are free public publishing.
