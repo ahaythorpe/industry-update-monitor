@@ -22,6 +22,9 @@ from src.monitor import (
     summary_ref,
     write_briefing,
     write_briefing_groups,
+    BUNDLE_BOUNDARY,
+    format_bundle_links,
+    format_bundle_readme,
 )
 
 
@@ -341,3 +344,51 @@ class ImportTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class BundleFilesTests(unittest.TestCase):
+    """IMPROVEMENTS.md item 12 — a download an AI tool can be handed as-is."""
+
+    def test_group_write_leaves_an_entry_point_in_the_folder(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            directory = Path(tmp) / "briefing"
+            write_briefing_groups(directory, _items(4), ["flag"])
+
+            readme = (directory / "README.md").read_text(encoding="utf-8")
+            links = (directory / "links.md").read_text(encoding="utf-8")
+
+            # Which digest, how much of it, and what to do with it.
+            self.assertIn("Briefing bundle", readme)
+            self.assertIn("4 items", readme)
+            self.assertIn("--import-summaries", readme)
+            # The boundary is stated in the bundle, not only in the repo.
+            self.assertIn(BUNDLE_BOUNDARY, readme)
+            self.assertIn("act.md", readme)
+
+            # Every item once, with its link.
+            for item in _items(4):
+                self.assertIn(item["link"], links)
+
+    def test_a_newsletter_link_is_labelled_not_offered_as_an_article(self):
+        item = _items(1)[0]
+        item["intake"] = "email"
+        item["link"] = "https://mail.google.com/mail/u/0/#inbox/abc123"
+
+        links = format_bundle_links([item])
+
+        self.assertIn("opens in your own mailbox", links)
+        self.assertNotIn("- Link: https://mail.google.com", links)
+
+    def test_a_feed_item_is_offered_as_a_link(self):
+        links = format_bundle_links(_items(1))
+
+        self.assertIn("- Link: https://a.test/asic-bans-director-0", links)
+        self.assertNotIn("mailbox", links)
+
+    def test_readme_counts_files_and_pastes_it_was_given(self):
+        written = [("ACT", Path("act.md"), 2, 9), ("KNOW", Path("know.md"), 1, 3)]
+
+        readme = format_bundle_readme(written, "2026-09-14T00:00:00+00:00")
+
+        self.assertIn("# Briefing bundle — 2026-09-14", readme)
+        self.assertIn("12 items across 2 files, 3 pastes", readme)

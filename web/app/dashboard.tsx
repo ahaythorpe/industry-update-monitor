@@ -15,6 +15,7 @@ import {
   slug,
 } from '@/lib/briefing'
 import { buildZip } from '@/lib/zip'
+import { bundleLinks, bundleReadme } from '@/lib/bundle'
 import { summaryOrigin } from '@/lib/digest'
 import { formatDay, toDayKey } from '@/lib/utils'
 import { Calendar } from '@/components/Calendar'
@@ -422,8 +423,16 @@ export default function Dashboard({
 
   const downloadBriefing = () => {
     const zipped = format === 'zip'
+    // Unzipping used to give a handful of Markdown files with no entry point.
+    // README.md says where they came from and what to do with them; links.md
+    // is every item once, to open by hand. IMPROVEMENTS.md item 12.
+    const zipEntries = [
+      { name: 'README.md', text: bundleReadme(briefingFiles, digestGeneratedAt) },
+      { name: 'links.md', text: bundleLinks(downloadItems, digestGeneratedAt) },
+      ...briefingFiles,
+    ]
     const blob = zipped
-      ? new Blob([buildZip(briefingFiles, new Date(digestGeneratedAt || Date.now()))], {
+      ? new Blob([buildZip(zipEntries, new Date(digestGeneratedAt || Date.now()))], {
           type: 'application/zip',
         })
       : new Blob([briefing.text], { type: 'text/markdown;charset=utf-8' })

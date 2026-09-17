@@ -16,6 +16,53 @@ function items(count: number, flag: Flag = 'KNOW'): DigestItem[] {
   )
 }
 
+function withSummary(overrides: Partial<DigestItem> = {}): DigestItem {
+  return normalizeIncomingItem({
+    title: 'CSLR levy changes',
+    teaser: 'The publisher brief sentence.',
+    link: 'https://a.test/cslr',
+    source_name: 'Test Source',
+    flag: 'ACT',
+    topic: 'Industry',
+    confidence: 0.9,
+    ...overrides,
+  })
+}
+
+// IMPROVEMENTS.md item 4 fixed src/whatsapp_sender.py and missed this
+// renderer, so the dashboard button sent the publisher's teaser and dropped
+// the summary without saying so. Two routes, one output, or they drift.
+describe('summaries reach the WhatsApp message', () => {
+  it('includes a hand-written summary, labelled, above the teaser', () => {
+    const body = formatWhatsappDigest([
+      withSummary({ ai_summary: 'What this means for advisers.', ai_source: 'manual' }),
+    ]).join('\n')
+
+    expect(body).toContain('What this means for advisers.')
+    expect(body).toContain('Summarised by hand')
+    // Above, never instead of: the publisher's words stay on the message.
+    expect(body).toContain('The publisher brief sentence.')
+    expect(body.indexOf('What this means for advisers.')).toBeLessThan(
+      body.indexOf('The publisher brief sentence.')
+    )
+  })
+
+  it('names the local model rather than presenting it as this tool', () => {
+    const body = formatWhatsappDigest([
+      withSummary({ ai_summary: 'A local summary.', ai_source: 'ollama:qwen3:8b' }),
+    ]).join('\n')
+
+    expect(body).toContain('Summarised by a local model (qwen3:8b)')
+  })
+
+  it('says nothing at all when there is no summary', () => {
+    const body = formatWhatsappDigest([withSummary()]).join('\n')
+
+    expect(body).not.toContain('Summarised')
+    expect(body).toContain('The publisher brief sentence.')
+  })
+})
+
 describe('formatWhatsappDigest', () => {
   it('sends a short digest as a single message', () => {
     const messages = formatWhatsappDigest(items(2))

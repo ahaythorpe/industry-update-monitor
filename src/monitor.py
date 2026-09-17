@@ -1314,6 +1314,96 @@ def write_briefing(items, path, chunk_size=BRIEF_CHUNK, label=None, prompt=BRIEF
     return path, len(blocks)
 
 
+# Titles and teasers travel; article text never does.
+BUNDLE_BOUNDARY = (
+    "Boundary: this bundle holds titles and teasers only. Do not ask a tool to fetch the links — "
+    "open them yourself, in your own browser."
+)
+
+
+def _bundle_day(generated_at=None):
+    if generated_at:
+        return str(generated_at)[:10]
+    return datetime.now().strftime("%Y-%m-%d")
+
+
+def format_bundle_readme(written, generated_at=None):
+    """
+    The entry point for a downloaded briefing folder.
+
+    `written` is what write_briefing_groups returns:
+    [(label, path, blocks, item_count)]. Kept in step with
+    web/lib/bundle.ts's bundleReadme — two routes, one output.
+    """
+    day = _bundle_day(generated_at)
+    items = sum(count for _, _, _, count in written)
+    pastes = sum(blocks for _, _, blocks, _ in written)
+
+    lines = [
+        f"# Briefing bundle — {day}",
+        "",
+        f"From the Industry Update Monitor digest generated {day}.",
+        f"{items} item{'' if items == 1 else 's'} across {len(written)} "
+        f"file{'' if len(written) == 1 else 's'}, "
+        f"{pastes} paste{'' if pastes == 1 else 's'} in total.",
+        "",
+        "## What to do with it",
+        "",
+        "1. Open one `.md` file. Each is one subject, and each paste inside it is sized for one",
+        "   chat message.",
+        "2. Paste a block into the AI tool of your choice. The prompt is already at the top of it.",
+        "3. Paste the reply back with `python src/monitor.py --import-summaries FILE`, or into the",
+        "   dashboard. Replies are matched on the six-character ID at the start of each line, so",
+        "   they land on the right items whichever file they came from.",
+        "4. `links.md` is every item once, with its link, for opening sources yourself.",
+        "",
+        "## The rule",
+        "",
+        BUNDLE_BOUNDARY,
+        "",
+        "A summary is triage. A 🔴 ACT item is read at its original source before it is acted on,",
+        "no matter what any summary says.",
+        "",
+        "## Files",
+        "",
+    ]
+    for label, path, blocks, count in written:
+        lines.append(
+            f"- `{Path(path).name}` — {label}: {count} item{'' if count == 1 else 's'}, "
+            f"{blocks} paste{'' if blocks == 1 else 's'}"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def format_bundle_links(items, generated_at=None):
+    """Every item once, with its link. Mirrors web/lib/bundle.ts's bundleLinks."""
+    lines = [
+        f"# Links — {_bundle_day(generated_at)}",
+        "",
+        "Every item once, in digest order. Open these yourself; do not hand the list to a tool to",
+        "fetch.",
+        "",
+    ]
+    for item in items:
+        ident = item.get("ref") or item.get("id") or "——————"
+        title = str(item.get("title") or "Untitled").replace("|", "/")
+        lines.append(f"## {ident} · {item.get('flag', 'NOTE')} · {title}")
+        lines.append("")
+        lines.append(f"- Source: {item.get('source_name') or 'Unknown'}")
+        lines.append(f"- Date: {str(item.get('created_at') or '')[:10] or 'not recorded'}")
+        if item.get("intake") == "email":
+            # A newsletter's link opens the message in its owner's own mailbox.
+            # It is not a public article and must not be offered as one.
+            lines.append(
+                f"- Newsletter — opens in your own mailbox, not a public page: {item.get('link', '')}"
+            )
+        else:
+            lines.append(f"- Link: {item.get('link', '')}")
+        lines.append("")
+    return "\n".join(lines)
+
+
 def write_briefing_groups(directory, items, grouping, chunk_size=BRIEF_CHUNK, prompt=BRIEF_PROMPT):
     """
     Write one briefing per group, so each paste is one coherent subject.
@@ -1331,6 +1421,16 @@ def write_briefing_groups(directory, items, grouping, chunk_size=BRIEF_CHUNK, pr
             group, directory / f"{name}.md", chunk_size, label=label, prompt=prompt
         )
         written.append((label, path, blocks, len(group)))
+
+    # Unzip today and you get Markdown files with no entry point
+    # (IMPROVEMENTS.md item 12). These two are that entry point, and the
+    # dashboard's zip carries the same pair.
+    (directory / "README.md").write_text(
+        format_bundle_readme(written), encoding="utf-8"
+    )
+    (directory / "links.md").write_text(
+        format_bundle_links(items), encoding="utf-8"
+    )
     return written
 
 

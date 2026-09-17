@@ -358,6 +358,18 @@ anyone to read. The fix is still A or B above, and it should land before Twilio 
 configured, not after. `WHATSAPP_SETUP.md` now carries the two commands to re-check this and the
 masked shape of where the credentials belong.
 
+Closed, 17 September 2026. The endpoint took option A — it reads `WHATSAPP_TO` from the server
+environment and ignores the request's recipient — and the dashboard's recipient box is gone rather
+than left as a field that does nothing. Both warnings that described the old behaviour were
+rewritten, since a fix that leaves the warnings stale is half a fix.
+
+The second requirement above was still open after that: a summary pasted back by hand reached the
+command line's WhatsApp but not the dashboard's. Item 4 fixed `src/whatsapp_sender.py` and missed
+`web/lib/whatsapp.ts`, so the button sent the publisher's teaser and dropped the summary silently.
+Fixed the same way as the Python side — labelled with who wrote it, above the teaser rather than
+instead of it — with three tests so it cannot drift again unnoticed. That miss is the argument for
+the parity tests item 12 asks for.
+
 
 
 ## 11. Summaries from a model on this machine (Ollama)
@@ -414,6 +426,23 @@ Requirements:
   `--import-summaries` attaches a summary to the wrong article.
 - Costs nothing and reaches no publisher: it is built in the browser from the digest already
   loaded. Brief: [HANDOVER.md](HANDOVER.md), stream C.
+
+Built, 17 September 2026. `README.md` and `links.md` are written into both routes' output:
+`web/lib/bundle.ts` for the dashboard's zip, `format_bundle_readme` and `format_bundle_links` in
+`src/monitor.py` for `--group-by`, which now leaves them in the briefing folder beside the
+Markdown files.
+
+The README names the digest and its date, counts the items, files and pastes, gives the four
+steps of the round trip, and carries the boundary in the bundle rather than only in the repo —
+titles and teasers only, do not ask a tool to fetch the links, and a 🔴 ACT item is read at its
+source regardless. `links.md` is every item once with ID, flag, source, date, title and URL.
+
+A newsletter is tested rather than assumed: `intake == "email"` is labelled "opens in your own
+mailbox, not a public page" and is deliberately not offered under "Link:", because that URL only
+opens for its owner's browser. Six tests either side cover the pair, including that a feed item
+is still offered as a link and a newsletter never is.
+
+
 
 ## 13. Government sources that publish no feed
 

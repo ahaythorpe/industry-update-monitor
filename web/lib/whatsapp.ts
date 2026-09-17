@@ -1,4 +1,4 @@
-import type { DigestItem, Flag } from '@/lib/digest'
+import { summaryOrigin, type DigestItem, type Flag } from './digest'
 
 /**
  * The WhatsApp newsletter, in the same shape as src/whatsapp_sender.py.
@@ -38,6 +38,17 @@ function itemBlock(index: number, item: DigestItem): string {
     meta.push(`${Math.round(item.confidence * 100)}% confidence`)
   }
   if (meta.length) lines.push(`_${meta.join(' · ')}_`)
+
+  // The summary you had written reached the dashboard and stopped there
+  // (IMPROVEMENTS.md item 4). src/whatsapp_sender.py was fixed then; this
+  // renderer was missed, so the dashboard button silently sent the publisher's
+  // teaser instead. Labelled with who wrote it, in italics, so it never reads
+  // as the publisher's own words, and placed above the teaser rather than
+  // instead of it.
+  const written = escapeMarkup(item.ai_summary || '').trim()
+  if (written) {
+    lines.push(`_${escapeMarkup(summaryOrigin(item.ai_source))}:_ ${written}`)
+  }
 
   const teaser = escapeMarkup(item.teaser).trim()
   if (teaser) lines.push(teaser)
