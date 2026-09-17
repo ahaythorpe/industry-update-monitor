@@ -298,10 +298,13 @@ Three rules, and you cannot be charged:
 2. **Never buy a phone number.** The WhatsApp sandbox uses Twilio's shared
    number. A bought number is rented monthly whether you use it or not, and is
    the usual source of a surprise bill.
-3. **Keep the credentials in your local `.env`, never in Vercel.** The dashboard's
-   send endpoint takes the recipient from the request body with no
-   authentication — fine on your own machine, not fine on a public URL. Full
-   explanation in [INTEGRATIONS.md](INTEGRATIONS.md#the-one-real-exposure--read-this-before-making-the-site-public).
+3. **Keep the credentials in your local `.env` and `web/.env.local`, never in
+   Vercel.** Since 17 Sep 2026 the dashboard's send endpoint only ever sends to
+   `WHATSAPP_TO`, your own phone, so it cannot be aimed at a stranger. It still
+   has no authentication or rate limit, though, so on a public URL with
+   credentials attached someone could still trigger sends to you and spend your
+   credit. On your own machine it is fine. Full explanation in
+   [INTEGRATIONS.md](INTEGRATIONS.md#the-one-real-exposure--read-this-before-making-the-site-public).
 
 Also know the sandbox lapses: WhatsApp only allows a freeform message within 24
 hours of that phone messaging the sandbox, and the join expires after 72 hours.
