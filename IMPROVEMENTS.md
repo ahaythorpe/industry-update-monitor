@@ -239,7 +239,9 @@ Requirements:
   agent rules ban retry loops, and a retry against a messaging API is how a free trial becomes a
   bill.
 - Cost stays nil: trial credit, shared sandbox number, never buy a number, never upgrade.
-- Brief for whoever takes it: [HANDOVER.md](HANDOVER.md), stream A.
+- The four ways to close the endpoint, with trade-offs and a recommendation, and the jobs
+  either side of it: [WHATSAPP_IMPLEMENTATION.md](WHATSAPP_IMPLEMENTATION.md). Brief:
+  [HANDOVER.md](HANDOVER.md), stream A.
 
 ## 11. Summaries from a model on this machine (Ollama)
 

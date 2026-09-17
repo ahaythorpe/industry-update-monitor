@@ -47,6 +47,9 @@ network is a test that will be deleted by the next person.
 - `web/app/api/whatsapp/send/route.ts` — the dashboard's send endpoint.
 - [WHATSAPP_SETUP.md](WHATSAPP_SETUP.md) — the user-facing setup, written to
   keep a Twilio account on free trial credit and make a charge impossible.
+- [WHATSAPP_IMPLEMENTATION.md](WHATSAPP_IMPLEMENTATION.md) — **the brief for
+  this stream**: the four ways to close the endpoint with their trade-offs, the
+  jobs either side of it, and what done looks like. Read it before starting.
 
 With no credentials, `--whatsapp` prints the exact messages instead of sending.
 That is the default and it must stay usable with no account at all.

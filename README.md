@@ -343,8 +343,10 @@ where each stream stands, what finished looks like, and the rules that do not
 bend. It covers finishing WhatsApp delivery, summaries from a local model, and
 making the downloaded briefing something an AI tool can be handed as-is.
 
-[OLLAMA_SETUP.md](OLLAMA_SETUP.md) is the install and design for running a model
-on this machine — Phase 3 with no key and no bill.
+[WHATSAPP_IMPLEMENTATION.md](WHATSAPP_IMPLEMENTATION.md) and
+[OLLAMA_SETUP.md](OLLAMA_SETUP.md) are the per-stream briefs: how to finish
+WhatsApp delivery without making a charge possible, and how to run a model on
+this machine — Phase 3 with no key and no bill.
 
 ## Safety and guardrails
 - No paywall bypassing
