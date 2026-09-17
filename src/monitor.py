@@ -1699,13 +1699,16 @@ def write_sweep(items, path, when=None, generated_at=None, glossary=None):
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
-# A block is a dozen-odd items for a small model to work through; a minute is
-# generous on a laptop and still bounded, so a stuck model cannot hold the
-# weekly run open all night.
-OLLAMA_TIMEOUT = 180
-# The cap is on pastes, not items, because a paste is the unit of work. Ten is
-# 150 items at the brief chunk size — more than a week ever holds.
-OLLAMA_MAX_BLOCKS = 10
+# Measured on this machine: three items took 93 seconds through an 8B model,
+# including loading it. Thirteen in one paste did not finish inside 180s. So a
+# paste is smaller than the chat-window default, and the wait is longer — both
+# still bounded, so a stuck model cannot hold the weekly run open all night.
+OLLAMA_TIMEOUT = 600
+OLLAMA_CHUNK = 5
+# The cap is on pastes, because a paste is the unit of work and the thing that
+# takes minutes. Twelve at five items each is 60 items — a whole week, and
+# roughly half an hour of laptop.
+OLLAMA_MAX_BLOCKS = 12
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
 
@@ -1767,7 +1770,24 @@ def ollama_generate(prompt, model=None, host=None, timeout=OLLAMA_TIMEOUT):
                 f"Pull it first: ollama pull {model or OLLAMA_MODEL}"
             ) from error
         raise OllamaUnavailable(f"Ollama refused the request (HTTP {error.code}). {detail}") from error
-    except (urllib.error.URLError, TimeoutError, OSError) as error:
+    except TimeoutError as error:
+        raise OllamaUnavailable(
+            f"{model or OLLAMA_MODEL} was still working after {timeout}s and the wait was given "
+            f"up, so nothing was merged. It is running, just slow: send fewer items per paste "
+            f"(--ollama-chunk 4), narrow the week (--flags ACT), or wait longer "
+            f"(--ollama-timeout 900)."
+        ) from error
+    except urllib.error.URLError as error:
+        if isinstance(error.reason, TimeoutError):
+            raise OllamaUnavailable(
+                f"Ollama did not answer within {timeout}s at {host}. If it is running, it is "
+                f"loading the model — try again, or raise --ollama-timeout."
+            ) from error
+        raise OllamaUnavailable(
+            f"Ollama is not answering at {host}. Start it with: ollama serve  "
+            f"(install: brew install ollama — see OLLAMA_SETUP.md). Reported as: {error}"
+        ) from error
+    except OSError as error:
         raise OllamaUnavailable(
             f"Ollama is not answering at {host}. Start it with: ollama serve  "
             f"(install: brew install ollama — see OLLAMA_SETUP.md). Reported as: {error}"
@@ -1777,7 +1797,7 @@ def ollama_generate(prompt, model=None, host=None, timeout=OLLAMA_TIMEOUT):
 
 
 def summarise_with_ollama(items, model=None, host=None, timeout=OLLAMA_TIMEOUT,
-                          chunk_size=BRIEF_CHUNK, prompt=BRIEF_PROMPT,
+                          chunk_size=OLLAMA_CHUNK, prompt=BRIEF_PROMPT,
                           max_blocks=OLLAMA_MAX_BLOCKS, on_block=None):
     """
     Run the briefing through a local model and return its replies as one text.
@@ -1848,6 +1868,10 @@ if __name__ == "__main__":
     parser.add_argument("--ollama", nargs="?", const="", default=None, metavar="MODEL",
                         help="Summarise through a model on this machine (default: $OLLAMA_MODEL "
                              "or llama3.1:8b). Needs `ollama serve` — see OLLAMA_SETUP.md")
+    parser.add_argument("--ollama-timeout", type=int, default=OLLAMA_TIMEOUT, metavar="SECONDS",
+                        help=f"How long to wait for one paste (default: {OLLAMA_TIMEOUT})")
+    parser.add_argument("--ollama-chunk", type=int, default=OLLAMA_CHUNK, metavar="N",
+                        help=f"Items per paste through the model (default: {OLLAMA_CHUNK})")
     parser.add_argument("--ollama-reply", default="output/ollama-reply.md", metavar="PATH",
                         help="Where the model's raw reply is written before it is imported")
     parser.add_argument("--sweep", nargs="?", const="output", default=None, metavar="PATH",
@@ -1894,12 +1918,13 @@ if __name__ == "__main__":
                                  f"Refresh it with: python src/monitor.py --json")
 
             prompt = DEEP_PROMPT if args.deep else BRIEF_PROMPT
-            chunk = DEEP_CHUNK if args.deep else BRIEF_CHUNK
-            print(f"🖥️  Summarising {len(model_items)} item(s) through {model} on this machine. "
-                  f"Nothing leaves it.")
+            chunk = min(args.ollama_chunk, DEEP_CHUNK) if args.deep else args.ollama_chunk
+            print(f"🖥️  Summarising {len(model_items)} item(s) through {model} on this machine, "
+                  f"{chunk} per paste. Nothing leaves it, and it is slow — minutes, not seconds.")
             try:
                 reply = summarise_with_ollama(
                     model_items, model=model, chunk_size=chunk, prompt=prompt,
+                    timeout=args.ollama_timeout,
                     on_block=lambda n, total: print(f"   paste {n} of {total}…", flush=True),
                 )
             except OllamaUnavailable as error:
