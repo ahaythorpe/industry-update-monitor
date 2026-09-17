@@ -56,6 +56,53 @@ Put them in `.env` at the repo root, which is git-ignored, and send with
 > it composes the message and shows it instead of sending. Details in
 > [INTEGRATIONS.md](INTEGRATIONS.md#the-one-real-exposure--read-this-before-making-the-site-public).
 
+**Checked on 17 September 2026: the Vercel project has no environment variables at all**, so the
+deployed dashboard is in preview mode and cannot send. The public repo's whole history was also
+scanned — no `.env`, no credentials file, no hardcoded token; every Twilio reference in the code
+is `process.env.NAME`, a name and never a value. Nothing is exposed today. This section is about
+keeping it that way.
+
+Note that `github.com/ahaythorpe/advice-monitor` **is public**, and the send endpoint
+(`app/api/whatsapp/send/route.ts`) is in it. The code being public is not the problem — the
+credentials would be. They must stay on your machine.
+
+### Checking it yourself
+
+Two commands, neither of which prints a secret:
+
+```bash
+cd web && vercel env ls      # expect: "No Environment Variables found"
+grep -rn "TWILIO" .env.example   # placeholders only, never real values
+```
+
+If `vercel env ls` ever lists `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` or
+`TWILIO_WHATSAPP_NUMBER`, remove them with `vercel env rm <NAME>` **before** doing anything else,
+then treat the token as compromised and rotate it in the Twilio console. An auth token that has
+sat on a public send endpoint is not made safe by deleting it afterwards.
+
+### Where the credentials go — masked
+
+In `.env` at the repo root (git-ignored), never in Vercel, never in a commit, never in a message.
+The shape, with every value masked:
+
+```bash
+TWILIO_ACCOUNT_SID=AC••••••••••••••••••••••••••••••••   # 34 chars, starts AC
+TWILIO_AUTH_TOKEN=••••••••••••••••••••••••••••••••      # 32 chars — treat as a password
+TWILIO_WHATSAPP_NUMBER=+1415•••••••                     # the shared sandbox number
+WHATSAPP_TO=+614••••••••                                # your own phone, E.164
+```
+
+`.env.example` already carries exactly these placeholders, so copy that file rather than writing
+one from memory:
+
+```bash
+cp .env.example .env     # then fill in your values
+```
+
+The auth token is a password in every sense: it is shown once, it grants spending on your
+account, and anyone holding it can send as you. If it is ever pasted anywhere shared — a chat, a
+screenshot, an issue — rotate it in the Twilio console rather than hoping.
+
 ---
 
 ## Setup, about 15 minutes

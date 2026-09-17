@@ -321,6 +321,20 @@ Requirements:
   either side of it: [WHATSAPP_IMPLEMENTATION.md](WHATSAPP_IMPLEMENTATION.md). Brief:
   [HANDOVER.md](HANDOVER.md), stream A.
 
+Checked 17 September 2026, before deciding anything: **nothing is exposed today, and there was
+nothing to remove.** `vercel env ls` on the linked project returns "No Environment Variables
+found", so the deployed dashboard cannot send — it previews. The public repo's full history was
+cloned and scanned: no `.env`, no credentials file, and no token-shaped string in any of its 7
+commits; every Twilio reference is `process.env.NAME`.
+
+That does not close the item, it only dates it. The endpoint is still a send-to-anyone API the
+moment a credential is added, and it is published at `github.com/ahaythorpe/advice-monitor` for
+anyone to read. The fix is still A or B above, and it should land before Twilio is ever
+configured, not after. `WHATSAPP_SETUP.md` now carries the two commands to re-check this and the
+masked shape of where the credentials belong.
+
+
+
 ## 11. Summaries from a model on this machine (Ollama)
 
 Phase 3 without a key and without a bill. The cost gate that blocks item 2 does not apply — there
