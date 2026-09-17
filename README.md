@@ -389,7 +389,7 @@ this machine — Phase 3 with no key and no bill.
 - Gmail label intake via the dry run
 - SMTP email digest
 - WhatsApp digest via Twilio
-- Later Supabase-backed dashboard
+- ~~Later Supabase-backed dashboard~~ — dropped 17 Sep 2026; the dashboard reads a JSON file
 
 These are documented in the project notes and should only be enabled when the user has intentionally configured them.
 

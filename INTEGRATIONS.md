@@ -28,7 +28,7 @@ charge you.
 | **Gmail API** | Reads newsletters from one label | Free | Optional |
 | **An AI web tool** (Claude, ChatGPT) | Summarises the briefing | Your existing subscription | Optional |
 | **Vercel** | Hosts the dashboard | Free Hobby tier | Optional |
-| **Supabase** | Nothing — a client exists, nothing imports it | Free tier if ever used | No |
+| **Supabase** | Nothing — removed 17 Sep 2026 | — | No |
 
 Nothing in the table is required. The monitor, the classifier, the dashboard,
 the briefing and the zip download all work with no account anywhere.
@@ -171,12 +171,20 @@ Two things to know:
 
 ---
 
-## Supabase — not wired up
+## Supabase — removed
 
-`web/lib/supabase.ts` exists and `@supabase/supabase-js` is installed, but
-**nothing imports it**. The dashboard's read state lives in the browser's local
-storage, not in a database. Listed here only so it is not mistaken for a live
-integration with an account attached to it.
+Deleted on 17 September 2026. `web/lib/supabase.ts` and the `@supabase/supabase-js` dependency
+were both present and **imported by nothing**, which is exactly the state this project's rules
+forbid: something that looks like a live integration but is not one.
+
+The dashboard reads `web/lib/digest.json`, written by the Python side. Read state lives in the
+browser's local storage, so it is per-browser and does not follow you to another machine. That is
+the honest trade of keeping everything on one laptop, and it is the current design rather than a
+gap waiting to be filled.
+
+If a hosted database is ever wanted, it starts from item 7 of
+[IMPROVEMENTS.md](IMPROVEMENTS.md) — and the first question is the privacy one, since it moves
+teasers and links off this machine.
 
 ---
 

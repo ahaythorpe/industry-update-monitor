@@ -212,7 +212,6 @@ export default function Dashboard({
   // filter's result depend on when React happened to re-render.
   const [mountedAt] = useState(() => Date.now())
 
-  const [whatsappPhone, setWhatsappPhone] = useState('')
   const [whatsappLoading, setWhatsappLoading] = useState(false)
   const [whatsappMessage, setWhatsappMessage] = useState('')
   const [whatsappPreview, setWhatsappPreview] = useState('')
@@ -463,12 +462,9 @@ export default function Dashboard({
     setHideRead(false)
   }
 
+  // The recipient is WHATSAPP_TO on the server and is deliberately not sent
+  // from here — see the comment in app/api/whatsapp/send/route.ts.
   const handleWhatsappSend = async () => {
-    if (!whatsappPhone.trim()) {
-      setWhatsappMessage('Enter a WhatsApp number first, e.g. +61412345678')
-      return
-    }
-
     setWhatsappLoading(true)
     setWhatsappMessage('')
     setWhatsappPreview('')
@@ -477,7 +473,7 @@ export default function Dashboard({
       const response = await fetch('/api/whatsapp/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: whatsappPhone, selectedFlag }),
+        body: JSON.stringify({ selectedFlag }),
       })
       const data = await response.json()
 
@@ -488,8 +484,7 @@ export default function Dashboard({
           )
           setWhatsappPreview(data.preview || '')
         } else {
-          setWhatsappMessage(`✓ Sent to ${whatsappPhone} in ${data.parts} part${data.parts === 1 ? '' : 's'}`)
-          setWhatsappPhone('')
+          setWhatsappMessage(`✓ Sent to your saved number in ${data.parts} part${data.parts === 1 ? '' : 's'}`)
         }
       } else {
         setWhatsappMessage(data.error || 'Failed to send')
@@ -1042,15 +1037,13 @@ export default function Dashboard({
             Sends the items currently selected by the flag filter. Without Twilio credentials nothing is sent — you get
             the exact message back to proof-read.
           </p>
+          <p className="mt-2 text-sm text-slate-400">
+            It goes to one number only: <code className="text-slate-300">WHATSAPP_TO</code> in the server environment.
+            There is no recipient box, deliberately — this page is public, and an endpoint that sent wherever it was
+            asked could be used by anyone who found the URL.
+          </p>
           <div className="mt-6 space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row">
-              <input
-                type="text"
-                placeholder="+61412345678"
-                value={whatsappPhone}
-                onChange={(event) => setWhatsappPhone(event.target.value)}
-                className="flex-1 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-white placeholder-slate-500 focus:border-green-500 focus:outline-none"
-              />
               <button
                 onClick={handleWhatsappSend}
                 disabled={whatsappLoading}

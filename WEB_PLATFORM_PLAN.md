@@ -298,9 +298,14 @@ Free-text search
 So the dashboard works, and works well, on a JSON file. What was never built is the database
 underneath it.
 
-`@supabase/supabase-js` is still in `web/package.json` and `web/lib/supabase.ts` is still on disk,
-imported by nothing. That dead client is the whole of item 7 in
-[IMPROVEMENTS.md](IMPROVEMENTS.md): decide one way — connect it, or delete it and correct this
-plan. Keeping both is what made this document misleading in the first place.
+**Decided 17 September 2026: deleted.** `web/lib/supabase.ts` and the `@supabase/supabase-js`
+dependency are gone. The dashboard works on `web/lib/digest.json` and will continue to, so the
+database half of this plan is not deferred — it is dropped. Item 7 of
+[IMPROVEMENTS.md](IMPROVEMENTS.md) is closed.
 
-**Next: not "start building". That decision, first.**
+What this costs, stated plainly so it is not rediscovered as a bug: read state lives in one
+browser's local storage. It does not follow you between machines and is lost if site data is
+cleared. Everything else in this plan — filters, search, the public URL — works without a
+database and always did.
+
+**Treat the rest of this document as history.** It describes a direction not taken.

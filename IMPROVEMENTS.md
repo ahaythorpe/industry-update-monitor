@@ -211,6 +211,20 @@ schedule, not the other way round.
 
 Cost: nothing. No hosting, no account, no new source.
 
+Built and installed, 17 September 2026 — **Monday 07:00**, chosen by the owner. The agent is
+`~/Library/LaunchAgents/com.advice-monitor.weekly.plist` (template in `scripts/`), running
+`scripts/weekly-run.sh`. Registered and verified: `runs = 0`, waiting for Monday, and `RunAtLoad`
+is deliberately absent so installing the schedule did not trigger a run.
+
+Testing it before Monday found a flaw in the plan above: `--sweep` refuses to overwrite an
+existing sweep sheet, because that sheet may hold your ticks. Correct behaviour, but it would have
+written a false ERROR into the log every time a sheet already existed. The runner now leaves an
+existing sheet untouched and refreshes only the digest and briefing, saying so in the log. Second
+test run: exit 0, 50 items, sheet intact.
+
+Off switch documented in `SETUP.md` alongside the on switch, since a schedule you cannot stop is
+worse than none.
+
 
 
 ## 7. Decide the database question instead of half-answering it
@@ -228,6 +242,17 @@ Requirements:
 - Privacy: a hosted database moves teasers and links off this laptop. Free tier only, and no
   paid tier without a reason that has already been felt.
 - Storage boundary is unchanged either way — teaser and link, never article text.
+
+Decided and done, 17 September 2026 — **deleted**. `web/lib/supabase.ts` is removed and
+`@supabase/supabase-js` is out of `web/package.json`; `tsc --noEmit` passes, which confirms
+nothing was importing it. `WEB_PLATFORM_PLAN.md`, `INTEGRATIONS.md` and `README.md` now say the
+dashboard reads a JSON file rather than promising a database.
+
+The cost, recorded rather than buried: read state stays in one browser's local storage. It does
+not follow you between machines. Chosen deliberately over a hosted database, which would have
+moved teasers and links off this laptop for a benefit that has not been felt.
+
+
 
 ## 8. Keep the current work on the shelf copy, and off this laptop
 

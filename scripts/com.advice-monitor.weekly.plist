@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.advice-monitor.weekly</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>/Users/bella/Projects/advice-monitor/scripts/weekly-run.sh</string>
+  </array>
+
+  <!-- Monday 07:00. launchd runs a missed job when the laptop next wakes,
+       which cron does not — that matters on a machine closed overnight.
+       Weekday 1 = Monday. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key><integer>1</integer>
+    <key>Hour</key><integer>7</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <key>StandardOutPath</key>
+  <string>/Users/bella/Projects/advice-monitor/output/weekly-run.out</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/bella/Projects/advice-monitor/output/weekly-run.err</string>
+
+  <key>WorkingDirectory</key>
+  <string>/Users/bella/Projects/advice-monitor</string>
+
+  <!-- Deliberately absent: RunAtLoad. Installing the schedule should not
+       trigger a run; the first one happens on Monday. -->
+</dict>
+</plist>

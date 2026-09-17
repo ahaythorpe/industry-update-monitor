@@ -4,21 +4,22 @@ import { formatWhatsappDigest } from '@/lib/whatsapp'
 
 const FLAGS: Flag[] = ['ACT', 'KNOW', 'NOTE']
 
+// This endpoint sends to one number only: WHATSAPP_TO from the server
+// environment. It deliberately ignores any recipient in the request body.
+//
+// Why: the route has no authentication and no rate limit, and it is deployed
+// from a public repository. Taking the recipient from the body would make it a
+// send-to-anyone API for whoever found the URL — they could aim the Twilio
+// balance at their own phone. Reading the recipient from the environment means
+// the worst a stranger can do is send this digest to the owner's own phone.
+//
+// Chosen 17 Sep 2026 — option A in WHATSAPP_IMPLEMENTATION.md. Do not
+// reintroduce a body-supplied recipient without replacing this protection.
 export async function POST(request: Request) {
   try {
-    const { phoneNumber, selectedFlag, perFlagLimit } = await request.json()
+    const { selectedFlag, perFlagLimit } = await request.json().catch(() => ({}))
 
-    if (!phoneNumber || typeof phoneNumber !== 'string') {
-      return Response.json({ error: 'Phone number required' }, { status: 400 })
-    }
-    // Twilio needs E.164. Rejecting here beats a 400 from Twilio the user
-    // cannot see.
-    if (!/^\+[1-9]\d{7,14}$/.test(phoneNumber.trim())) {
-      return Response.json(
-        { error: 'Use international format, e.g. +61412345678' },
-        { status: 400 }
-      )
-    }
+    const recipient = process.env.WHATSAPP_TO?.trim()
 
     const digestItems = loadDigest().items
     const flag = FLAGS.includes(selectedFlag) ? (selectedFlag as Flag) : null
@@ -29,7 +30,7 @@ export async function POST(request: Request) {
     const authToken = process.env.TWILIO_AUTH_TOKEN
     const whatsappNumber = process.env.TWILIO_WHATSAPP_NUMBER
 
-    if (!accountSid || !authToken || !whatsappNumber) {
+    if (!accountSid || !authToken || !whatsappNumber || !recipient) {
       // Nothing is sent and nothing pretends to have been sent: the caller gets
       // the exact bodies, which is what preview mode means in the Python sender.
       return Response.json({
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
         sent: false,
         parts: bodies.length,
         message:
-          'Twilio is not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_WHATSAPP_NUMBER to send.',
+          'Twilio is not configured. Set TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_NUMBER and WHATSAPP_TO to send.',
         preview: bodies.join('\n\n— — —\n\n'),
       })
     }
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     for (const body of bodies) {
       const form = new URLSearchParams({
         From: `whatsapp:${whatsappNumber}`,
-        To: `whatsapp:${phoneNumber.trim()}`,
+        To: `whatsapp:${recipient}`,
         Body: body,
       })
 

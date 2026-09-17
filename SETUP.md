@@ -189,6 +189,85 @@ It cannot read the rest of your mail, and it cannot send, label, archive or dele
 attachments, no link-following. Without `credentials.json` the run says so and stops; every other
 command works without Gmail.
 
+## Part 5 — the whole thing running on this laptop, buttons and all
+
+This is the setup to aim for: the dashboard open in your browser, the WhatsApp button actually
+sending, summaries from Ollama, nothing depending on a public website and nothing published.
+
+**The key point about privacy:** running locally, the dev server listens on your own machine only.
+Nothing is reachable from the internet, so credentials on this laptop are not exposed by having a
+dashboard. That is why the local setup can be *more* capable than the deployed one, not less.
+
+### The dashboard
+
+```bash
+cd web
+npm install
+npm run dev          # then open http://localhost:3000
+```
+
+### Making the WhatsApp button work — the part that catches people
+
+Next.js reads **`web/.env.local`**. It does **not** read the `.env` at the repo root. The root
+file is the Python side's. So a perfectly configured root `.env` still leaves the dashboard button
+saying "Preview message", and nothing tells you why.
+
+The same Twilio values have to be in both files:
+
+```bash
+cp .env.example .env                        # Python side (repo root)
+cp web/.env.local.example web/.env.local    # dashboard side
+```
+
+Fill in both from your Twilio console. `web/.env.local.example` carries masked placeholders
+showing the shape of each value. Both files are git-ignored.
+
+**The button sends to one number only** — `WHATSAPP_TO`, your own phone. The endpoint ignores any
+recipient in the request, so it cannot be pointed at anyone else. There is no recipient box on the
+page, deliberately: see [WHATSAPP_IMPLEMENTATION.md](WHATSAPP_IMPLEMENTATION.md).
+
+### Summaries
+
+Ollama runs on this machine and costs nothing — [OLLAMA_SETUP.md](OLLAMA_SETUP.md). There is no
+paid AI mode in this repo and never has been.
+
+### What stays off the internet
+
+- **Do not put Twilio values into Vercel.** Locally they are fine; on a public URL they are not.
+  `WHATSAPP_SETUP.md` has the two commands to check, and what to do if they ever appear there.
+- The deployed dashboard has no credentials, so it previews and cannot send. That is the intended
+  state, not a fault to fix.
+
+## The weekly run, and how to stop it
+
+Installed 17 September 2026: a `launchd` agent runs the monitor **Monday at 07:00**, refreshing
+the digest, the sweep sheet and the briefing. It deliberately passes no `--email`, `--whatsapp` or
+`--gmail` — a scheduled job must never send on your behalf while you are not looking. Delivery
+stays something you trigger.
+
+- **The file:** `~/Library/LaunchAgents/com.advice-monitor.weekly.plist`, copied from
+  `scripts/com.advice-monitor.weekly.plist`. What it runs: `scripts/weekly-run.sh`.
+- **`launchd`, not `cron`,** because it runs a missed job when the laptop next wakes. `cron` simply
+  skips it, which on a machine that is closed overnight means the run silently never happens.
+- **What it did:** one dated line per run in `output/weekly-run.log`. A run that fetches nothing is
+  logged as a failure to check, *not* as a quiet week — an empty digest that looks like a
+  successful quiet week is worse than an error.
+- **It never overwrites your sweep sheet.** If today's sheet already exists it is left alone, ticks
+  and all, and only the digest and briefing refresh.
+
+Check on it, or turn it off:
+
+```bash
+cat output/weekly-run.log                                     # what it has done
+launchctl print gui/$(id -u)/com.advice-monitor.weekly        # is it registered
+
+launchctl bootout gui/$(id -u)/com.advice-monitor.weekly      # stop it
+rm ~/Library/LaunchAgents/com.advice-monitor.weekly.plist     # and forget it
+```
+
+To change the time, edit the `StartCalendarInterval` block in the plist (`Weekday` 1 is Monday),
+copy it to `~/Library/LaunchAgents/` again, then `bootout` and `bootstrap` to reload it.
+
 ## Optional add-ons
 
 None of these are needed. Read
