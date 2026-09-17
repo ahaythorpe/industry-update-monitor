@@ -38,7 +38,28 @@
       "rss": null,
       "home": "https://treasury.gov.au/consultation",
       "intake": "bookmark_and_check",
-      "note": "treasury.gov.au/rss.xml serves valid RSS but is empty (0 entries as of 2 Sep 2026). Left unconfigured until it carries items; re-probe periodically."
+      "note": "treasury.gov.au/rss.xml serves valid RSS but is empty (0 entries as of 2 Sep 2026). Left unconfigured until it carries items; re-probe periodically. Checked again 17 Sep 2026: still empty. ministers.treasury.gov.au/rss.xml does parse, but its newest entry is 11 May 2023 — a valid, stale feed, which is exactly the trap a new source must be probed for before being added."
+    },
+    {
+      "name": "ATO media centre",
+      "access": "free",
+      "flag": "ACT",
+      "rss": null,
+      "home": "https://www.ato.gov.au/about-ato/media-centre",
+      "also_check": "https://www.ato.gov.au/businesses-and-organisations/small-business-newsroom",
+      "intake": "bookmark_and_check",
+      "note": "No feed. Checked 17 Sep 2026: /rss/mediareleases.xml, /rss.xml, /feed, /about-ato/media-centre/rss and /newsroom/smallbusiness/rss all 404, and neither the media centre nor the newsroom page advertises one in its HTML. ACT because the ATO both administers tax and regulates SMSFs, so its rulings and guidance change what an adviser does. Bookmark-and-check in the weekly sweep, like ASIC.",
+      "sub_status": "bookmark-and-check (no RSS)"
+    },
+    {
+      "name": "APRA publications",
+      "access": "free",
+      "flag": "NOTE",
+      "rss": "https://www.apra.gov.au/rss.xml",
+      "home": "https://www.apra.gov.au",
+      "intake": "rss",
+      "note": "Checked 17 Sep 2026: live, 10 entries, newest that day. Every one of them is a statistics publication — quarterly superannuation, ADI, life, general and private health insurance — so the prior is NOTE, not ACT. This is the data feed, not the enforcement one: APRA's prudential actions and media releases are announced on pages with no feed of their own, and stay bookmark-and-check.",
+      "sub_status": "free RSS, no signup"
     },
     {
       "name": "Financial Standard FS Advice",

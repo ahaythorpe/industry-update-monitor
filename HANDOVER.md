@@ -90,9 +90,11 @@ That is the default and it must stay usable with no account at all.
 
 ### Where it stands
 
-Nothing is built. The design and the install are written up in
-[OLLAMA_SETUP.md](OLLAMA_SETUP.md) — read that first; it is the brief for this
-stream.
+**Built, 17 September 2026.** `--ollama` runs the briefing through a model on
+the machine and merges the replies back. [OLLAMA_SETUP.md](OLLAMA_SETUP.md) has
+the install, the model choice, what it did on its first real run, and the
+constraints to keep. What is left is judgement, not code: whether a local model
+is good enough to trust for KNOW items, which only weeks of reading answers.
 
 The short version: the manual round trip (`--brief` → paste → reply →
 `--import-summaries`) already defines the prompt, the item blocks, the reply

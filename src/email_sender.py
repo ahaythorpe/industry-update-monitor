@@ -161,6 +161,22 @@ def _build_html_digest(by_flag: dict) -> str:
     return markup
 
 
+def summary_origin(source: str | None) -> str:
+    """
+    Who wrote this summary, in words a reader can weigh.
+
+    Never a bare "Summary": a summary with no origin reads as the tool's own
+    work, and this tool does not write summaries.
+    """
+    if source == "manual":
+        return "Summarised by hand"
+    if source and source.startswith("ollama:"):
+        return f"Summarised by a local model ({source.split(':', 1)[1]})"
+    if source:
+        return f"Summarised by {source}"
+    return "Summary, origin not recorded"
+
+
 def _item_html(item: dict, flag_class: str) -> str:
     """Build HTML for a single digest item. All feed-supplied text is escaped."""
     title = html.escape(item.get("title", "Untitled"))
@@ -175,6 +191,13 @@ def _item_html(item: dict, flag_class: str) -> str:
         badge_class = "confidence" if confidence >= 0.6 else "confidence badge-low"
         body += f'<span class="{badge_class}">{confidence:.0%}</span>'
     body += '</h3>'
+
+    # A summary you had written stayed on the dashboard and never reached the
+    # email, which is the copy actually read each week (IMPROVEMENTS.md item 4).
+    summary = html.escape(item.get("ai_summary") or "")
+    if summary:
+        origin = html.escape(summary_origin(item.get("ai_source")))
+        body += f'<div class="summary"><strong>{origin}:</strong> {summary}</div>'
 
     if teaser:
         body += f'<div class="teaser">{teaser}</div>'

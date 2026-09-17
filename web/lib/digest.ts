@@ -180,3 +180,19 @@ export function getItems(
 
   return items
 }
+
+/**
+ * Who wrote this summary, in words a reader can weigh.
+ *
+ * Mirrors summary_origin in src/email_sender.py. Never a bare "Summary": a
+ * summary with no origin reads as this tool's own work, and this tool does not
+ * write summaries — they come from you, or from a model you ran.
+ */
+export function summaryOrigin(source?: string | null): string {
+  if (source === 'manual') return 'Summarised by hand'
+  if (source?.startsWith('ollama:')) {
+    return `Summarised by a local model (${source.slice('ollama:'.length)})`
+  }
+  if (source) return `Summarised by ${source}`
+  return 'Summary, origin not recorded'
+}

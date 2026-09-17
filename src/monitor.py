@@ -1069,6 +1069,30 @@ def export_json(items, path, sources=None):
     return path
 
 
+def attach_saved_summaries(items, digest_path):
+    """
+    Put summaries already recorded in the digest back onto freshly fetched items.
+
+    IMPROVEMENTS.md item 4. A run that emails or WhatsApps the digest fetches
+    the feeds again, and those items carry no summary — so the work of pasting
+    a briefing into a model reached the dashboard and nothing else. Matching is
+    on the same id `export_json` writes, the normalised link.
+
+    Returns the number of items that gained one. Missing or unreadable digest
+    is not an error: there is simply nothing saved yet.
+    """
+    kept = _existing_summaries(digest_path)
+    if not kept:
+        return 0
+    attached = 0
+    for item in items:
+        saved = kept.get(normalise_link(item.get("link", "")) or item.get("title", ""))
+        if saved and saved.get("ai_summary"):
+            item.update(saved)
+            attached += 1
+    return attached
+
+
 def _existing_summaries(path):
     """Summaries already recorded in the digest at this path, keyed by item id."""
     try:
@@ -1330,12 +1354,16 @@ def parse_summaries(text):
     return found
 
 
-def import_summaries(reply_path, digest_path):
+def import_summaries(reply_path, digest_path, origin="manual"):
     """
-    Merge summaries written by hand into the digest the dashboard reads.
+    Merge summaries from a reply into the digest the dashboard reads.
 
     Returns (matched, unmatched_refs, total_in_reply). Nothing is invented: a
     reply line whose ID is not in the digest is reported, never guessed at.
+
+    `origin` is recorded as-is and must say who wrote the summary: "manual" for
+    a reply pasted back by hand, "ollama:<model>" for a model on this machine.
+    A model's work must never inherit the label that means you wrote it.
     """
     digest = json.loads(Path(digest_path).read_text(encoding="utf-8"))
     replies = parse_summaries(Path(reply_path).read_text(encoding="utf-8"))
@@ -1347,9 +1375,9 @@ def import_summaries(reply_path, digest_path):
         ref = item.get("ref") or summary_ref(item.get("link", ""), item.get("title", ""))
         if ref in replies:
             item["ai_summary"] = replies[ref]
-            # Labelled as hand-made so the dashboard never presents it as
-            # something this tool generated.
-            item["ai_source"] = "manual"
+            # Labelled with who wrote it, so the dashboard never presents a
+            # summary as something it is not.
+            item["ai_source"] = origin
             item["ai_generated_at"] = stamp
             matched += 1
             seen.add(ref)
@@ -1662,6 +1690,118 @@ def write_sweep(items, path, when=None, generated_at=None, glossary=None):
     return path
 
 
+# ---------- Part 9: summaries from a model on this machine ----------
+# IMPROVEMENTS.md item 11, and Phase 3 of the PRD without a key or a bill. The
+# manual round trip already defines the prompt, the blocks, the reply format
+# and the ID matching, so this is a transport and nothing more: the same
+# briefing goes to a model on localhost instead of into a chat window, and the
+# same importer merges what comes back. See OLLAMA_SETUP.md.
+
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
+# A block is a dozen-odd items for a small model to work through; a minute is
+# generous on a laptop and still bounded, so a stuck model cannot hold the
+# weekly run open all night.
+OLLAMA_TIMEOUT = 180
+# The cap is on pastes, not items, because a paste is the unit of work. Ten is
+# 150 items at the brief chunk size — more than a week ever holds.
+OLLAMA_MAX_BLOCKS = 10
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
+
+
+class OllamaUnavailable(RuntimeError):
+    """Ollama could not be reached, or refused. Reported, never retried."""
+
+
+def _assert_local(host):
+    """
+    Refuse any host but this machine.
+
+    The entire argument for this feature is that nothing leaves the laptop. A
+    remote host would keep the code working and quietly break that promise, so
+    it is refused here rather than trusted to a comment.
+    """
+    hostname = (urlparse(host).hostname or "").lower()
+    if hostname not in LOCAL_HOSTS:
+        raise OllamaUnavailable(
+            f"Refusing to send items to {hostname or host}. --ollama talks to a model on this "
+            f"machine only; set OLLAMA_HOST to a localhost address."
+        )
+
+
+def ollama_generate(prompt, model=None, host=None, timeout=OLLAMA_TIMEOUT):
+    """
+    One block in, the model's reply out.
+
+    Temperature is zero because this is extraction, not writing: the same
+    teaser should give the same line twice. Nothing is retried — a retry loop
+    against a model that is refusing is how a weekly batch becomes an all-night
+    one, and the agent rules ban them outright.
+    """
+    host = host or OLLAMA_HOST
+    _assert_local(host)
+    payload = json.dumps({
+        "model": model or OLLAMA_MODEL,
+        "prompt": prompt,
+        "stream": False,
+        "options": {"temperature": 0},
+    }).encode("utf-8")
+
+    request = urllib.request.Request(
+        f"{host.rstrip('/')}/api/generate",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            body = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as error:
+        detail = ""
+        try:
+            detail = error.read().decode("utf-8", "replace")[:200]
+        except Exception:  # noqa: BLE001 - the error body is a nicety, not a requirement
+            pass
+        if error.code == 404:
+            raise OllamaUnavailable(
+                f"Ollama has no model called {model or OLLAMA_MODEL}. "
+                f"Pull it first: ollama pull {model or OLLAMA_MODEL}"
+            ) from error
+        raise OllamaUnavailable(f"Ollama refused the request (HTTP {error.code}). {detail}") from error
+    except (urllib.error.URLError, TimeoutError, OSError) as error:
+        raise OllamaUnavailable(
+            f"Ollama is not answering at {host}. Start it with: ollama serve  "
+            f"(install: brew install ollama — see OLLAMA_SETUP.md). Reported as: {error}"
+        ) from error
+
+    return (body.get("response") or "").strip()
+
+
+def summarise_with_ollama(items, model=None, host=None, timeout=OLLAMA_TIMEOUT,
+                          chunk_size=BRIEF_CHUNK, prompt=BRIEF_PROMPT,
+                          max_blocks=OLLAMA_MAX_BLOCKS, on_block=None):
+    """
+    Run the briefing through a local model and return its replies as one text.
+
+    The text is in the same shape a chat window would have given back, so it
+    goes through `parse_summaries` and `import_summaries` unchanged. It is
+    written to disk by the caller before being imported, so a reply that went
+    wrong can be read rather than guessed at.
+    """
+    blocks = format_briefing(items, chunk_size, prompt)
+    if max_blocks and len(blocks) > max_blocks:
+        raise OllamaUnavailable(
+            f"{len(blocks)} pastes is past the {max_blocks}-paste cap for one run. "
+            f"Narrow it with --flags ACT,KNOW or --topic, or raise the cap deliberately."
+        )
+
+    replies = []
+    for number, block in enumerate(blocks, start=1):
+        if on_block:
+            on_block(number, len(blocks))
+        replies.append(ollama_generate(block, model=model, host=host, timeout=timeout))
+    return "\n".join(reply for reply in replies if reply)
+
+
 def _load_email_sender():
     try:
         from src import email_sender
@@ -1705,6 +1845,11 @@ if __name__ == "__main__":
                         help="Split the briefing into one file per group: topic, flag, or topic,flag")
     parser.add_argument("--topic", default=None,
                         help="Comma-separated categories to brief, e.g. Compliance,Regulation")
+    parser.add_argument("--ollama", nargs="?", const="", default=None, metavar="MODEL",
+                        help="Summarise through a model on this machine (default: $OLLAMA_MODEL "
+                             "or llama3.1:8b). Needs `ollama serve` — see OLLAMA_SETUP.md")
+    parser.add_argument("--ollama-reply", default="output/ollama-reply.md", metavar="PATH",
+                        help="Where the model's raw reply is written before it is imported")
     parser.add_argument("--sweep", nargs="?", const="output", default=None, metavar="PATH",
                         help="Write a tickable weekly sweep sheet (default: output/sweep-<date>.md)")
     parser.add_argument("--import-summaries", metavar="PATH", default=None,
@@ -1729,9 +1874,54 @@ if __name__ == "__main__":
 
     # Both halves of the manual round trip work from the digest already on
     # disk: no feeds are fetched, so they cost nothing and work offline.
-    if args.brief is not None or args.import_summaries or args.sweep is not None:
+    if (args.brief is not None or args.import_summaries or args.sweep is not None
+            or args.ollama is not None):
         if not digest_path.exists():
             raise SystemExit(f"❌ No digest at {digest_path}. Run: python src/monitor.py --json")
+
+        if args.ollama is not None:
+            model = args.ollama or OLLAMA_MODEL
+            digest = json.loads(digest_path.read_text(encoding="utf-8"))
+            model_items = digest.get("items", [])
+
+            # --flags narrows a fetch and a briefing; it narrows this the same
+            # way, which is also how a week is kept under the paste cap.
+            wanted = {f.strip().upper() for f in args.flags.split(",") if f.strip()}
+            if wanted != set(FLAG_ORDER):
+                model_items = filter_by_flag(model_items, wanted)
+            if not model_items:
+                raise SystemExit(f"❌ No matching items in {digest_path}. "
+                                 f"Refresh it with: python src/monitor.py --json")
+
+            prompt = DEEP_PROMPT if args.deep else BRIEF_PROMPT
+            chunk = DEEP_CHUNK if args.deep else BRIEF_CHUNK
+            print(f"🖥️  Summarising {len(model_items)} item(s) through {model} on this machine. "
+                  f"Nothing leaves it.")
+            try:
+                reply = summarise_with_ollama(
+                    model_items, model=model, chunk_size=chunk, prompt=prompt,
+                    on_block=lambda n, total: print(f"   paste {n} of {total}…", flush=True),
+                )
+            except OllamaUnavailable as error:
+                # Reported, not retried, and never quietly swapped for anything
+                # that could bill: the run stops here.
+                raise SystemExit(f"❌ {error}")
+
+            reply_path = root / args.ollama_reply
+            reply_path.parent.mkdir(parents=True, exist_ok=True)
+            reply_path.write_text(reply + "\n", encoding="utf-8")
+            matched, unmatched, total = import_summaries(
+                reply_path, digest_path, origin=f"ollama:{model}"
+            )
+            print(f"🧾 {matched} of {total} summaries merged into {digest_path}, "
+                  f"labelled ollama:{model}.")
+            print(f"   The model's raw reply is at {reply_path} — read it before trusting it.")
+            if unmatched:
+                print(f"⚠️  {len(unmatched)} reply line(s) had an ID not in this digest: "
+                      f"{', '.join(unmatched)}")
+            if not matched:
+                print("⚠️  Nothing matched. The model probably did not keep the ID | FLAG | "
+                      "summary | LINK shape — see the raw reply.")
 
         if args.sweep is not None:
             digest = json.loads(digest_path.read_text(encoding="utf-8"))
@@ -1869,6 +2059,12 @@ if __name__ == "__main__":
         "require_working_link": not args.no_check_links,
     }
     digest_items = collate_items(items, **collate_kwargs)
+
+    # The email and the WhatsApp message are what get read each week, so a
+    # summary already recorded has to survive a fresh fetch to reach them.
+    restored = attach_saved_summaries(digest_items, digest_path)
+    if restored:
+        print(f"🧾 {restored} saved summar{'ies' if restored != 1 else 'y'} carried over.")
     counts = {flag: sum(1 for i in digest_items if i["flag"] == flag) for flag in FLAG_ORDER}
     print(f"🏷️  Digest: {len(digest_items)} items — ACT {counts['ACT']}, KNOW {counts['KNOW']}, NOTE {counts['NOTE']}")
 

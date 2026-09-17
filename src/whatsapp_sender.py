@@ -18,6 +18,13 @@ import os
 import urllib.error
 import urllib.parse
 import urllib.request
+
+# Same tolerant import as src/monitor.py uses: this runs both as `python
+# src/monitor.py` from the repo root and as an installed package.
+try:
+    from src.email_sender import summary_origin
+except ImportError:  # pragma: no cover - only when src/ is itself the path
+    from email_sender import summary_origin
 from datetime import datetime
 
 TWILIO_API = "https://api.twilio.com/2010-04-01/Accounts/{sid}/Messages.json"
@@ -60,6 +67,13 @@ def _item_block(index: int, item: dict) -> str:
         meta.append(f"{item['confidence']:.0%} confidence")
     if meta:
         lines.append("_" + " · ".join(meta) + "_")
+
+    # The summary you had written reached the dashboard and stopped there
+    # (IMPROVEMENTS.md item 4). It is labelled with who wrote it, in italics,
+    # so it never reads as the publisher's own words.
+    written = _escape(item.get("ai_summary") or "").strip()
+    if written:
+        lines.append(f"_{_escape(summary_origin(item.get('ai_source')))}:_ {written}")
 
     summary = _escape(item.get("summary", "")).strip()
     if summary:

@@ -15,6 +15,7 @@ import {
   slug,
 } from '@/lib/briefing'
 import { buildZip } from '@/lib/zip'
+import { summaryOrigin } from '@/lib/digest'
 import { formatDay, toDayKey } from '@/lib/utils'
 import { Calendar } from '@/components/Calendar'
 import { SettingsModal } from '@/components/SettingsModal'
@@ -972,11 +973,9 @@ export default function Dashboard({
                         {item.ai_summary ? (
                           <div className="mt-3 rounded-xl border border-slate-700 bg-slate-900 p-3">
                             <div className="mb-1 text-xs uppercase tracking-[0.15em] text-slate-400">
-                              {item.ai_source === 'manual'
-                                ? `Summarised by hand${
-                                    item.ai_generated_at ? ` · ${formatDay(item.ai_generated_at)}` : ''
-                                  }`
-                                : 'Summary'}
+                              {`${summaryOrigin(item.ai_source)}${
+                                item.ai_generated_at ? ` · ${formatDay(item.ai_generated_at)}` : ''
+                              }`}
                             </div>
                             <p className="text-sm text-slate-200">{item.ai_summary}</p>
                           </div>

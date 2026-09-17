@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { classifyLinkExactness, getItems, getStats, normalizeIncomingItem, type DigestItem } from './digest'
+import { classifyLinkExactness, getItems, getStats, normalizeIncomingItem, summaryOrigin, type DigestItem } from './digest'
 
 function item(overrides: Partial<DigestItem> = {}): DigestItem {
   return normalizeIncomingItem({
@@ -89,5 +89,19 @@ describe('getStats', () => {
   it('counts by flag and says nothing about read state', () => {
     const stats = getStats([item({ flag: 'ACT' }), item({ flag: 'KNOW' }), item({ flag: 'KNOW' })])
     expect(stats).toEqual({ total: 3, act: 1, know: 2, note: 0 })
+  })
+})
+
+describe('summaryOrigin', () => {
+  it('says a hand-written summary was written by hand', () => {
+    expect(summaryOrigin('manual')).toBe('Summarised by hand')
+  })
+
+  it('names the local model rather than calling it a summary', () => {
+    expect(summaryOrigin('ollama:qwen3:8b')).toBe('Summarised by a local model (qwen3:8b)')
+  })
+
+  it('admits an unrecorded origin', () => {
+    expect(summaryOrigin(null)).toContain('origin not recorded')
   })
 })

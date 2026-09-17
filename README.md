@@ -3,14 +3,17 @@
 A free-first monitoring project for the Australian financial advice industry.
 
 ## What it does
-Every week it reads seven public RSS feeds from the Australian financial advice
-press, flags each article ACT / KNOW / NOTE with a confidence score, checks that
-every link resolves, and emails you the result. No AI, no API key, no per-run
-cost, nothing behind a paywall.
+Every week it reads eight public RSS feeds from the Australian financial advice
+press and the prudential regulator, flags each article ACT / KNOW / NOTE with a
+confidence score, checks that every link resolves, and emails you the result.
+No API key and no per-run cost by default; summaries are optional and can run
+on a model on your own machine. Nothing behind a paywall.
 
 Feeds currently configured: Financial Standard, Professional Planner, FAAA,
-Riskinfo, Money Management, ifa, SMSF Adviser. ASIC, ABS and AFCA no longer
-publish usable feeds, so those stay on the manual weekly check.
+Riskinfo, Money Management, ifa, SMSF Adviser, and APRA. ASIC, the ATO, ABS and
+AFCA publish no usable feed, so those stay on the manual weekly check — each
+one's entry in [data/sources.json](data/sources.json) records what was probed
+and when.
 
 ## Core rule
 Feeds in, free sources out. Never fetch, store, or reconstruct anything behind a paywall.
@@ -86,6 +89,8 @@ mid-article — and a section continued into the next message repeats its headin
 | `--gmail` | off | Also read newsletters from the Gmail label (read-only, opt-in) |
 | `--gmail-max` | 25 | Maximum newsletters to read |
 | `--sweep` | `output/sweep-<date>.md` | Write a tickable sheet for the weekly sweep |
+| `--ollama` | off | Summarise through a model on this machine (see [OLLAMA_SETUP.md](OLLAMA_SETUP.md)) |
+| `--ollama-reply` | `output/ollama-reply.md` | Where the model's raw reply is kept for checking |
 | `--brief` | `output/briefing.md` | Write a paste-ready briefing for an AI web tool |
 | `--deep` | off | Detailed prompt and smaller pastes; pair with `--flags ACT,KNOW` |
 | `--group-by` | — | Split that briefing into one file per group: `topic`, `flag`, or `topic,flag` |
@@ -101,8 +106,10 @@ nudges the score in its direction, but the item's own words decide the flag.
 A source is fetched if it has an `rss` URL, and `validate_feed_source` requires
 it to be free, on the same host as `home`, and to look like a feed. Verify a new
 feed returns current items before adding it — some publishers serve a valid but
-stale or empty feed. ASIC, ABS and AFCA no longer offer usable feeds and stay
-bookmark-and-check.
+stale or empty feed — `ministers.treasury.gov.au/rss.xml` parses perfectly and
+its newest entry is from 2023. ASIC, the ATO, ABS and AFCA offer no usable feed
+and stay bookmark-and-check. APRA's feed is live but carries only statistics
+publications, so its prior is NOTE; its enforcement announcements have no feed.
 
 ### The weekly sweep
 
@@ -178,6 +185,29 @@ A newsletter item links to the message in your own mailbox, so it is never
 link-checked (that link redirects to a Google login for anything but your
 browser) and the dashboard badges it **Newsletter** with an "Open in Gmail"
 link rather than pretending it is a public article.
+
+### Summaries from a model on this machine
+
+The same round trip as below, with a local model doing the pasting. No key, no
+account, no bill, and nothing leaves the laptop.
+
+```bash
+ollama serve                                     # in its own terminal
+python src/monitor.py --json                     # this week's digest
+python src/monitor.py --ollama                   # or: --ollama qwen3:8b
+```
+
+It reads the digest on disk, sends each paste to `127.0.0.1:11434`, and merges
+the replies straight back in. The model's raw reply is kept at
+`output/ollama-reply.md` — **read it.** A local model invents as readily as any
+other: in the first real run here, one summary said an adviser was banned for
+"incompetence", a word that appeared nowhere in the teaser. Summaries are
+labelled `ollama:<model>` and shown as "Summarised by a local model", never as
+this tool's own work, and an ACT item is still read at its source.
+
+It refuses any host but localhost, caps a run at ten pastes, and never retries.
+Narrow a big week with `--flags ACT,KNOW`. Install, model choice and the rest:
+[OLLAMA_SETUP.md](OLLAMA_SETUP.md).
 
 ### Summaries without an API key
 

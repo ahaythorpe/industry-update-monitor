@@ -142,6 +142,13 @@ Requirements:
   feature rather than adding one.
 - No cost and no new source: the summary is already in the digest file on disk.
 
+Built, 17 September 2026 — `attach_saved_summaries` puts summaries already recorded in the digest
+back onto freshly fetched items, so a run that emails or WhatsApps the week carries them. Both
+renderers show the summary above the publisher's teaser, never instead of it, and label who wrote
+it through one shared `summary_origin`: "Summarised by hand", or "Summarised by a local model
+(qwen3:8b)". The dashboard now uses the same wording rather than falling through to a bare
+"Summary", which read as though this tool had written it.
+
 ## 5. Switch on the Gmail newsletter intake
 
 Four configured sources publish no feed and arrive only as email: ABS, FS Industry Moves,
@@ -263,6 +270,18 @@ Requirements:
 - Install, model choice, a curl that proves it before any code, and the wiring:
   [OLLAMA_SETUP.md](OLLAMA_SETUP.md). Brief: [HANDOVER.md](HANDOVER.md), stream B.
 
+Built, 17 September 2026 — `--ollama`, nine tests against a fake Ollama on localhost, and a real
+run through `qwen3:8b`. It refuses any host but this machine, caps a run at ten pastes, writes
+the model's raw reply to disk before importing a word of it, and reports rather than retries.
+
+Still open, and the reason this is not finished business:
+
+- Whether a local model is good enough to trust for KNOW items. On the first real run, one of
+  three summaries added a word the teaser did not contain. That is a reading question, not a
+  code question, and only weeks of sweeps answer it.
+- `--deep` through a local model is untested. The prompt exists; the second pass sends far more
+  text per paste and will be much slower.
+
 ## 12. A download an AI tool can be handed as-is
 
 Every item's link is already in the download, on its own `LINK:` line, and the prompt tells the
@@ -285,3 +304,32 @@ Requirements:
   `--import-summaries` attaches a summary to the wrong article.
 - Costs nothing and reaches no publisher: it is built in the browser from the digest already
   loaded. Brief: [HANDOVER.md](HANDOVER.md), stream C.
+
+## 13. Government sources that publish no feed
+
+The tracker now carries one government feed, APRA's, and it is the only one. Everything else
+official is a manual check, which means the ACT tier depends on you remembering to look.
+
+Checked 17 September 2026:
+
+- **APRA** — `apra.gov.au/rss.xml` is live and current, and every entry is a statistics
+  publication. Added with a NOTE prior. Its enforcement and prudential announcements are not in
+  it and have no feed of their own.
+- **ATO** — no feed anywhere. `/rss/mediareleases.xml`, `/rss.xml`, `/feed`,
+  `/about-ato/media-centre/rss` and `/newsroom/smallbusiness/rss` all 404, and neither the media
+  centre nor the newsroom advertises one. Added as bookmark-and-check with an ACT prior, since
+  the ATO both administers tax and regulates SMSFs.
+- **Treasury** — `treasury.gov.au/rss.xml` still parses and is still empty.
+  `ministers.treasury.gov.au/rss.xml` parses and its newest entry is 11 May 2023: a valid, stale
+  feed, and the reason a new source is probed for current items before it is added.
+- **ASIC, AFCA, ABS** — unchanged, no usable feed.
+
+Requirements, if this is taken further:
+
+- Re-probe every few months. A regulator that has no feed today may have one next year, and the
+  notes in `data/sources.json` record what was tried so the next probe is quick.
+- An email alert is the honest fallback where a body offers one — ABS already works that way,
+  and `--gmail` reads them. That is item 5.
+- Do not scrape a media centre page to fake a feed. The rule is feeds in, free sources out, and
+  a page is not a feed.
+- Costs nothing either way: both routes are free public publishing.

@@ -101,13 +101,17 @@ temperature, cut the block size, and only then consider a different model.
 
 ---
 
-## Wiring it into the repo
+## It is built — how it was wired in
 
-For whoever implements this. The point of the design below is that almost
-nothing new is needed: the briefing format, the reply format, the ID matching
-and the import already exist and are tested.
+Built 17 September 2026. `--ollama` is in `src/monitor.py`, tested offline in
+`tests/test_ollama.py`, and run for real against `qwen3:8b` on this machine. The
+list below is what it does, and the constraints anyone changing it must keep.
 
-- **Opt-in flag**, `--ollama`, defaulting off. Nothing implicit.
+Almost nothing new was needed: the briefing format, the reply format, the ID
+matching and the import already existed and were tested.
+
+- **Opt-in flag**, `--ollama`, defaulting off. Nothing implicit. `--ollama qwen3:8b` names a
+  model; `$OLLAMA_MODEL` sets the default.
 - **Reuse `format_briefing`.** The blocks it writes are the prompt — `BRIEF_PROMPT`
   is SAFEGUARDS section D verbatim and must not be rewritten for the model's
   convenience. `--deep` and `DEEP_PROMPT` are the second pass, same rule.
@@ -127,22 +131,33 @@ and the import already exist and are tested.
 - **Fail loudly.** If Ollama is not running, say exactly that and stop. No retry
   loop: `.github/copilot-instructions.md` bans them, and a silent fallback to a
   paid API would be the worst possible bug in this project.
-- **Cap the run.** A maximum item count and a per-request timeout, so a stuck
-  model cannot hold the weekly run open indefinitely.
+- **Cap the run.** Ten pastes per run and a 180-second timeout per request, so a stuck model
+  cannot hold the weekly run open all night. Past the cap it says so and stops.
 - **Nothing leaves the machine.** The only network call is to 127.0.0.1. Assert
   that in a test rather than trusting it.
 
-### Tests worth having
+### The tests that cover it
 
-- A fake HTTP server standing in for Ollama, so the path is tested without a
-  model installed. Every other test in this repo runs offline and this must
-  too.
+- A fake HTTP server on 127.0.0.1 stands in for Ollama, so the path is tested with no model
+  installed and no network.
 - Ollama not running → one clear message, no traceback, no retry.
 - A reply the model mangled → `parse_summaries` reports the unmatched IDs,
   nothing is guessed at, and no summary attaches to the wrong item.
 - The origin recorded is `ollama:<model>`, never `manual`.
 
 ---
+
+## What it actually did
+
+First real run, three ACT items through `qwen3:8b`: three summaries back in the
+right shape, merged, labelled `ollama:qwen3:8b`. About 90 seconds including
+loading the model.
+
+Two of the three were faithful. The third said an adviser was banned for
+"incompetence" — a word that appears nowhere in the teaser it was given. That is
+the reason the raw reply is written to `output/ollama-reply.md` before anything
+is merged, and the reason an ACT item is read at its source no matter what any
+model says about it.
 
 ## What it costs
 
