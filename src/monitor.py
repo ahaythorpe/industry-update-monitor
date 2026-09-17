@@ -1358,7 +1358,121 @@ def import_summaries(reply_path, digest_path):
     return matched, sorted(set(replies) - seen), len(replies)
 
 
-# ---------- Part 7: the weekly sweep ----------
+# ---------- Part 7: plain-English terms ----------
+# IMPROVEMENTS.md item 1. A local, hand-written glossary — no model, no
+# network, no key. It says what a term plainly means, why it matters to
+# someone learning, and where to confirm it. What it never does is turn a
+# gloss into a conclusion: `Possible meaning` and `Check` stay as the words,
+# and an ACT item is still read at its source.
+
+GLOSSARY = Path(__file__).resolve().parent.parent / "data" / "glossary.json"
+
+# Four is the reading-time cap. An item using more terms than that is usually
+# using them loosely, and a wall of glosses under a headline is the thing item
+# 1 is trying not to become.
+TERMS_PER_ITEM = 4
+
+
+def load_glossary(path=GLOSSARY):
+    """
+    Read the hand-written glossary.
+
+    A missing or unreadable file is not an error. The explanations are an aid;
+    without them the sheet is still a sheet, so the sweep goes on without.
+    """
+    try:
+        data = json.loads(Path(path).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return []
+    return [term for term in data.get("terms", []) if term.get("term")]
+
+
+def _term_pattern(spelling):
+    """
+    Whole-word, and case-sensitive when the spelling is an acronym.
+
+    `ART` is the tribunal; `art` is not, and `PDS` should not be found inside a
+    word. A spelling that is not all capitals matches either case, because a
+    headline may capitalise an ordinary phrase.
+    """
+    flags = 0 if spelling.isupper() else re.IGNORECASE
+    return re.compile(rf"(?<!\w){re.escape(spelling)}(?!\w)", flags)
+
+
+def spellings_of(entry):
+    """Every way the glossary expects one term to be written."""
+    return [entry["term"]] + list(entry.get("also", []))
+
+
+def terms_in(text, glossary=None, limit=TERMS_PER_ITEM):
+    """
+    Which glossary terms appear in a piece of text, in the glossary's order.
+
+    Nothing is inferred: a term is returned because its own spelling is there.
+    """
+    glossary = load_glossary() if glossary is None else glossary
+    found = []
+    for entry in glossary:
+        if any(_term_pattern(spelling).search(text or "") for spelling in spellings_of(entry)):
+            found.append(entry)
+            if limit and len(found) >= limit:
+                break
+    return found
+
+
+def item_terms(item, glossary=None, limit=TERMS_PER_ITEM):
+    """The terms an item used, read from the words already in the digest."""
+    text = f"{item.get('title') or ''} {item.get('teaser') or item.get('summary') or ''}"
+    return terms_in(text, glossary, limit)
+
+
+def format_terms(items, glossary=None):
+    """
+    Explain each term once, however many items used it.
+
+    Once per sheet rather than once per item is the whole reading-time
+    argument: a term running through twenty items costs one paragraph, not
+    twenty. Each entry keeps the three parts apart — what it may mean, why it
+    matters, and what to check — so an aid cannot be read as a ruling.
+    """
+    glossary = load_glossary() if glossary is None else glossary
+    if not glossary:
+        return []
+
+    used = {}
+    for item in items:
+        for entry in item_terms(item, glossary):
+            used.setdefault(entry["term"], [entry, 0])[1] += 1
+    if not used:
+        return []
+
+    lines = ["## Terms on this sheet", ""]
+    lines.append("Learning aids, written by hand. They explain a word, not the item that used it:")
+    lines.append("what the item says is in the item's own words above, and nothing here is inferred")
+    lines.append("from it. Where a term matters to an ACT item, the primary source is still the")
+    lines.append("thing to read.")
+    lines.append("")
+    for entry, count in used.values():
+        lines.append(f"### {entry['term']}")
+        lines.append("")
+        # A settled term has a plain meaning and saying "possible" about it
+        # only teaches distrust of the whole sheet. A proposal, a threshold or
+        # a rule under review is the opposite case, and says so in both lines.
+        if entry.get("changing"):
+            lines.append(f"- Possible meaning: {entry.get('means', '(not written yet)')}")
+        else:
+            lines.append(f"- In plain English: {entry.get('means', '(not written yet)')}")
+        if entry.get("matters"):
+            lines.append(f"- Why it matters: {entry['matters']}")
+        if entry.get("check"):
+            label = "Needs confirmation" if entry.get("changing") else "Check"
+            lines.append(f"- {label}: {entry['check']}")
+        lines.append(f"- Used by {count} item{'s' if count != 1 else ''} on this sheet.")
+        lines.append("")
+    return lines
+
+
+# ---------- Part 8: the weekly sweep ----------
 # IMPROVEMENTS.md item 3. The reading is the habit and it stays yours; what a
 # tool can do is put the week in the order the flags already imply, and give
 # the sweep somewhere to record how long it took and what earned its place.
@@ -1399,7 +1513,7 @@ def _sweep_date(value):
     return f"{parsed.day} {parsed:%b %Y}"
 
 
-def _sweep_item(item):
+def _sweep_item(item, glossary=None):
     """One tickable entry: what it is, who said it, and where to read it."""
     lines = [f"- [ ] {item.get('title') or '(untitled)'}"]
 
@@ -1434,6 +1548,11 @@ def _sweep_item(item):
     if item.get("link_ok") is False:
         lines.append("      ⚠️ This link did not resolve when it was checked.")
 
+    # Named here, explained once at the end of the sheet.
+    used = [entry["term"] for entry in item_terms(item, glossary)] if glossary else []
+    if used:
+        lines.append(f"      Terms: {', '.join(used)}")
+
     lines.append("      Useful? [ ] yes  [ ] no")
     return "\n".join(lines)
 
@@ -1463,7 +1582,7 @@ def _sweep_source_table(items):
     return rows
 
 
-def format_sweep(items, when=None, generated_at=None):
+def format_sweep(items, when=None, generated_at=None, glossary=None):
     """
     Render the week as a sheet to work down and tick off.
 
@@ -1475,6 +1594,8 @@ def format_sweep(items, when=None, generated_at=None):
     when = when or date.today()
     total = len(items)
     generated = _sweep_date(generated_at)
+    # Read once for the whole sheet, not once per item.
+    glossary = load_glossary() if glossary is None else glossary
 
     lines = [f"# Weekly sweep — {when.day} {when:%b %Y}", ""]
     lines.append("Started: ____   Finished: ____")
@@ -1498,8 +1619,10 @@ def format_sweep(items, when=None, generated_at=None):
             lines.append("")
             continue
         for item in in_flag:
-            lines.append(_sweep_item(item))
+            lines.append(_sweep_item(item, glossary))
             lines.append("")
+
+    lines.extend(format_terms(items, glossary))
 
     lines.append("## After the sweep")
     lines.append("")
@@ -1518,7 +1641,7 @@ def format_sweep(items, when=None, generated_at=None):
     return "\n".join(lines) + "\n"
 
 
-def write_sweep(items, path, when=None, generated_at=None):
+def write_sweep(items, path, when=None, generated_at=None, glossary=None):
     """
     Write the sweep sheet, refusing to write over one that may hold your ticks.
 
@@ -1529,7 +1652,10 @@ def write_sweep(items, path, when=None, generated_at=None):
     if path.exists():
         raise FileExistsError(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(format_sweep(items, when=when, generated_at=generated_at), encoding="utf-8")
+    path.write_text(
+        format_sweep(items, when=when, generated_at=generated_at, glossary=glossary),
+        encoding="utf-8",
+    )
     return path
 
 

@@ -52,6 +52,24 @@ Plan, 17 September 2026 — a hand-written local glossary and a place to read it
 - What it must not do: present an inference as a legal, compliance or client-advice conclusion,
   or let a plain-English gloss stand in for reading an ACT item at its source.
 
+Built, 17 September 2026 — `data/glossary.json` holds 32 hand-written terms, and the sweep sheet
+names the ones an item used and explains each once at the end.
+
+One change from the plan above, made while building it. `Possible meaning` on every entry was
+wrong: ASIC is the corporate regulator, and hedging that teaches distrust of the whole sheet. So
+a settled term reads `In plain English` and `Check`, while an entry marked `changing` — a
+proposal, a threshold, a rule under review — keeps `Possible meaning` and `Needs confirmation`.
+Four entries are marked that way today: DBFO, Div 296, Statement of Advice, wholesale client.
+Nothing is inferred about what an item means, which is the separation item 1 asks for: the
+item's own words sit above, and the glossary explains a word, not the story.
+
+Still open:
+
+- The glossary only grows by hand. A term that keeps appearing and is not in it is invisible;
+  noticing that is currently yours.
+- The explanations reach the sweep sheet only. The dashboard, the email and the WhatsApp digest
+  do not show them.
+
 ## 2. API cost management
 
 If an AI API is added later, the system must make cost a controlled resource rather than an

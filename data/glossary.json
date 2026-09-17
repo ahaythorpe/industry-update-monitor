@@ -1,0 +1,284 @@
+{
+  "note": "Hand-written learning aids, not advice. Each entry says plainly what a term means, why it matters to someone learning the industry, and where to confirm it. An entry is written only where the plain meaning is not in doubt; an entry marked \"changing\" is a proposal, a threshold or a rule under review, and is shown as a possible meaning needing confirmation rather than as settled. See IMPROVEMENTS.md item 1.",
+  "terms": [
+    {
+      "term": "ASIC",
+      "also": [
+        "Australian Securities and Investments Commission"
+      ],
+      "means": "the corporate regulator. It licenses financial advice businesses, sets the guidance they work to, and bans people from the industry.",
+      "matters": "an ASIC action is usually the item that changes what an adviser does, which is why these land as ACT.",
+      "check": "asic.gov.au"
+    },
+    {
+      "term": "APRA",
+      "also": [
+        "Australian Prudential Regulation Authority"
+      ],
+      "means": "the prudential regulator. It supervises banks, insurers and super funds for financial soundness, where ASIC watches conduct.",
+      "matters": "an APRA item is usually about an institution's stability rather than about advice practice.",
+      "check": "apra.gov.au"
+    },
+    {
+      "term": "AFCA",
+      "also": [
+        "Australian Financial Complaints Authority"
+      ],
+      "means": "the free external complaints scheme. A consumer who cannot resolve a complaint with a firm can take it to AFCA, whose determination binds the firm.",
+      "matters": "determinations show how obligations are read in a real dispute, which is why they sit in the ACT tier.",
+      "check": "afca.org.au"
+    },
+    {
+      "term": "ART",
+      "also": [
+        "Administrative Review Tribunal"
+      ],
+      "means": "the tribunal that reviews government decisions, including ASIC bannings. It replaced the Administrative Appeals Tribunal in October 2024.",
+      "matters": "a ban can be affirmed, varied or set aside here, so an ASIC decision is not always the last word.",
+      "check": "art.gov.au"
+    },
+    {
+      "term": "ATO",
+      "also": [
+        "Australian Taxation Office"
+      ],
+      "means": "the tax administrator, and the regulator of self-managed super funds.",
+      "matters": "it is the primary source for how a tax or SMSF rule is actually applied, ahead of any commentary about it.",
+      "check": "ato.gov.au"
+    },
+    {
+      "term": "FAAA",
+      "also": [
+        "Financial Advice Association Australia"
+      ],
+      "means": "the main professional association for advisers, formed in 2023 from the merger of the FPA and the AFA.",
+      "matters": "it speaks for the profession in consultations. That is a position, not a rule — useful context, rarely an obligation.",
+      "check": "faaa.au"
+    },
+    {
+      "term": "CSLR",
+      "also": [
+        "Compensation Scheme of Last Resort"
+      ],
+      "means": "a scheme that pays limited compensation to a consumer who has won an AFCA determination the firm has not paid.",
+      "matters": "it is funded by a levy on licensees, so changes to how it works change what advice businesses pay.",
+      "check": "cslr.org.au, and Treasury for any change to the levy"
+    },
+    {
+      "term": "AFSL",
+      "also": [
+        "Australian Financial Services Licence"
+      ],
+      "means": "the licence a business must hold to provide financial services. An adviser either holds one or is authorised under someone else's.",
+      "matters": "the licensee carries the obligations, so who holds the licence decides who is answerable.",
+      "check": "asic.gov.au"
+    },
+    {
+      "term": "authorised representative",
+      "means": "a person or business authorised to provide financial services under another entity's licence.",
+      "matters": "it explains why a story about one adviser is often a story about their licensee.",
+      "check": "asic.gov.au, and ASIC Connect's professional registers"
+    },
+    {
+      "term": "banning order",
+      "also": [
+        "banned from providing financial services"
+      ],
+      "means": "an ASIC order stopping a person from providing financial services, or controlling a financial services business, for a set period or permanently.",
+      "matters": "the reasons given are the closest thing to a worked example of how conduct obligations are applied.",
+      "check": "the media release and the banning notice at asic.gov.au"
+    },
+    {
+      "term": "best interests duty",
+      "also": [
+        "best interests",
+        "BID"
+      ],
+      "means": "the legal duty to act in the client's best interests when giving personal advice, in the Corporations Act.",
+      "matters": "most advice enforcement comes back to it, so it is worth knowing in its own words rather than in summary.",
+      "check": "the Corporations Act on legislation.gov.au, and ASIC's guidance"
+    },
+    {
+      "term": "Code of Ethics",
+      "means": "the ethical standards binding financial advisers, covering competence, honesty, fairness and conflicts of interest.",
+      "matters": "it sits alongside the law rather than inside it: conduct can meet the Act and still breach the Code.",
+      "check": "legislation.gov.au for the instrument, asic.gov.au for how breaches are handled"
+    },
+    {
+      "term": "DBFO",
+      "also": [
+        "Delivering Better Financial Outcomes"
+      ],
+      "means": "the government's package of advice reforms, following the Quality of Advice Review — simplifying advice documents and obligations, and proposing a new class of adviser.",
+      "matters": "it is the source of most reform talk in the trade press. Much of it is proposed, not law.",
+      "check": "treasury.gov.au — and confirm whether a measure is announced, in draft, or in force",
+      "changing": true
+    },
+    {
+      "term": "Statement of Advice",
+      "also": [
+        "SoA"
+      ],
+      "means": "the document that sets out personal advice, the reasons for it, and what it costs.",
+      "matters": "changes to it are a live reform topic, so check whether a description is current or proposed.",
+      "check": "treasury.gov.au for reform status, asic.gov.au for what is required today",
+      "changing": true
+    },
+    {
+      "term": "anti-hawking",
+      "means": "the prohibition on offering a financial product to a consumer during, or because of, unsolicited contact.",
+      "matters": "it decides how a firm may approach someone who did not ask, including through referrals.",
+      "check": "the Corporations Act and ASIC's regulatory guidance"
+    },
+    {
+      "term": "conflicted remuneration",
+      "means": "a payment that could reasonably influence advice given to a client. Most forms of it are banned.",
+      "matters": "it is the rule behind most stories about commissions and adviser payments.",
+      "check": "the Corporations Act and ASIC's guidance"
+    },
+    {
+      "term": "breach reporting",
+      "also": [
+        "reportable situation"
+      ],
+      "means": "the obligation on a licensee to report certain breaches, and likely breaches, to ASIC within set timeframes.",
+      "matters": "the reporting numbers ASIC publishes are where a lot of enforcement attention starts.",
+      "check": "asic.gov.au regulatory guidance"
+    },
+    {
+      "term": "DDO",
+      "also": [
+        "design and distribution obligations"
+      ],
+      "means": "the duty on product issuers and distributors to design a product for a defined group of consumers and distribute it to that group.",
+      "matters": "it is the obligation behind the target market determination attached to a product.",
+      "check": "asic.gov.au regulatory guidance"
+    },
+    {
+      "term": "TMD",
+      "also": [
+        "target market determination"
+      ],
+      "means": "the document saying which consumers a financial product is designed for, and how it may be distributed.",
+      "matters": "distributing outside it is the breach ASIC acts on, so the document is the test.",
+      "check": "the product issuer's own TMD, and asic.gov.au"
+    },
+    {
+      "term": "PDS",
+      "also": [
+        "product disclosure statement"
+      ],
+      "means": "the disclosure document for a financial product — what it is, its risks, and its costs.",
+      "matters": "it is the primary source for what a product actually does, ahead of any description of it.",
+      "check": "the issuer's current PDS"
+    },
+    {
+      "term": "SMSF",
+      "also": [
+        "self-managed super fund",
+        "self-managed superannuation fund"
+      ],
+      "means": "a superannuation fund run by its own members, who are also its trustees and carry the legal responsibility.",
+      "matters": "the trustee obligations, and the ATO's role as regulator, are what separate these from other funds.",
+      "check": "ato.gov.au"
+    },
+    {
+      "term": "Div 296",
+      "also": [
+        "Division 296"
+      ],
+      "means": "a proposed additional tax on earnings attributable to very large superannuation balances.",
+      "matters": "its thresholds, start date and mechanics have changed more than once. Nothing about it should be taken from a summary.",
+      "check": "treasury.gov.au and ato.gov.au for the current status — confirm before relying on any figure",
+      "changing": true
+    },
+    {
+      "term": "retirement income covenant",
+      "means": "the obligation on super fund trustees to have a strategy for helping members in retirement, not just while they are saving.",
+      "matters": "it is why funds have moved into retirement guidance, which touches what advisers do.",
+      "check": "apra.gov.au and asic.gov.au"
+    },
+    {
+      "term": "professional year",
+      "means": "the supervised year a new adviser completes before advising independently, with structured training and a supervisor.",
+      "matters": "for someone entering the industry this is the path itself, not background.",
+      "check": "asic.gov.au and the FAAA's guidance for new entrants"
+    },
+    {
+      "term": "CPD",
+      "also": [
+        "continuing professional development"
+      ],
+      "means": "the ongoing training an adviser must complete each year to stay authorised.",
+      "matters": "the requirement is set by law and topped up by the licensee, so counts and categories vary.",
+      "check": "asic.gov.au, then your licensee's own policy"
+    },
+    {
+      "term": "IDR",
+      "also": [
+        "internal dispute resolution"
+      ],
+      "means": "a firm's own complaints process, which a consumer uses before AFCA.",
+      "matters": "the timeframes and record-keeping are prescribed, and failures here show up in AFCA determinations.",
+      "check": "asic.gov.au regulatory guidance"
+    },
+    {
+      "term": "TPD",
+      "also": [
+        "total and permanent disability"
+      ],
+      "means": "insurance cover that pays where a person is permanently unable to work, usually to a definition set in the policy.",
+      "matters": "the definition in the policy decides the claim, and definitions differ between products.",
+      "check": "the policy document, and the Life Insurance Code of Practice"
+    },
+    {
+      "term": "Life Insurance Code of Practice",
+      "also": [
+        "Life Code Compliance Committee",
+        "LCCC"
+      ],
+      "means": "the life insurance industry's own code, with a committee that monitors it and can sanction a breaching insurer.",
+      "matters": "a code sanction is industry self-regulation, not a regulator's action. Both matter; they are not the same thing.",
+      "check": "the code at fsc.org.au, and asic.gov.au for anything regulatory"
+    },
+    {
+      "term": "wholesale client",
+      "also": [
+        "wholesale investor",
+        "sophisticated investor"
+      ],
+      "means": "a client who meets asset or income tests and so receives fewer protections than a retail client.",
+      "matters": "the tests, and whether they should change, are a live policy argument. Which category a client is in changes the obligations owed.",
+      "check": "the Corporations Act, and treasury.gov.au for any review",
+      "changing": true
+    },
+    {
+      "term": "managed account",
+      "also": [
+        "SMA",
+        "separately managed account"
+      ],
+      "means": "an arrangement where a client's portfolio is managed to a model, with the client holding the underlying assets.",
+      "matters": "it changes how advice is implemented and reviewed, which is why platform stories dwell on it.",
+      "check": "the offer document, and asic.gov.au on the licensing of the service"
+    },
+    {
+      "term": "FUM",
+      "also": [
+        "funds under management"
+      ],
+      "means": "the total value of money a manager or platform looks after.",
+      "matters": "it is a size and momentum figure, not a quality one. Useful as market context, rarely more.",
+      "check": "the manager's own reporting"
+    },
+    {
+      "term": "CGT",
+      "also": [
+        "capital gains tax"
+      ],
+      "means": "the tax on a gain made when an asset is sold or otherwise disposed of.",
+      "matters": "concessions and exemptions do a lot of work here, and they are specific. Never take one from a summary.",
+      "check": "ato.gov.au"
+    }
+  ]
+}

@@ -127,6 +127,25 @@ so like `--brief` it reaches no publisher and costs nothing.
 A ticked ACT box means you went to the primary source. Nothing in the sheet
 replaces that, and it says so at the bottom.
 
+#### Terms you do not know yet
+
+An item that uses `CSLR`, `anti-hawking` or `Div 296` names them under the
+teaser, and the sheet explains each one once at the end, under **Terms on this
+sheet**. The glossary is [data/glossary.json](data/glossary.json) — written by
+hand, read from disk, no model and no key.
+
+Each entry says what the term means, why it matters, and where to confirm it. A
+settled term is stated plainly (`In plain English`); a proposal, threshold or
+rule under review is marked `Possible meaning` and `Needs confirmation`, because
+those are the ones where a summary is not good enough. A term is matched on its
+own spelling — `ART` the tribunal is matched, `art` is not — so nothing is
+inferred about what an item means. Four terms per item is the cap.
+
+To add a term, add an entry to the glossary: `term`, `means`, `matters`,
+`check`, optionally `also` for other spellings and `changing: true` if its
+substance is still moving. The tests check every entry says what it means and
+where to check it.
+
 ### Newsletters from Gmail
 
 Four configured sources have no feed at all — ABS, FS Industry Moves, and the
