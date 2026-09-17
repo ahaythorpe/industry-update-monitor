@@ -62,6 +62,36 @@
       "sub_status": "free RSS, no signup"
     },
     {
+      "name": "Tax Practitioners Board",
+      "access": "free",
+      "flag": "ACT",
+      "rss": "https://www.tpb.gov.au/rss.xml",
+      "home": "https://www.tpb.gov.au",
+      "intake": "rss",
+      "note": "Added 17 Sep 2026. Probed the same day: live, 10 entries, newest that day, recent items covering sanctions-power guidance and registration terminations. ACT because the TPB registers tax (financial) advisers — its terminations and guidance change what an adviser may do, not just what they should know. The only working government feed found in the 17 Sep probe. Watch the volume: it publishes roughly weekly, and an ACT prior puts every item in front of you at every sweep. Known quirk: the feed's description field repeats the title and appends an internal ID, the date and the category before the real text, so teasers read oddly (\"...sanctions powers tdenp Thu, 2026-09-17 11:59 Media releases The Treasury...\"). The link and the title are correct, which is what an ACT item is read from anyway.",
+      "sub_status": "free RSS, no signup"
+    },
+    {
+      "name": "AUSTRAC news",
+      "access": "free",
+      "flag": "KNOW",
+      "rss": null,
+      "home": "https://www.austrac.gov.au/news-and-media",
+      "intake": "bookmark_and_check",
+      "note": "Added 17 Sep 2026. No feed: /rss.xml, /feed and /news/rss all 404, and the news and media page advertises none in its HTML. Bookmark-and-check in the weekly sweep, like ASIC and the ATO. KNOW rather than ACT because the AML/CTF obligations reach advice practices but rarely demand action in the week they are announced.",
+      "sub_status": "bookmark-and-check (no RSS)"
+    },
+    {
+      "name": "CSLR",
+      "access": "free",
+      "flag": "NOTE",
+      "rss": "https://cslr.org.au/feed",
+      "home": "https://cslr.org.au",
+      "intake": "rss",
+      "note": "Added 17 Sep 2026. The feed parses and carries 10 entries, but the newest was 2 Jul 2026 when probed — a low-volume publisher rather than a stale one, so it is configured rather than bookmarked, with a NOTE prior to match how rarely it speaks. Relevant because the levy and its sustainability are what the Aug 2026 Minister's package was about. If it goes quiet for a year, re-probe before assuming it is broken: a valid stale feed is the trap item 13 records.",
+      "sub_status": "free RSS, no signup"
+    },
+    {
       "name": "Financial Standard FS Advice",
       "access": "free_signup",
       "flag": "KNOW",

@@ -475,3 +475,26 @@ Requirements, if this is taken further:
 - Do not scrape a media centre to fake a feed for AUSTRAC. Same rule as item 13: a page is not a
   feed.
 - Costs nothing either way: all four are free public publishing.
+
+Added, 17 September 2026, on the owner's instruction — the three probed above are now in
+`data/sources.json`, and the monitor fetches them:
+
+- **Tax Practitioners Board** — 🔴 ACT, RSS. Live on the first run: a Royal Assent item on the
+  enhanced sanctions framework, dated the same day, plus a registration termination.
+- **AUSTRAC news** — 🟠 KNOW, bookmark-and-check, since it has no feed. KNOW rather than ACT
+  because AML/CTF obligations reach advice practices but rarely demand action in the week they
+  are announced.
+- **CSLR** — 🟢 NOTE, RSS. Configured despite being slow, with the prior set to match how rarely
+  it speaks.
+
+This goes against the caution written above — that a source should earn its place over a few
+weeks rather than on one probe. That was the owner's call to make, and it is recorded here rather
+than quietly overridden. What to watch, in this order: whether the TPB's weekly volume makes the
+sweep too long at an ACT prior, and whether CSLR is worth keeping if it stays silent.
+
+Known quirk, recorded so it is not rediscovered as a bug: the TPB feed's description repeats the
+title and appends an internal ID, the date and the category before the real text, so its teasers
+read oddly. The title and the link are correct, and an ACT item is read at its source anyway.
+
+`legislation.gov.au` was not added — it serves HTML, not a feed. Nothing to configure.
+
