@@ -1541,7 +1541,10 @@ def _sweep_item(item, glossary=None):
     if item.get("link"):
         # A newsletter links to the message in your own mailbox, not to a
         # public article, so say that rather than offering it as a source.
-        if item.get("intake") == "email_newsletter":
+        # "email" is what email_to_item writes and what is_checkable_link and
+        # the dashboard both test. Not "email_newsletter", which is the
+        # sources.json intake, and which no digest item ever carries.
+        if item.get("intake") == "email":
             lines.append(f"      In your inbox: {item['link']}")
         else:
             lines.append(f"      {item['link']}")

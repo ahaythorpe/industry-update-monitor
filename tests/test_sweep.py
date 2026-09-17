@@ -6,6 +6,7 @@ from datetime import date
 from pathlib import Path
 
 from src.monitor import (
+    email_to_item,
     format_sweep,
     resolve_sweep_path,
     sweep_filename,
@@ -44,7 +45,7 @@ def _week():
             "flag": "ACT",
             "confidence": 0.7,
             "source_name": "Macquarie Technical Services",
-            "intake": "email_newsletter",
+            "intake": "email",
         },
         {
             "title": "The ASX closed the week down 0.4 per cent",
@@ -96,6 +97,18 @@ class SweepItemTests(unittest.TestCase):
     def test_a_newsletter_is_not_offered_as_a_public_article(self):
         sheet = format_sweep(_week(), when=date(2026, 9, 17))
         self.assertIn("In your inbox: https://mail.google.com/", sheet)
+
+    def test_the_newsletter_intake_value_is_the_one_the_monitor_writes(self):
+        # email_to_item writes "email". A sheet testing for anything else would
+        # pass its own fixtures and never fire on a real digest.
+        item = email_to_item({
+            "sender": "Macquarie Technical Services <a@b.test>",
+            "subject": "Technical update",
+            "body": "The monthly note on the indexed caps.",
+            "link": "https://mail.google.com/mail/u/0/#inbox/abc123",
+        })
+        self.assertEqual(item["intake"], "email")
+        self.assertIn("In your inbox:", format_sweep([item]))
 
     def test_a_hand_written_summary_is_labelled_as_one(self):
         week = _week()
