@@ -34,6 +34,24 @@ Check: Read the Treasury or legislation source before drawing conclusions.
 Source: original email link
 ```
 
+Plan, 17 September 2026 — a hand-written local glossary and a place to read it.
+
+- `data/glossary.json` holds the terms: the term itself, what it plainly means, why it matters
+  to someone learning, and where to confirm it. Written by hand from the regulator's own
+  wording, not generated.
+- Matching is whole-word against the title and teaser already in the digest. No model, no
+  network, no key. A term with no confident plain meaning is left out rather than guessed at.
+- It surfaces on the sweep sheet from item 3, which is where the reading happens. An item names
+  the terms it used; the explanation itself appears once per sheet, in a Terms section at the
+  end, so a term running through twenty items is read once and not twenty times.
+- The shape is the example above, unchanged: what it says, what that may mean, what to check,
+  and the link. `Possible meaning` and `Check` stay as the words, because they are what keeps
+  an inference from reading as a conclusion.
+- Gates: cost nil, privacy nil (nothing leaves the laptop), source is the glossary itself and it
+  cites where to confirm each entry, reading time is one explanation per term per sheet.
+- What it must not do: present an inference as a legal, compliance or client-advice conclusion,
+  or let a plain-English gloss stand in for reading an ACT item at its source.
+
 ## 2. API cost management
 
 If an AI API is added later, the system must make cost a controlled resource rather than an
