@@ -69,18 +69,23 @@ In order of how much they matter:
 
 ### The one real exposure — read this before making the site public
 
-`web/app/api/whatsapp/send/route.ts` takes a phone number **from the request
-body** and sends to it. It has **no authentication and no rate limit**. That is
-harmless today, because no Twilio credentials exist anywhere and the Vercel
-deployment sits behind Vercel Authentication.
+**Narrowed 17 September 2026.** `web/app/api/whatsapp/send/route.ts` used to take a phone number
+**from the request body** and send to it — a send-to-anyone API for whoever found the URL. It now
+reads `WHATSAPP_TO` from the server environment and ignores the request's recipient entirely, so
+it can only ever reach your own phone. That was option A in
+[WHATSAPP_IMPLEMENTATION.md](WHATSAPP_IMPLEMENTATION.md).
+
+What remains: the endpoint still has **no authentication and no rate limit**. It is harmless
+today, because no Twilio credentials exist anywhere — the Vercel project has no environment
+variables at all (checked 17 Sep 2026) — and the deployment sits behind Vercel Authentication.
 
 It stops being harmless if **both** of these become true:
 
 - Twilio credentials are added to the Vercel project's environment variables, **and**
 - Deployment Protection is turned off to make the dashboard public.
 
-Then anyone who finds the URL can post any phone number to that endpoint and
-spend your Twilio balance. So:
+The damage is now bounded — a stranger cannot message anyone but you — but they could still
+trigger repeated sends to your phone and spend your trial credit doing it. So:
 
 > **Keep Twilio credentials in your local `.env` only. Do not add them to
 > Vercel.** Send WhatsApp from your own machine with

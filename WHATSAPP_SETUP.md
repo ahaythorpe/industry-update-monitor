@@ -48,12 +48,13 @@ turn — back out.
 Put them in `.env` at the repo root, which is git-ignored, and send with
 `python src/monitor.py --whatsapp`.
 
-> **Do not add Twilio variables to the Vercel project.** The dashboard's send
-> endpoint takes the recipient **from the request body** and has no
-> authentication and no rate limit. On your own machine that is fine. On a public
-> URL with credentials attached, anyone who found it could send messages on your
-> account. Without those variables the deployed dashboard stays in preview mode:
-> it composes the message and shows it instead of sending. Details in
+> **Do not add Twilio variables to the Vercel project.** Since 17 September 2026 the send
+> endpoint reads the recipient from `WHATSAPP_TO` in the server environment and **ignores any
+> recipient in the request**, so it can no longer be aimed at a stranger's phone. It still has no
+> authentication and no rate limit, though, so with credentials attached to a public URL anyone
+> who found it could still trigger sends — to your phone, on your balance. Locally that is fine:
+> the dev server listens on your machine only. Without those variables the deployed dashboard
+> stays in preview mode: it composes the message and shows it instead of sending. Details in
 > [INTEGRATIONS.md](INTEGRATIONS.md#the-one-real-exposure--read-this-before-making-the-site-public).
 
 **Checked on 17 September 2026: the Vercel project has no environment variables at all**, so the
