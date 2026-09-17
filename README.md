@@ -336,6 +336,16 @@ digest and names the guard at each — including why a paid source cannot even b
 configured, and the one honest caveat about the link check. It also covers
 summarising with no API cost, which is the recommended way to use this.
 
+## Picking up work on this
+
+[HANDOVER.md](HANDOVER.md) is the brief for a developer who did not write this:
+where each stream stands, what finished looks like, and the rules that do not
+bend. It covers finishing WhatsApp delivery, summaries from a local model, and
+making the downloaded briefing something an AI tool can be handed as-is.
+
+[OLLAMA_SETUP.md](OLLAMA_SETUP.md) is the install and design for running a model
+on this machine — Phase 3 with no key and no bill.
+
 ## Safety and guardrails
 - No paywall bypassing
 - No login flow required for default usage

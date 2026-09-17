@@ -222,3 +222,64 @@ Requirements:
 - The `SAFEGUARDS.md` build checklist stays unticked, correctly — those boxes gate items 1 and 2
   of this list and nothing has passed them.
 - Costs nothing and changes no behaviour. It decides whether the next person can trust the docs.
+
+## 10. WhatsApp delivery, finished properly
+
+Sending works from the command line and the formatting is tested on both sides. What is not
+finished is the part that decides whether it can be deployed at all.
+
+Requirements:
+
+- `POST /api/whatsapp/send` takes the recipient from the request body and has no authentication
+  and no rate limit. Deployed with Twilio credentials present, anyone with the URL can send on
+  the account. Close it, or keep sending on the command line and say so in the docs that
+  currently describe the endpoint.
+- A summary pasted back by hand never reaches WhatsApp — see item 4, same cause.
+- The sandbox's 24-hour window and 72-hour join are facts to report, not to retry around. The
+  agent rules ban retry loops, and a retry against a messaging API is how a free trial becomes a
+  bill.
+- Cost stays nil: trial credit, shared sandbox number, never buy a number, never upgrade.
+- Brief for whoever takes it: [HANDOVER.md](HANDOVER.md), stream A.
+
+## 11. Summaries from a model on this machine (Ollama)
+
+Phase 3 without a key and without a bill. The cost gate that blocks item 2 does not apply — there
+is no per-call price — so this is the cheapest route to automated summaries the project has.
+
+Requirements:
+
+- Reuse the manual round trip: the prompt, the blocks, the reply format and the ID matching all
+  exist and are tested. This is a transport, not a new feature.
+- The input stays the feed's own title and teaser. A local model is not a reason to fetch an
+  article body.
+- Record the origin as `ollama:<model>` and label it in the dashboard as a local model. A summary
+  that reads as "Summary" with no origin breaks the honesty rule by omission.
+- Off unless asked for, capped, and loud when Ollama is not running. No retry loop and no
+  fallback to anything paid.
+- The only network call is to 127.0.0.1, asserted in a test that runs with no model installed.
+- Costs: no money. ~5 GB of disk, ~8 GB of memory while it runs, and a warm laptop.
+- Install, model choice, a curl that proves it before any code, and the wiring:
+  [OLLAMA_SETUP.md](OLLAMA_SETUP.md). Brief: [HANDOVER.md](HANDOVER.md), stream B.
+
+## 12. A download an AI tool can be handed as-is
+
+Every item's link is already in the download, on its own `LINK:` line, and the prompt tells the
+model to keep it. What is missing is everything around them: unzip today and you get a handful of
+Markdown files with no entry point.
+
+Requirements:
+
+- A `README.md` inside the zip: which digest it came from, how many items and pastes, what to do
+  with it, and the one-line boundary — titles and teasers only, do not ask a tool to fetch the
+  links.
+- A `links.md` inside the zip: every item once, with ID, flag, source, date, title and URL. That
+  is the list to hand to a tool or to open by hand.
+- A newsletter's link is a mailbox URL only its owner's browser can open, and must be labelled
+  rather than offered as a public article. Test `intake == "email"`; `email_newsletter` is the
+  sources.json value and reaches no item.
+- The command line writes the same two files, and the existing parity test covers them. Two
+  routes, one output, or they drift.
+- The prompt stays SAFEGUARDS section D verbatim and the IDs stay the monitor's refs, or
+  `--import-summaries` attaches a summary to the wrong article.
+- Costs nothing and reaches no publisher: it is built in the browser from the digest already
+  loaded. Brief: [HANDOVER.md](HANDOVER.md), stream C.
