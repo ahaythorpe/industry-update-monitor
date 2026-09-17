@@ -121,6 +121,74 @@ and why the files are split small.
 
 ---
 
+## Part 4 — the Gmail newsletter intake (10 minutes, free, do it when you have the patience)
+
+Four of your sources publish no feed and arrive only as email: **ABS**, **FS Industry Moves**,
+**Macquarie Technical Services** and **CFS FirstTech**. Two of those are 🔴 ACT. Until this is
+switched on they reach no digest at all, so a quiet week in the digest is not evidence of a quiet
+week — see item 5 in [IMPROVEMENTS.md](IMPROVEMENTS.md).
+
+The code is built and tested. The only missing piece is a file called `credentials.json`.
+
+**This part is yours to do.** It needs you signed into your own Google account, on screens that
+deliberately refuse automation. Nobody else can do it for you, and the tool never asks for your
+password.
+
+### Cost: nothing. Do not give Google a card.
+
+Creating the project, enabling the Gmail API and making the client are all free, and reading
+~25 newsletters a week is nowhere near the free quota. **The console will repeatedly offer you a
+"free trial" and ask for a credit card. Decline every time.** You never need the billing page. If
+any step insists on billing, stop — you have taken a wrong turn, not hit a paywall.
+
+### Step A — in Gmail (2 minutes)
+
+1. Create a label called exactly `industry-update-monitor`.
+2. Create a filter that applies that label to the newsletters you want read.
+
+Nothing outside that label is ever visible to the tool. This step is what sets the boundary, so
+it is worth doing first and deliberately.
+
+### Step B — in Google Cloud Console (8 minutes)
+
+At [console.cloud.google.com](https://console.cloud.google.com/). Google renames these screens
+often, so the wording below may drift; the order does not.
+
+1. **Create a project.** Project picker in the top bar → *New Project*. Any name. No organisation.
+2. **Enable the Gmail API.** *APIs & Services* → *Library* → search "Gmail API" → *Enable*.
+3. **Set up the consent screen.** Look for *OAuth consent screen*, or *Google Auth Platform* in
+   newer consoles. Choose **External**. Fill in app name, your email as support contact, your
+   email as developer contact. Nothing else is required.
+4. **Publish it.** On the consent screen, set publishing status to **In production**.
+   *This matters:* left in **Testing**, Google expires your sign-in every 7 days and the tool
+   stops until you sign in again. Production is still free — it just sounds more serious than it
+   is. You will see an "unverified app" warning later, which is expected for something only you
+   use.
+5. **Create the client.** *Credentials* → *Create Credentials* → *OAuth client ID* →
+   Application type: **Desktop app** → *Create* → **Download JSON**.
+6. Rename the downloaded file to `credentials.json` and put it in the repo root, next to
+   `README.md`. It is git-ignored.
+
+### Step C — the first run
+
+```bash
+python src/monitor.py --gmail --gmail-max 10
+```
+
+Your browser opens for consent. You will see **"Google hasn't verified this app"** — that is your
+own app, and the way through is *Advanced* → *Go to (unsafe)*. Approving writes `token.json`
+beside the credentials. Both files are your mailbox: never share either, and never commit them.
+
+Start at `--gmail-max 10` rather than the full 25, and see what it does to the length of a sweep
+before making it routine. Reading time is the real cost here, not money.
+
+### What the tool can and cannot do with this
+
+The scope is `gmail.readonly`, and `src/gmail_reader.py` refuses any label but the configured one.
+It cannot read the rest of your mail, and it cannot send, label, archive or delete anything. No
+attachments, no link-following. Without `credentials.json` the run says so and stops; every other
+command works without Gmail.
+
 ## Optional add-ons
 
 None of these are needed. Read
@@ -130,7 +198,7 @@ has the costs, and how to keep each one free.
 | Add-on | What it gives you | Cost | Instructions |
 |---|---|---|---|
 | **[Gmail app password](https://myaccount.google.com/apppasswords)** | Weekly digest by email | Free | [EMAIL_SETUP.md](EMAIL_SETUP.md) |
-| **[Gmail API](https://console.cloud.google.com/)** | Reads newsletters from one label into the digest | Free | [README](README.md#newsletters-from-gmail) |
+| **[Gmail API](https://console.cloud.google.com/)** | Reads newsletters from one label into the digest | Free — decline the card | [Part 4](#part-4--the-gmail-newsletter-intake-10-minutes-free-do-it-when-you-have-the-patience) |
 | **[Twilio](https://www.twilio.com/try-twilio)** | Digest to WhatsApp | Free trial credit, then cents | [WHATSAPP_SETUP.md](WHATSAPP_SETUP.md) · **read the cautions below** |
 | **[Vercel](https://vercel.com/signup)** | Dashboard hosted on a URL | Free Hobby tier | `cd web && npx vercel deploy` |
 
