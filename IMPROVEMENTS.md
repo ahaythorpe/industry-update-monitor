@@ -3,10 +3,11 @@
 These are deliberately staged ideas. An improvement is not ready to build until its cost,
 privacy, source, and reading-time impact are understood.
 
-Nothing on this list is built. Items 1-3 were staged early and remain unstarted as of
-17 September 2026. Items 4-9 came out of a review of the repo on that date: they are gaps in
-features that already exist, not new ideas. The numbering is staging order, not priority — of
-the nine, 8, 5 and 4 are the ones that cost something to leave alone.
+Items 1 and 2 were staged early and are unstarted as of 17 September 2026. Item 3 now has the
+sweep sheet under it; the habit it serves is still the user's. Items 4-9 came out of a review of
+the repo on that date: they are gaps in features that already exist, not new ideas. The
+numbering is staging order, not priority — of the nine, 8, 5 and 4 are the ones that cost
+something to leave alone.
 
 ## 1. Newcomer explanations
 
@@ -72,6 +73,22 @@ Support a sustainable learning habit rather than maximising the number of summar
 - Review ACT items first, then selected KNOW items, then NOTE items if time remains.
 - Reassess source value and API spending after several weekly reviews.
 - Keep paid subscriptions as a future decision based on a recurring unmet need.
+
+Built, 17 September 2026 — `python src/monitor.py --sweep` writes a sheet for one week's
+reading: a box per item in ACT, KNOW, NOTE order, and at the foot of it the minutes, the useful
+count, and a table of what each publication gave you that week. It reads the digest on disk,
+reaches no publisher, costs nothing, and refuses to write over a sheet that may already hold
+your ticks.
+
+Still open, and deliberately so:
+
+- The reading is the habit and stays yours. The sheet is where it is recorded, not a substitute.
+- Reading several filled-in sheets back to compare sources across weeks. Worth doing only once
+  there are several, and only if the "earned their place" lines are being filled in.
+- A source that published nothing this week appears nowhere on the sheet, because the digest
+  records what arrived, not what did not. A silent source is a real signal and is currently
+  yours to notice.
+- API spending has nothing to reassess while item 2 is unstarted and no key exists.
 ## 4. Summaries reach every route they are promised on
 
 A summary pasted back by hand appears on the dashboard and nowhere else. The emailed and

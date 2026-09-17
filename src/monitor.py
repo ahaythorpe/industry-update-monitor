@@ -27,7 +27,7 @@ import itertools
 import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from html import unescape
 from pathlib import Path
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
@@ -1358,6 +1358,181 @@ def import_summaries(reply_path, digest_path):
     return matched, sorted(set(replies) - seen), len(replies)
 
 
+# ---------- Part 7: the weekly sweep ----------
+# IMPROVEMENTS.md item 3. The reading is the habit and it stays yours; what a
+# tool can do is put the week in the order the flags already imply, and give
+# the sweep somewhere to record how long it took and what earned its place.
+# Nothing here fetches anything: it reads the digest already on disk.
+
+SWEEP_INTENT = {
+    "ACT": "read at the source",
+    "KNOW": "pick what is worth it",
+    "NOTE": "only if time remains",
+}
+
+
+def sweep_filename(when=None):
+    """`sweep-2026-09-17.md` — one sheet per sweep, named for the day it is for."""
+    return f"sweep-{(when or date.today()).isoformat()}.md"
+
+
+def resolve_sweep_path(target, when=None):
+    """
+    Read `--sweep [PATH]` into the file to write.
+
+    A directory gets a dated sheet inside it, so the default `--sweep` keeps a
+    run-by-run record rather than one file overwritten every week. An explicit
+    `.md` filename is taken as given.
+    """
+    path = Path(target)
+    if path.suffix.lower() != ".md":
+        path = path / sweep_filename(when)
+    return path
+
+
+def _sweep_date(value):
+    """`2026-09-14T22:42:25+00:00` -> `14 Sep 2026`; anything unparseable -> ''."""
+    try:
+        parsed = datetime.fromisoformat((value or "").replace("Z", "+00:00"))
+    except (AttributeError, ValueError):
+        return ""
+    return f"{parsed.day} {parsed:%b %Y}"
+
+
+def _sweep_item(item):
+    """One tickable entry: what it is, who said it, and where to read it."""
+    lines = [f"- [ ] {item.get('title') or '(untitled)'}"]
+
+    meta = [item.get("source_name") or "(unknown source)"]
+    # Confidence is shown only where it means "trust this flag". On a NOTE it
+    # means "confidently background", which reads as importance if shown.
+    if item.get("confidence") is not None and (item.get("flag") or "").upper() in {"ACT", "KNOW"}:
+        meta.append(f"{item['confidence']:.0%} confident")
+    published = _sweep_date(item.get("created_at"))
+    if published:
+        meta.append(published)
+    lines.append(f"      {' · '.join(meta)}")
+
+    teaser = " ".join((item.get("teaser") or item.get("summary") or "").split())
+    if teaser:
+        lines.append(f"      {teaser}")
+
+    # A summary written by hand is labelled as such wherever it is shown, so it
+    # never reads as something this tool generated.
+    hand = " ".join((item.get("ai_summary") or "").split())
+    if hand:
+        origin = "Summarised by hand" if item.get("ai_source") == "manual" else "Summary"
+        lines.append(f"      {origin}: {hand}")
+
+    if item.get("link"):
+        # A newsletter links to the message in your own mailbox, not to a
+        # public article, so say that rather than offering it as a source.
+        if item.get("intake") == "email_newsletter":
+            lines.append(f"      In your inbox: {item['link']}")
+        else:
+            lines.append(f"      {item['link']}")
+    if item.get("link_ok") is False:
+        lines.append("      ⚠️ This link did not resolve when it was checked.")
+
+    lines.append("      Useful? [ ] yes  [ ] no")
+    return "\n".join(lines)
+
+
+def _sweep_source_table(items):
+    """What each publication contributed this week, as the basis for keeping it."""
+    flags = tuple(sorted(FLAG_ORDER, key=FLAG_ORDER.get))
+    tally = {}
+    for item in items:
+        name = item.get("source_name") or "(unknown source)"
+        counts = tally.setdefault(name, dict.fromkeys(flags, 0))
+        flag = (item.get("flag") or "NOTE").upper()
+        if flag in counts:
+            counts[flag] += 1
+
+    rows = ["| Publication | " + " | ".join(flags) + " | Total |",
+            "| --- | " + " | ".join("---" for _ in flags) + " | --- |"]
+    # Most ACT first, then most items: the order the question "is this worth
+    # keeping?" is actually asked in.
+    for name, counts in sorted(
+        tally.items(), key=lambda pair: (-pair[1]["ACT"], -sum(pair[1].values()), pair[0])
+    ):
+        rows.append(
+            f"| {name} | " + " | ".join(str(counts[flag]) for flag in flags)
+            + f" | {sum(counts.values())} |"
+        )
+    return rows
+
+
+def format_sweep(items, when=None, generated_at=None):
+    """
+    Render the week as a sheet to work down and tick off.
+
+    Flag order is the reading order SAFEGUARDS.md section G sets: ACT first and
+    at the source, then the KNOW items worth the time, then NOTE only if time
+    remains. The blanks are the record — minutes, useful items, and which
+    publications earned their place — because none of that can be inferred.
+    """
+    when = when or date.today()
+    total = len(items)
+    generated = _sweep_date(generated_at)
+
+    lines = [f"# Weekly sweep — {when.day} {when:%b %Y}", ""]
+    lines.append("Started: ____   Finished: ____")
+    lines.append("")
+    lines.append(
+        f"{total} item{'s' if total != 1 else ''}"
+        + (f" from the digest of {generated}" if generated else "")
+        + "."
+    )
+    lines.append("")
+    lines.append("Read down, not across: ACT first, then the KNOW items worth your time,")
+    lines.append("then NOTE only if time remains.")
+    lines.append("")
+
+    for flag in sorted(FLAG_ORDER, key=FLAG_ORDER.get):
+        in_flag = [item for item in items if (item.get("flag") or "NOTE").upper() == flag]
+        lines.append(f"## {FLAG_EMOJI[flag]} — {SWEEP_INTENT[flag]} ({len(in_flag)})")
+        lines.append("")
+        if not in_flag:
+            lines.append("Nothing this week.")
+            lines.append("")
+            continue
+        for item in in_flag:
+            lines.append(_sweep_item(item))
+            lines.append("")
+
+    lines.append("## After the sweep")
+    lines.append("")
+    lines.append(f"Minutes: ____   Useful items: ____ of {total}")
+    lines.append("")
+    lines.append("Sources that earned their place: ______________________________")
+    lines.append("")
+    lines.append("Sources that did not: ________________________________________")
+    lines.append("")
+    lines.append("What each one gave you this week:")
+    lines.append("")
+    lines.extend(_sweep_source_table(items))
+    lines.append("")
+    lines.append("A ticked ACT box is not a read ACT item. Its box means you went to the")
+    lines.append("primary source, which is the one thing no summary here replaces.")
+    return "\n".join(lines) + "\n"
+
+
+def write_sweep(items, path, when=None, generated_at=None):
+    """
+    Write the sweep sheet, refusing to write over one that may hold your ticks.
+
+    A sheet is worked on by hand over a week, so overwriting it silently would
+    throw away the only copy of the record this feature exists to keep.
+    """
+    path = Path(path)
+    if path.exists():
+        raise FileExistsError(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(format_sweep(items, when=when, generated_at=generated_at), encoding="utf-8")
+    return path
+
+
 def _load_email_sender():
     try:
         from src import email_sender
@@ -1401,6 +1576,8 @@ if __name__ == "__main__":
                         help="Split the briefing into one file per group: topic, flag, or topic,flag")
     parser.add_argument("--topic", default=None,
                         help="Comma-separated categories to brief, e.g. Compliance,Regulation")
+    parser.add_argument("--sweep", nargs="?", const="output", default=None, metavar="PATH",
+                        help="Write a tickable weekly sweep sheet (default: output/sweep-<date>.md)")
     parser.add_argument("--import-summaries", metavar="PATH", default=None,
                         help="Merge summaries pasted back from a web AI tool into the digest JSON")
     parser.add_argument("--digest", default="web/lib/digest.json",
@@ -1423,9 +1600,29 @@ if __name__ == "__main__":
 
     # Both halves of the manual round trip work from the digest already on
     # disk: no feeds are fetched, so they cost nothing and work offline.
-    if args.brief is not None or args.import_summaries:
+    if args.brief is not None or args.import_summaries or args.sweep is not None:
         if not digest_path.exists():
             raise SystemExit(f"❌ No digest at {digest_path}. Run: python src/monitor.py --json")
+
+        if args.sweep is not None:
+            digest = json.loads(digest_path.read_text(encoding="utf-8"))
+            sweep_items = digest.get("items", [])
+            if not sweep_items:
+                raise SystemExit(f"❌ No items in {digest_path}. "
+                                 f"Refresh it with: python src/monitor.py --json")
+            sweep_path = resolve_sweep_path(root / args.sweep)
+            try:
+                written = write_sweep(sweep_items, sweep_path,
+                                      generated_at=digest.get("generated_at"))
+            except FileExistsError:
+                # It may already have a morning's ticks in it.
+                raise SystemExit(f"❌ {sweep_path} already exists and may hold your ticks. "
+                                 f"Rename it, or name another file: "
+                                 f"python src/monitor.py --sweep output/sweep-2.md")
+            act = sum(1 for item in sweep_items if (item.get("flag") or "").upper() == "ACT")
+            print(f"🗒️  Sweep sheet written to {written} — {len(sweep_items)} items, "
+                  f"{act} of them ACT.")
+            print("   Work down it, tick as you go, and fill in the minutes at the end.")
 
         if args.brief is not None:
             digest = json.loads(digest_path.read_text(encoding="utf-8"))

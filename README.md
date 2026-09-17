@@ -85,6 +85,7 @@ mid-article — and a section continued into the next message repeats its headin
 | `--per-flag` | 6 | Max items per flag in the WhatsApp newsletter |
 | `--gmail` | off | Also read newsletters from the Gmail label (read-only, opt-in) |
 | `--gmail-max` | 25 | Maximum newsletters to read |
+| `--sweep` | `output/sweep-<date>.md` | Write a tickable sheet for the weekly sweep |
 | `--brief` | `output/briefing.md` | Write a paste-ready briefing for an AI web tool |
 | `--deep` | off | Detailed prompt and smaller pastes; pair with `--flags ACT,KNOW` |
 | `--group-by` | — | Split that briefing into one file per group: `topic`, `flag`, or `topic,flag` |
@@ -102,6 +103,29 @@ it to be free, on the same host as `home`, and to look like a feed. Verify a new
 feed returns current items before adding it — some publishers serve a valid but
 stale or empty feed. ASIC, ABS and AFCA no longer offer usable feeds and stay
 bookmark-and-check.
+
+### The weekly sweep
+
+The digest tells you what arrived. The sweep sheet is for the reading itself —
+one file a week, in the order the flags already imply, with somewhere to record
+how long it took and what was worth it.
+
+```bash
+python src/monitor.py --sweep                    # output/sweep-2026-09-17.md
+python src/monitor.py --sweep output/catch-up.md # or name the file yourself
+```
+
+Every item gets a box, its publication, its confidence, its teaser and its
+link. Underneath is the record the habit needs: minutes, useful items, and a
+table of what each publication actually gave you that week — the basis for
+deciding, after several sweeps, which sources have earned their place.
+
+It refuses to write over a sheet that already exists, because a sheet worked on
+by hand is the only copy of that record. It reads the digest already on disk,
+so like `--brief` it reaches no publisher and costs nothing.
+
+A ticked ACT box means you went to the primary source. Nothing in the sheet
+replaces that, and it says so at the bottom.
 
 ### Newsletters from Gmail
 
