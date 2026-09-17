@@ -3,6 +3,11 @@
 These are deliberately staged ideas. An improvement is not ready to build until its cost,
 privacy, source, and reading-time impact are understood.
 
+Nothing on this list is built. Items 1-3 were staged early and remain unstarted as of
+17 September 2026. Items 4-9 came out of a review of the repo on that date: they are gaps in
+features that already exist, not new ideas. The numbering is staging order, not priority — of
+the nine, 8, 5 and 4 are the ones that cost something to leave alone.
+
 ## 1. Newcomer explanations
 
 Help explain unfamiliar industry terms and why an item matters, while keeping the evidence
@@ -67,3 +72,100 @@ Support a sustainable learning habit rather than maximising the number of summar
 - Review ACT items first, then selected KNOW items, then NOTE items if time remains.
 - Reassess source value and API spending after several weekly reviews.
 - Keep paid subscriptions as a future decision based on a recurring unmet need.
+## 4. Summaries reach every route they are promised on
+
+A summary pasted back by hand appears on the dashboard and nowhere else. The emailed and
+WhatsApp digests drop it silently and show the publisher's teaser instead, so the routes
+actually read each week are the ones missing the work.
+
+Requirements:
+
+- `_item_html` in `src/email_sender.py` and `_format_item` in `src/whatsapp_sender.py` read only
+  the `summary` field. Neither looks at `ai_summary`, which is where an imported summary lands.
+- Label the origin wherever it is shown, as the dashboard already does ("Summarised by hand"),
+  so a hand-written summary never reads as something this tool generated.
+- Keep the source link on the item. A summary is triage; it never replaces reading the source.
+- `EMAIL_DIGEST_PLAN.md` already lists this as a success criterion, so this finishes a built
+  feature rather than adding one.
+- No cost and no new source: the summary is already in the digest file on disk.
+
+## 5. Switch on the Gmail newsletter intake
+
+Four configured sources publish no feed and arrive only as email: ABS, FS Industry Moves,
+Macquarie Technical Services and CFS FirstTech. Two of those are ACT-flagged. The code to read
+them exists and is tested; it has never run, so those sources reach no digest.
+
+Requirements:
+
+- What is missing is `credentials.json` (a Google OAuth desktop client), not code. `--gmail` and
+  `src/gmail_reader.py` are built, and 140 tests pass without it.
+- The boundary stays as `.github/copilot-instructions.md` sets it: read-only, the
+  `industry-update-monitor` label only, no attachments, no link-following, no Gmail writes.
+- Do not enable Google Cloud billing or a free trial. Stop if billing is required.
+- Reading-time impact: up to 25 newsletters a run. Start at `--gmail-max 10` and see what it does
+  to the length of a sweep before making it routine.
+- Until this is on, treat ABS, Macquarie and CFS as bookmark-and-check in the weekly sweep, and
+  do not read a quiet digest as "nothing happened there".
+
+## 6. A weekly run that does not depend on remembering
+
+There is no schedule. Every digest exists because someone ran the command, which makes the
+habit the tool was built to support the one part it does not support.
+
+Requirements:
+
+- Cheapest first: a local `launchd` or `cron` entry costs nothing and needs no hosting. GitHub
+  Actions is also free but needs the repo pushed — see item 8.
+- A scheduled run must not be able to send email or WhatsApp unless those credentials are
+  deliberately present. The default stays "write the digest, send nothing".
+- A failed or empty fetch must say so. An empty digest that looks like a successful quiet week is
+  worse than an error.
+- No new source and no new cost: this reruns what already runs.
+
+## 7. Decide the database question instead of half-answering it
+
+`web/lib/supabase.ts` and `database/schema.sql` are written but connected to nothing — the
+dashboard reads `web/lib/digest.json`. The plan reads as though this were done.
+
+Requirements:
+
+- Consequence today: read/unread state lives in one browser's local storage. Clearing browsing
+  data loses it, and it does not follow you to another device. `web/app/dashboard.tsx` says so in
+  a comment; nothing user-facing does.
+- Decide one way: connect it, or delete the unused code and correct `WEB_PLATFORM_PLAN.md`.
+  Either is honest. Keeping both is what makes the plan misleading.
+- Privacy: a hosted database moves teasers and links off this laptop. Free tier only, and no
+  paid tier without a reason that has already been felt.
+- Storage boundary is unchanged either way — teaser and link, never article text.
+
+## 8. Keep the current work on the shelf copy, and off this laptop
+
+As of 17 September 2026 every commit of the previous three weeks sits on
+`fix/classification-and-delivery`. `main` is still at 31 August, and there is no git remote, so
+the only copy of the work is this machine.
+
+Requirements:
+
+- Merge the branch into `main` so the shelf copy stops misrepresenting the project.
+- Then push to a private GitHub repo. `README.md` already documents the push and assumes it has
+  happened.
+- Confirm before the first push that nothing secret goes with it. `.env`, `credentials.json` and
+  `token.json` are git-ignored; verify rather than assume.
+- Free: a private GitHub repo costs nothing at this size.
+
+## 9. Correct the plans that describe things that were never built
+
+Several planning docs describe switches and finished milestones that do not exist. The repo's own
+rule is that a feature which is not configured must not appear to work.
+
+Requirements:
+
+- `USE_AI` appears in `EMAIL_DIGEST_PLAN.md` and `WEB_PLATFORM_PLAN.md` as a working switch. It
+  exists nowhere in the code.
+- `WEB_PLATFORM_PLAN.md` lists its MVP criteria as met — worker writes to the database, dashboard
+  reads from it, read state persists. None of those are true. See item 7.
+- `PRD.md` Phase 1 still says the next step is running it on real feeds; it has been run. The
+  Phase 2 status line predates the Gmail work in `src/gmail_reader.py`.
+- The `SAFEGUARDS.md` build checklist stays unticked, correctly — those boxes gate items 1 and 2
+  of this list and nothing has passed them.
+- Costs nothing and changes no behaviour. It decides whether the next person can trust the docs.
