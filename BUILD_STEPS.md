@@ -51,9 +51,17 @@ Once you've built the habit and accumulated volume, reading a hundred teaser hea
 - Batched weekly: ~cents per week on personal scale.
 - Prepaid cap: set a $10 prepaid balance (auto-reload OFF) before you ever need the key.
 - Switch-based: `USE_AI = True` in code, but it does nothing without the key.
+  **Never built (noted 17 Sep 2026).** No `USE_AI` flag was ever written. The summary routes that
+  do exist are `--ollama` and `--import-summaries`, both free and neither needing a key.
 - Reversible: delete the API key from `.env` or flip the switch back to False, and you're instantly back to free mode. Nothing is locked in.
 
 **Requirements:**
+> **None of these exist (checked 17 Sep 2026).** This is a description of a mode that was planned
+> and never built: there is no Anthropic key, no `USE_AI` switch and no API call anywhere in
+> `src/`. Kept as the standard any paid route would still have to meet — see item 2 in
+> [IMPROVEMENTS.md](IMPROVEMENTS.md). For summaries today, use `--ollama` or
+> `--import-summaries`, which are free and need none of the below.
+
 1. An Anthropic API key with a prepaid-capped balance ($10, auto-reload off).
 2. The key stored in your `.env` (Git-ignored, never committed).
 3. The switch `USE_AI = True` in the code.
@@ -89,7 +97,8 @@ Once you've built the habit and accumulated volume, reading a hundred teaser hea
    - Never commit the key itself.
 
 5. **Flip the switch**:
-   - Set `USE_AI = True` in `src/monitor.py` (or wherever the flag lives).
+   - ~~Set `USE_AI = True` in `src/monitor.py` (or wherever the flag lives).~~ The flag was never
+     written, so there is nowhere to set it. This step cannot be followed as written.
    - Run the tool. AI summaries start appearing alongside the teaser.
 
 6. **Use it, watch the spend, decide**:

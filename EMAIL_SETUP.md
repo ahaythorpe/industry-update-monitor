@@ -90,22 +90,32 @@ Check that:
 
 ---
 
-## Using email with AI summaries (later)
+## Summaries in the emailed digest
 
-By default, emailed digests show only publisher teasers (the free mode).
+By default, emailed digests show only the publisher's teaser.
 
-Once you set up AI (flip `USE_AI = True` and have a prepaid Anthropic key), you can email AI-summarised digests:
+**There is no `USE_AI` switch and no `--ai` flag.** Earlier drafts of this doc described both, and
+neither has ever existed in the code — there is no Anthropic key, no API call and no per-week
+cost anywhere in this repo. If you were looking for them, that is why you could not find them.
+
+Two summary routes do exist, and both are free:
 
 ```bash
-python src/monitor.py --email --ai
+python src/monitor.py --ollama              # a model running on this machine
+python src/monitor.py --import-summaries FILE   # summaries you pasted back by hand
 ```
 
-Each item in the email will include:
-- The AI summary (one-sentence plain English explanation)
-- The original teaser (so you can see what the publisher wrote)
-- The source link (always)
+Either way the summary is saved into the digest, so a later `--email` run carries it. Each item in
+the email then shows:
 
-Cost: the AI summaries cost cents per week, but only when the digest is run. Same safeguards apply — capped key, prepaid balance, no surprises.
+- The summary, labelled with who wrote it — "Summarised by hand", or "Summarised by a local model
+  (qwen3:8b)". It is never presented as something this tool wrote.
+- The publisher's teaser, still there beneath it rather than replaced by it.
+- The source link, always. A summary is triage; it never replaces reading the source.
+
+See [OLLAMA_SETUP.md](OLLAMA_SETUP.md) for the local model, and item 2 in
+[IMPROVEMENTS.md](IMPROVEMENTS.md) for what a paid API route would have to answer before it
+is built.
 
 ---
 

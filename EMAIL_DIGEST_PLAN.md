@@ -90,7 +90,8 @@ parser.add_argument('--email', action='store_true', help='Email digest instead o
 ```
 
 If `--email` or `USE_EMAIL=True`:
-- Call `send_digest_email(items, os.getenv('EMAIL_ADDRESS'), use_ai=USE_AI)`
+- Call `send_digest_email(items, os.getenv('EMAIL_ADDRESS'))`
+  (this plan originally passed a `use_ai=USE_AI` argument; no such switch was ever built)
 - Print success message to stdout ("Digest emailed to...")
 - No stdout dump of digest itself
 
@@ -125,7 +126,14 @@ If `--email` or `USE_EMAIL=True`:
 
 ---
 
-## AI integration (later, when USE_AI=True)
+## Summaries in the email (built, but not the way this plan imagined)
+
+> **Correction, 17 September 2026.** This section was written around a `USE_AI` switch that was
+> never built and exists nowhere in the code. What was actually built is free and local: `--ollama`
+> summarises on this machine, `--import-summaries` takes summaries pasted back by hand, and both
+> land in `ai_summary`. The rendering below is right; the switch that was supposed to gate it is
+> not real.
+
 
 If `ai_summary` exists on an item, include it in the email:
 
@@ -162,4 +170,7 @@ Users see both AI summary and teaser; they can choose which they read.
 4. Test locally with `--email` flag
 5. Write setup doc (app password instructions)
 6. Commit to GitHub as a feature
-7. Later: integrate AI summaries (no code change needed; just works if USE_AI=True)
+7. ~~Later: integrate AI summaries (no code change needed; just works if USE_AI=True)~~
+   Done differently, 17 Sep 2026: it did need code. `--ollama` and `--import-summaries` carry
+   summaries into the digest, and `attach_saved_summaries` puts them back on a later run so the
+   emailed digest shows them. No `USE_AI` switch was involved, because there is not one.

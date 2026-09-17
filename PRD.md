@@ -50,12 +50,18 @@ Only email/RSS sources flow through the script. Bookmark and listen sources are 
 - `sources.json` holds the flagged, categorised source list.
 - Script reads RSS feeds, prints a flagged digest with source links.
 - Runs offline. No API key. Cannot incur cost.
-- **Status: written and tested. Next step is running it on your machine with real feeds.**
+- **Status (17 Sep 2026): built, tested and running on real feeds.** It has been run many times;
+  the sweep sheet, the briefing and the dashboard all come out of it. The "next step" line this
+  replaces had been stale for weeks.
 
 ### Phase 2 — Email intake (habit, not code) [IN PROGRESS]
 - Gmail/Hotmail label "Industry Update Monitor" + filters route newsletters into one folder.
 - Weekly sweep: open the folder, read top-down by flag.
-- **Status: Financial Standard filtering; ASIC to confirm; more sources to add.**
+- **Status (17 Sep 2026): the code is built and tested but has never run.** `src/gmail_reader.py`
+  and `--gmail` read one label, read-only, and the suite of 202 tests passes without them. What is missing is
+  `credentials.json` — see [SETUP.md](SETUP.md) Part 4 and item 5 in
+  [IMPROVEMENTS.md](IMPROVEMENTS.md). Until it runs, ABS, FS Industry Moves, Macquarie Technical
+  Services and CFS FirstTech reach no digest, so a quiet digest is not a quiet week.
 
 ### Phase 3 — AI weekly summary (cents/week) [NOT BUILT]
 - Once a week, batch the week's items through a cheap model (Haiku).

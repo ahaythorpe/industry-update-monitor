@@ -28,7 +28,8 @@ A lightweight web tracking system to replace local digest runs with a persistent
 │ Next.js Web App (Vercel)                                    │
 │ - Dashboard: view items, filter by flag, mark read          │
 │ - Search: query by source, title, date                      │
-│ - AI toggle: show/hide summaries (if USE_AI on)             │
+│ - Summary toggle (NB: the USE_AI switch sketched here        │
+│   was never built; see Success Criteria below)              │
 │ - No auth yet (personal use)                                │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -109,12 +110,13 @@ CREATE TABLE sources (
    - For each: check if `feed_guid` exists in DB
    - If new: insert row with flag, teaser, link, source
    - Skip duplicates
-3. Keep `USE_AI` logic; when True and key exists, add `ai_summary` to row
+3. ~~Keep `USE_AI` logic; when True and key exists, add `ai_summary` to row~~ — there is no
+   `USE_AI` logic to keep. `ai_summary` is filled by `--ollama` or `--import-summaries`.
 
 ### No breaking changes:
 - Existing command-line interface stays
 - Can still run `python src/monitor.py` locally (print to stdout + DB)
-- `USE_AI` switch works the same
+- ~~`USE_AI` switch works the same~~ — never existed
 - Same guardrails apply
 
 ---
@@ -278,13 +280,27 @@ Free-text search
 
 ## Success Criteria for MVP
 
-- ✅ Python worker writes items to Supabase
-- ✅ Dashboard loads items from Supabase
-- ✅ Filter by flag works
-- ✅ Mark item as read persists
-- ✅ Search queries work
-- ✅ Deploy to Vercel and access via public URL
-- ✅ Existing `USE_AI` switch still works
-- ✅ No new cost
+> **Corrected 17 September 2026.** Every line below was ticked ✅ while none of the database work
+> had been done. The ticks were aspirations copied from the plan, not a record of anything
+> passing. What is actually true, checked against the code on that date:
 
-Next: start building. Scaffold Next.js?
+| Criterion | Real status |
+|---|---|
+| Python worker writes items to Supabase | ❌ **No.** The worker writes `web/lib/digest.json`. Nothing in `src/` mentions Supabase. |
+| Dashboard loads items from Supabase | ❌ **No.** It reads `@/lib/digest`, the JSON file. `web/lib/supabase.ts` exists but **is imported by nothing**. |
+| Filter by flag works | ✅ Yes, against the JSON file. |
+| Mark item as read persists | ⚠️ **Locally only.** `localStorage` in one browser, so it does not follow you to another machine and is lost when site data is cleared. Not the database persistence this line meant. |
+| Search queries work | ✅ Yes, via `web/app/api/search/route.ts`, against the JSON file. |
+| Deploy to Vercel and access via public URL | ✅ Yes. |
+| Existing `USE_AI` switch still works | ❌ **There is no `USE_AI` switch.** It has never existed in the code, in any branch. |
+| No new cost | ✅ Yes, and unchanged by any of the above. |
+
+So the dashboard works, and works well, on a JSON file. What was never built is the database
+underneath it.
+
+`@supabase/supabase-js` is still in `web/package.json` and `web/lib/supabase.ts` is still on disk,
+imported by nothing. That dead client is the whole of item 7 in
+[IMPROVEMENTS.md](IMPROVEMENTS.md): decide one way — connect it, or delete it and correct this
+plan. Keeping both is what made this document misleading in the first place.
+
+**Next: not "start building". That decision, first.**

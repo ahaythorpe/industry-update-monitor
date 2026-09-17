@@ -158,7 +158,8 @@ them exists and is tested; it has never run, so those sources reach no digest.
 Requirements:
 
 - What is missing is `credentials.json` (a Google OAuth desktop client), not code. `--gmail` and
-  `src/gmail_reader.py` are built, and 140 tests pass without it.
+  `src/gmail_reader.py` are built, and the test suite (140 when this was written, 202 as of
+  17 Sep 2026) passes without it.
 - The boundary stays as `.github/copilot-instructions.md` sets it: read-only, the
   `industry-update-monitor` label only, no attachments, no link-following, no Gmail writes.
 - Do not enable Google Cloud billing or a free trial. Stop if billing is required.
@@ -181,6 +182,36 @@ Requirements:
 - A failed or empty fetch must say so. An empty digest that looks like a successful quiet week is
   worse than an error.
 - No new source and no new cost: this reruns what already runs.
+
+### Proposed plan, 17 September 2026 — for approval, not yet built
+
+A single `launchd` agent on this laptop. Not GitHub Actions: that needs item 8's remote, which is
+blocked, and it would put the digest on someone else's machine for no gain.
+
+- **File:** `~/Library/LaunchAgents/com.advice-monitor.weekly.plist`, loaded once with
+  `launchctl load`. Nothing installed, nothing running in the background between firings.
+- **When:** Monday 07:00. `launchd` runs a missed job when the laptop next wakes, which `cron`
+  does not — that matters on a machine that is closed at night.
+- **What it runs:** `.venv/bin/python src/monitor.py --json --sweep --brief`, from the repo root.
+  That refreshes the dashboard's `web/lib/digest.json`, writes the week's sweep sheet and the
+  briefing. Nothing else.
+- **What it must not do:** no `--email`, no `--whatsapp`, no `--gmail`. The default stays *write
+  the digest, send nothing*. Delivery stays a thing you trigger, so a scheduled job can never
+  send on your behalf while you are not looking.
+- **When it fails:** stdout and stderr to `output/weekly-run.log`, and the run appends a dated
+  one-line result — items fetched, or the error. An empty digest that reads as a quiet week is
+  the specific failure this must not produce, so *nothing fetched* has to look different from
+  *nothing happened*.
+- **Turning it off** is one command, `launchctl unload`, and deleting the file. Worth writing into
+  `SETUP.md` alongside turning it on, since a schedule you cannot stop is worse than none.
+
+Open question for the owner: Monday 07:00 assumes you read this at the start of the week. If the
+sweep actually happens Friday afternoon, say so and the time changes — the habit sets the
+schedule, not the other way round.
+
+Cost: nothing. No hosting, no account, no new source.
+
+
 
 ## 7. Decide the database question instead of half-answering it
 
@@ -244,6 +275,31 @@ Requirements:
 - The `SAFEGUARDS.md` build checklist stays unticked, correctly — those boxes gate items 1 and 2
   of this list and nothing has passed them.
 - Costs nothing and changes no behaviour. It decides whether the next person can trust the docs.
+
+Done, 17 September 2026 — and it was worse than this item recorded. `USE_AI` was in **four** docs,
+not the two named above, and one of them told you to do something impossible.
+
+- `EMAIL_SETUP.md` instructed the reader to "flip `USE_AI = True`" and run `--email --ai`.
+  Neither the switch nor the `--ai` flag has ever existed. That section now states plainly that
+  there is no switch, no key and no per-week cost, and points at the two routes that are real:
+  `--ollama` and `--import-summaries`.
+- `EMAIL_DIGEST_PLAN.md` passed `use_ai=USE_AI` into a function signature that never took it, and
+  promised AI summaries would "just work" with no code change. Corrected in place, with the step
+  marked done-differently rather than deleted.
+- `WEB_PLATFORM_PLAN.md` ticked all eight MVP criteria ✅. Checked line by line against the code:
+  three are true, one is true only in `localStorage` on one browser, and three are false — the
+  worker writes `web/lib/digest.json`, the dashboard reads that file, and `web/lib/supabase.ts`
+  is **imported by nothing**. Replaced with a table of what actually passes.
+- `BUILD_STEPS.md` told the reader to set the flag "wherever it lives". Marked never-built.
+- `PRD.md` Phase 1 said the next step was running it on real feeds; it has been run for weeks.
+  Phase 2's status predated the Gmail work and now says the honest thing: the code is built and
+  tested, has never run, and is waiting on `credentials.json`.
+
+Verified rather than assumed: `grep -rn USE_AI` over `src/`, `web/` and `tests/` returns nothing,
+and there is no `anthropic`, `openai` or `api_key` anywhere in `src/`. The docs were describing a
+paid AI integration this repo has never had.
+
+
 
 ## 10. WhatsApp delivery, finished properly
 
