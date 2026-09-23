@@ -137,7 +137,7 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
 
         <p className="mt-6 text-xs text-slate-500">
           The full rules are in SAFEGUARDS.md section A, and the honest caveat about the link check
-          is written up in INTEGRATIONS.md rather than left for you to find.
+          is written up in HOW_IT_WORKS.md rather than left for you to find.
         </p>
 
         <button

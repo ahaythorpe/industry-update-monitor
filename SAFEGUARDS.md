@@ -1,6 +1,7 @@
 # Safeguards — the rules that keep this legal, safe and cheap
 
-Read this before building Phases 3-5. These aren't nice-to-haves; they're the design
+Read this before building Phases 3-5 (the phases of the original plan,
+[archive/PRD.md](archive/PRD.md)). These aren't nice-to-haves; they're the design
 constraints that keep the tool on the right side of the line. If a feature can't be built
 within these, don't build it.
 
@@ -103,7 +104,7 @@ Why each clause matters:
 - Product-provider sources (Macquarie, CFS) are excellent technical explainers but come from
   product providers — confirm any RULE against ASIC/the legislation.
 - Keep "what happened" (regulator) separate from "what people think" (trade press/FAAA).
-- Sources marked "verify" in FREE_SIGNUPS.md aren't confirmed for a free tier — check before
+- Sources marked "verify" in [FREE_SIGNUPS.md](free_subscriptions/FREE_SIGNUPS.md) aren't confirmed for a free tier — check before
   relying, and re-check every few months since free tiers change.
 
 ## G. Focus and source hierarchy

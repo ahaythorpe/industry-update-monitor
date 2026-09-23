@@ -3,8 +3,8 @@
 These are deliberately staged ideas. An improvement is not ready to build until its cost,
 privacy, source, and reading-time impact are understood.
 
-Items 1 and 2 were staged early and are unstarted as of 17 September 2026. Item 3 now has the
-sweep sheet under it; the habit it serves is still the user's. Items 4-9 came out of a review of
+Items 1 and 2 were staged early; item 1 was built on 17 September 2026 and item 2 is unstarted.
+Item 3 now has the sweep sheet under it; the habit it serves is still the user's. Items 4-9 came out of a review of
 the repo on that date: they are gaps in features that already exist, not new ideas. The
 numbering is staging order, not priority — of the nine, 8, 5 and 4 are the ones that cost
 something to leave alone.
@@ -138,7 +138,7 @@ Requirements:
 - Label the origin wherever it is shown, as the dashboard already does ("Summarised by hand"),
   so a hand-written summary never reads as something this tool generated.
 - Keep the source link on the item. A summary is triage; it never replaces reading the source.
-- `EMAIL_DIGEST_PLAN.md` already lists this as a success criterion, so this finishes a built
+- `archive/EMAIL_DIGEST_PLAN.md` already lists this as a success criterion, so this finishes a built
   feature rather than adding one.
 - No cost and no new source: the summary is already in the digest file on disk.
 
@@ -167,6 +167,12 @@ Requirements:
   to the length of a sweep before making it routine.
 - Until this is on, treat ABS, Macquarie and CFS as bookmark-and-check in the weekly sweep, and
   do not read a quiet digest as "nothing happened there".
+
+Status, 23 September 2026 — **still not connected.** There is no `credentials.json`, and `--gmail`
+has never run (the suite is 209 tests now, still passing without it). A Gmail label called "Advice
+Monitor" exists, but `src/gmail_reader.py` reads only a label named exactly
+`industry-update-monitor` and refuses any other, so that label is not read. The steps, and the
+label note, are [SETUP.md Part 4](SETUP.md#part-4--the-gmail-newsletter-intake).
 
 ## 6. A weekly run that does not depend on remembering
 
@@ -225,6 +231,11 @@ test run: exit 0, 50 items, sheet intact.
 Off switch documented in `SETUP.md` alongside the on switch, since a schedule you cannot stop is
 worse than none.
 
+Extended, 23 September 2026 — after the digest, `scripts/weekly-run.sh` now runs `--ollama` (item
+11) as a separate step, logged on its own line. If Ollama is not answering on localhost it logs
+`SUMMARIES SKIPPED` and the digest is untouched. Still no `--email`, `--whatsapp` or `--gmail`:
+summarising stays on this machine, so the "send nothing" default holds.
+
 
 
 ## 7. Decide the database question instead of half-answering it
@@ -237,7 +248,7 @@ Requirements:
 - Consequence today: read/unread state lives in one browser's local storage. Clearing browsing
   data loses it, and it does not follow you to another device. `web/app/dashboard.tsx` says so in
   a comment; nothing user-facing does.
-- Decide one way: connect it, or delete the unused code and correct `WEB_PLATFORM_PLAN.md`.
+- Decide one way: connect it, or delete the unused code and correct `archive/WEB_PLATFORM_PLAN.md`.
   Either is honest. Keeping both is what makes the plan misleading.
 - Privacy: a hosted database moves teasers and links off this laptop. Free tier only, and no
   paid tier without a reason that has already been felt.
@@ -245,7 +256,7 @@ Requirements:
 
 Decided and done, 17 September 2026 — **deleted**. `web/lib/supabase.ts` is removed and
 `@supabase/supabase-js` is out of `web/package.json`; `tsc --noEmit` passes, which confirms
-nothing was importing it. `WEB_PLATFORM_PLAN.md`, `INTEGRATIONS.md` and `README.md` now say the
+nothing was importing it. `archive/WEB_PLATFORM_PLAN.md`, `archive/INTEGRATIONS.md` and `README.md` now say the
 dashboard reads a JSON file rather than promising a database.
 
 The cost, recorded rather than buried: read state stays in one browser's local storage. It does
@@ -284,6 +295,11 @@ Requirements:
   committed, on any branch.
 - Free: a private GitHub repo costs nothing at this size.
 
+Done, 17 September 2026 — pushed to a separate **private** repo,
+`github.com/ahaythorpe/industry-update-monitor`, which is now `origin`. The public
+`ahaythorpe/advice-monitor` is untouched and must stay that way. Pushing is by hand, so `main` can
+sit a few commits ahead of `origin` between pushes.
+
 ## 9. Correct the plans that describe things that were never built
 
 Several planning docs describe switches and finished milestones that do not exist. The repo's own
@@ -291,11 +307,11 @@ rule is that a feature which is not configured must not appear to work.
 
 Requirements:
 
-- `USE_AI` appears in `EMAIL_DIGEST_PLAN.md` and `WEB_PLATFORM_PLAN.md` as a working switch. It
+- `USE_AI` appears in `archive/EMAIL_DIGEST_PLAN.md` and `archive/WEB_PLATFORM_PLAN.md` as a working switch. It
   exists nowhere in the code.
-- `WEB_PLATFORM_PLAN.md` lists its MVP criteria as met — worker writes to the database, dashboard
+- `archive/WEB_PLATFORM_PLAN.md` lists its MVP criteria as met — worker writes to the database, dashboard
   reads from it, read state persists. None of those are true. See item 7.
-- `PRD.md` Phase 1 still says the next step is running it on real feeds; it has been run. The
+- `archive/PRD.md` Phase 1 still says the next step is running it on real feeds; it has been run. The
   Phase 2 status line predates the Gmail work in `src/gmail_reader.py`.
 - The `SAFEGUARDS.md` build checklist stays unticked, correctly — those boxes gate items 1 and 2
   of this list and nothing has passed them.
@@ -304,19 +320,19 @@ Requirements:
 Done, 17 September 2026 — and it was worse than this item recorded. `USE_AI` was in **four** docs,
 not the two named above, and one of them told you to do something impossible.
 
-- `EMAIL_SETUP.md` instructed the reader to "flip `USE_AI = True`" and run `--email --ai`.
+- `archive/EMAIL_SETUP.md` instructed the reader to "flip `USE_AI = True`" and run `--email --ai`.
   Neither the switch nor the `--ai` flag has ever existed. That section now states plainly that
   there is no switch, no key and no per-week cost, and points at the two routes that are real:
   `--ollama` and `--import-summaries`.
-- `EMAIL_DIGEST_PLAN.md` passed `use_ai=USE_AI` into a function signature that never took it, and
+- `archive/EMAIL_DIGEST_PLAN.md` passed `use_ai=USE_AI` into a function signature that never took it, and
   promised AI summaries would "just work" with no code change. Corrected in place, with the step
   marked done-differently rather than deleted.
-- `WEB_PLATFORM_PLAN.md` ticked all eight MVP criteria ✅. Checked line by line against the code:
+- `archive/WEB_PLATFORM_PLAN.md` ticked all eight MVP criteria ✅. Checked line by line against the code:
   three are true, one is true only in `localStorage` on one browser, and three are false — the
   worker writes `web/lib/digest.json`, the dashboard reads that file, and `web/lib/supabase.ts`
   is **imported by nothing**. Replaced with a table of what actually passes.
-- `BUILD_STEPS.md` told the reader to set the flag "wherever it lives". Marked never-built.
-- `PRD.md` Phase 1 said the next step was running it on real feeds; it has been run for weeks.
+- `archive/BUILD_STEPS.md` told the reader to set the flag "wherever it lives". Marked never-built.
+- `archive/PRD.md` Phase 1 said the next step was running it on real feeds; it has been run for weeks.
   Phase 2's status predated the Gmail work and now says the honest thing: the code is built and
   tested, has never run, and is waiting on `credentials.json`.
 
@@ -343,8 +359,8 @@ Requirements:
   bill.
 - Cost stays nil: trial credit, shared sandbox number, never buy a number, never upgrade.
 - The four ways to close the endpoint, with trade-offs and a recommendation, and the jobs
-  either side of it: [WHATSAPP_IMPLEMENTATION.md](WHATSAPP_IMPLEMENTATION.md). Brief:
-  [HANDOVER.md](HANDOVER.md), stream A.
+  either side of it: [archive/WHATSAPP_IMPLEMENTATION.md](archive/WHATSAPP_IMPLEMENTATION.md). The
+  decision and what is still open now live in [HANDOVER.md](HANDOVER.md#whatsapp-what-was-decided-and-what-is-still-open).
 
 Checked 17 September 2026, before deciding anything: **nothing is exposed today, and there was
 nothing to remove.** `vercel env ls` on the linked project returns "No Environment Variables
@@ -355,8 +371,8 @@ commits; every Twilio reference is `process.env.NAME`.
 That does not close the item, it only dates it. The endpoint is still a send-to-anyone API the
 moment a credential is added, and it is published at `github.com/ahaythorpe/advice-monitor` for
 anyone to read. The fix is still A or B above, and it should land before Twilio is ever
-configured, not after. `WHATSAPP_SETUP.md` now carries the two commands to re-check this and the
-masked shape of where the credentials belong.
+configured, not after. The two commands to re-check this, and the masked shape of where the
+credentials belong, are in [SETUP.md Part 5](SETUP.md#part-5--whatsapp-via-a-twilio-trial).
 
 Closed, 17 September 2026. The endpoint took option A — it reads `WHATSAPP_TO` from the server
 environment and ignores the request's recipient — and the dashboard's recipient box is gone rather
@@ -369,6 +385,11 @@ command line's WhatsApp but not the dashboard's. Item 4 fixed `src/whatsapp_send
 Fixed the same way as the Python side — labelled with who wrote it, above the teaser rather than
 instead of it — with three tests so it cannot drift again unnoticed. That miss is the argument for
 the parity tests item 12 asks for.
+
+Left open, checked against the code on 23 September 2026 — none of it blocks use, all of it is in
+the web route: `perFlagLimit` is not clamped, a Twilio refusal is reported as a bare HTTP status
+rather than translated the way the command line does it, and a partial send does not say how many
+parts arrived. Listed in [HANDOVER.md](HANDOVER.md#whatsapp-what-was-decided-and-what-is-still-open).
 
 
 
@@ -390,11 +411,15 @@ Requirements:
 - The only network call is to 127.0.0.1, asserted in a test that runs with no model installed.
 - Costs: no money. ~5 GB of disk, ~8 GB of memory while it runs, and a warm laptop.
 - Install, model choice, a curl that proves it before any code, and the wiring:
-  [OLLAMA_SETUP.md](OLLAMA_SETUP.md). Brief: [HANDOVER.md](HANDOVER.md), stream B.
+  [SETUP.md Part 2](SETUP.md#part-2--ollama-summaries-from-a-model-on-this-laptop). Constraints:
+  [HANDOVER.md](HANDOVER.md#summaries-the-round-trip-and-ollama).
 
 Built, 17 September 2026 — `--ollama`, nine tests against a fake Ollama on localhost, and a real
-run through `qwen3:8b`. It refuses any host but this machine, caps a run at ten pastes, writes
+run through `qwen3:8b`. It refuses any host but this machine, caps a run (now 12 pastes of 5 items, 10 minutes each), writes
 the model's raw reply to disk before importing a word of it, and reports rather than retries.
+
+Since 23 September 2026 it also runs in the Monday job (item 6), with `OLLAMA_MODEL=qwen3:8b` in
+`.env`. A 50-item week takes about 20 minutes.
 
 Still open, and the reason this is not finished business:
 
@@ -425,7 +450,7 @@ Requirements:
 - The prompt stays SAFEGUARDS section D verbatim and the IDs stay the monitor's refs, or
   `--import-summaries` attaches a summary to the wrong article.
 - Costs nothing and reaches no publisher: it is built in the browser from the digest already
-  loaded. Brief: [HANDOVER.md](HANDOVER.md), stream C.
+  loaded. Brief: [HANDOVER.md](HANDOVER.md#the-download-bundle).
 
 Built, 17 September 2026. `README.md` and `links.md` are written into both routes' output:
 `web/lib/bundle.ts` for the dashboard's zip, `format_bundle_readme` and `format_bundle_links` in

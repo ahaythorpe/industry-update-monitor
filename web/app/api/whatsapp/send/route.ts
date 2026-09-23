@@ -13,7 +13,7 @@ const FLAGS: Flag[] = ['ACT', 'KNOW', 'NOTE']
 // balance at their own phone. Reading the recipient from the environment means
 // the worst a stranger can do is send this digest to the owner's own phone.
 //
-// Chosen 17 Sep 2026 — option A in WHATSAPP_IMPLEMENTATION.md. Do not
+// Chosen 17 Sep 2026 — option A; see the WhatsApp section of HANDOVER.md. Do not
 // reintroduce a body-supplied recipient without replacing this protection.
 export async function POST(request: Request) {
   try {

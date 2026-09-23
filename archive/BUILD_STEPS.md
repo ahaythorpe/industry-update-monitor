@@ -59,7 +59,7 @@ Once you've built the habit and accumulated volume, reading a hundred teaser hea
 > **None of these exist (checked 17 Sep 2026).** This is a description of a mode that was planned
 > and never built: there is no Anthropic key, no `USE_AI` switch and no API call anywhere in
 > `src/`. Kept as the standard any paid route would still have to meet — see item 2 in
-> [IMPROVEMENTS.md](IMPROVEMENTS.md). For summaries today, use `--ollama` or
+> [IMPROVEMENTS.md](../IMPROVEMENTS.md). For summaries today, use `--ollama` or
 > `--import-summaries`, which are free and need none of the below.
 
 1. An Anthropic API key with a prepaid-capped balance ($10, auto-reload off).

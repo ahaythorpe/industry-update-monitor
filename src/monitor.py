@@ -611,7 +611,7 @@ def _outranks(candidate, existing):
     a pure-background NOTE scores 1.0 ("confidently nothing to do") while an
     ACT that just clears its threshold scores ~0.6. Ranking on confidence
     alone let the NOTE-worded copy of a syndicated story silently replace the
-    copy that read as ACT — the one failure the PRD calls the real cost.
+    copy that read as ACT — the one failure archive/PRD.md calls the real cost.
     """
     candidate_rank = FLAG_ORDER.get(candidate.get("flag"), 3)
     existing_rank = FLAG_ORDER.get(existing.get("flag"), 3)
@@ -843,7 +843,7 @@ def fetch_gmail_items(sources=None, label=None, max_messages=25, newer_than_days
 
     if not Path(credentials_path).exists():
         raise SystemExit(
-            f"❌ Gmail is not set up: no {credentials_path}. See README (Newsletters from Gmail). "
+            f"❌ Gmail is not set up: no {credentials_path}. See SETUP.md Part 4. "
             "Nothing else about the run needs it — drop --gmail to skip."
         )
 
@@ -1791,11 +1791,11 @@ def write_sweep(items, path, when=None, generated_at=None, glossary=None):
 
 
 # ---------- Part 9: summaries from a model on this machine ----------
-# IMPROVEMENTS.md item 11, and Phase 3 of the PRD without a key or a bill. The
+# IMPROVEMENTS.md item 11, and Phase 3 of archive/PRD.md without a key or a bill. The
 # manual round trip already defines the prompt, the blocks, the reply format
 # and the ID matching, so this is a transport and nothing more: the same
 # briefing goes to a model on localhost instead of into a chat window, and the
-# same importer merges what comes back. See OLLAMA_SETUP.md.
+# same importer merges what comes back. See SETUP.md Part 2.
 
 OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
@@ -1885,12 +1885,12 @@ def ollama_generate(prompt, model=None, host=None, timeout=OLLAMA_TIMEOUT):
             ) from error
         raise OllamaUnavailable(
             f"Ollama is not answering at {host}. Start it with: ollama serve  "
-            f"(install: brew install ollama — see OLLAMA_SETUP.md). Reported as: {error}"
+            f"(install: brew install ollama — see SETUP.md Part 2). Reported as: {error}"
         ) from error
     except OSError as error:
         raise OllamaUnavailable(
             f"Ollama is not answering at {host}. Start it with: ollama serve  "
-            f"(install: brew install ollama — see OLLAMA_SETUP.md). Reported as: {error}"
+            f"(install: brew install ollama — see SETUP.md Part 2). Reported as: {error}"
         ) from error
 
     return (body.get("response") or "").strip()
@@ -1967,7 +1967,7 @@ if __name__ == "__main__":
                         help="Comma-separated categories to brief, e.g. Compliance,Regulation")
     parser.add_argument("--ollama", nargs="?", const="", default=None, metavar="MODEL",
                         help="Summarise through a model on this machine (default: $OLLAMA_MODEL "
-                             "or llama3.1:8b). Needs `ollama serve` — see OLLAMA_SETUP.md")
+                             "or llama3.1:8b). Needs `ollama serve` — see SETUP.md Part 2")
     parser.add_argument("--ollama-timeout", type=int, default=OLLAMA_TIMEOUT, metavar="SECONDS",
                         help=f"How long to wait for one paste (default: {OLLAMA_TIMEOUT})")
     parser.add_argument("--ollama-chunk", type=int, default=OLLAMA_CHUNK, metavar="N",

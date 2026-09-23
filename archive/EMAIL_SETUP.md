@@ -114,7 +114,7 @@ the email then shows:
 - The source link, always. A summary is triage; it never replaces reading the source.
 
 See [OLLAMA_SETUP.md](OLLAMA_SETUP.md) for the local model, and item 2 in
-[IMPROVEMENTS.md](IMPROVEMENTS.md) for what a paid API route would have to answer before it
+[IMPROVEMENTS.md](../IMPROVEMENTS.md) for what a paid API route would have to answer before it
 is built.
 
 ---

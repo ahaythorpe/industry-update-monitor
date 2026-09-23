@@ -1,6 +1,6 @@
 # WhatsApp — the implementation brief
 
-For the developer taking stream A of [HANDOVER.md](HANDOVER.md). The companion
+For the developer taking stream A of [HANDOVER.md](../HANDOVER.md). The companion
 to [OLLAMA_SETUP.md](OLLAMA_SETUP.md): that one is a feature with nothing built,
 this one is a feature that mostly works and has one real hole in it.
 
@@ -63,7 +63,7 @@ secret. Only worth it for a server-to-server caller, which does not exist here.
 
 **D. Real authentication.** Accounts, sessions, the lot. *Trade-off:* out of
 proportion to a personal tool, and it drags in the database question that item 7
-of [IMPROVEMENTS.md](IMPROVEMENTS.md) has not answered.
+of [IMPROVEMENTS.md](../IMPROVEMENTS.md) has not answered.
 
 **Recommended: A, or B if nobody wants browser sending.** Whichever you choose,
 update both docs that currently describe the present behaviour —

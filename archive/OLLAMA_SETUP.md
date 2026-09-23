@@ -4,8 +4,8 @@ Phase 3 of [PRD.md](PRD.md) is a weekly AI summary. There are three ways to get
 one, and this is the third:
 
 1. **By hand** — `--brief`, paste into a web AI tool, `--import-summaries`.
-   Built, free, and what the project uses today. See [README.md](README.md).
-2. **A paid API** — not built. Gated on item 2 of [IMPROVEMENTS.md](IMPROVEMENTS.md),
+   Built, free, and what the project uses today. See [README.md](../README.md).
+2. **A paid API** — not built. Gated on item 2 of [IMPROVEMENTS.md](../IMPROVEMENTS.md),
    which is the cost-control work that must exist before a key does.
 3. **A local model through Ollama** — this page. No key, no bill, no account,
    and nothing leaves the machine.
@@ -22,7 +22,7 @@ Read this before writing any code. None of it is softened by the model being
 local.
 
 - **The paywall boundary is unchanged.** The input stays the feed's own title
-  and teaser, exactly as [SAFEGUARDS.md](SAFEGUARDS.md) section A requires. A
+  and teaser, exactly as [SAFEGUARDS.md](../SAFEGUARDS.md) section A requires. A
   local model is not a reason to fetch an article body — nothing in this
   codebase fetches one, and that stays literally true.
 - **Regulator PDFs are still fine, trade-press articles are still not.** Same
@@ -127,7 +127,7 @@ matching and the import already existed and were tested.
 - **Label it in the dashboard.** `web/app/dashboard.tsx` currently prints
   "Summarised by hand" for `manual` and a bare "Summary" for anything else. A
   local-model summary must say so — "Summarised by a local model (llama3.1:8b)"
-  — or the honesty rule in [README.md](README.md) is broken by omission.
+  — or the honesty rule in [README.md](../README.md) is broken by omission.
 - **Fail loudly.** If Ollama is not running, say exactly that and stop. No retry
   loop: `.github/copilot-instructions.md` bans them, and a silent fallback to a
   paid API would be the worst possible bug in this project.

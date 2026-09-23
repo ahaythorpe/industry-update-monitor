@@ -21,6 +21,11 @@ the same model twice. So the tool does the part a subscription cannot — collec
 classify, deduplicate, group — and hands you a file to paste. **You are the
 transport.**
 
+Or let a model on this laptop be the transport: `--ollama` sends the same files,
+with the same prompt, to Ollama on this machine and merges the replies the same
+way. It runs in the Monday job, needs no key and no account, and nothing leaves
+the laptop — setup is [SETUP.md Part 2](SETUP.md#part-2--ollama-summaries-from-a-model-on-this-laptop).
+
 ### The loop
 
 ```bash
@@ -72,8 +77,9 @@ dashboard it is the **Detail** dropdown.
 Each reply line is `ID | FLAG | one-sentence summary | LINK`. The ID is a hash
 of the article link, so `--import-summaries` puts each summary against the right
 item and **reports any ID it does not recognise rather than guessing**. Summaries
-are stored as `"ai_source": "manual"` and shown under **Summarised by hand**, so
-they never read as something this tool produced. They survive next week's fetch.
+are stored as `"ai_source": "manual"` and shown under **Summarised by hand** (or
+`ollama:<model>`, shown as **Summarised by a local model**), so they never read as
+something this tool produced. They survive next week's fetch.
 
 ### The prompt does the safety work
 
@@ -193,9 +199,11 @@ Not a policy the tool follows — **a capability it does not have.**
 what you *go and take* is not.** A feed is delivered. An article page is fetched.
 Nothing here fetches one.
 
-**1. There are exactly three places in the Python code that touch the network.**
-Fetching a feed. Checking a link resolves. Sending your own digest to your email
-or WhatsApp. There is no fourth.
+**1. Only a handful of places in the Python code touch the network, and none
+reads an article page.** Fetching a feed. Checking a link resolves. Sending your
+own digest to your email or WhatsApp. And two opt-in ones: `--gmail` reading your
+own mailbox label, and `--ollama` talking to the model on this laptop
+(localhost only — nothing leaves the machine).
 
 **2. There are no credentials to log in with.** No publisher account, password,
 cookie or session exists anywhere in the project. A paywall cannot be passed by
@@ -229,7 +237,8 @@ digest.
 Do not take the above on trust:
 
 ```bash
-# Every network call in the whole Python codebase. There are three.
+# Every web request in the Python code: feed, link check, Ollama (localhost), WhatsApp.
+# Email goes out through smtplib in src/email_sender.py; Gmail through src/gmail_reader.py.
 grep -rn "urlopen\|requests\." src/
 
 # Every source, and whether it is free

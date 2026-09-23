@@ -1,9 +1,13 @@
-# Handover — three streams of work
+# Handover — for a developer picking this up
 
-For developers picking up work on this repo who did not write it. Each stream
-below says where it stands, what finished looks like, and the rules that do not
-bend. The rules are not style preferences: this project's whole claim is that it
-never touches a paywall and never pretends a feature works when it does not.
+For developers who did not write this repo. It says what is where, what is
+built, what is still open, and the rules that do not bend. The rules are not
+style preferences: this project's whole claim is that it never touches a
+paywall and never pretends a feature works when it does not.
+
+The owner is not a developer. User-facing instructions live in
+[README.md](README.md) and [SETUP.md](SETUP.md); keep them in plain English and
+keep them true when you change behaviour.
 
 ## Read before touching anything
 
@@ -12,11 +16,12 @@ never touches a paywall and never pretends a feature works when it does not.
 2. [SAFEGUARDS.md](SAFEGUARDS.md) — the design constraints, including section A
    (what may be sent to a model) and section D (the summarising prompt,
    verbatim).
-3. [IMPROVEMENTS.md](IMPROVEMENTS.md) — the staged backlog. An idea is not ready
-   to build until its cost, privacy, source and reading-time impact are
+3. [IMPROVEMENTS.md](IMPROVEMENTS.md) — the staged backlog. "Issues" in this
+   project means its numbered items; there is no issue tracker. An idea is not
+   ready to build until its cost, privacy, source and reading-time impact are
    understood. Stage the plan there first; the git history shows the pattern.
 
-Two rules run through all three streams:
+Two rules run through everything:
 
 - **Nothing that is not configured may look live.** `/api/status` reports what
   the server can really do rather than showing switches that flip React state.
@@ -25,7 +30,7 @@ Two rules run through all three streams:
   primary source.** No exceptions for a cleverer model.
 
 ```bash
-. .venv/bin/activate && python -m pytest -q     # 181 tests, offline, ~0.2s
+. .venv/bin/activate && python -m pytest -q     # 209 tests, offline, a few seconds
 cd web && npm test                              # vitest, the TypeScript side
 ```
 
@@ -34,149 +39,217 @@ network is a test that will be deleted by the next person.
 
 ---
 
-## Stream A — WhatsApp delivery
+## Where things are
 
-### Where it stands
+| Path | What it is |
+|---|---|
+| `src/monitor.py` | Everything on the Python side: source gate, fetch, classify, link check, dedupe, digest JSON, briefing, sweep sheet, glossary, `--ollama`, `--import-summaries`, CLI |
+| `src/email_sender.py` | HTML email via SMTP. Password from env, else the macOS Keychain (`_keychain_password`, service `advice-monitor-email`) |
+| `src/whatsapp_sender.py` | WhatsApp formatting, 1600-char splitting, Twilio send, `explain_twilio_error` |
+| `src/gmail_reader.py` | Read-only Gmail: `gmail.readonly` scope, only the `industry-update-monitor` label |
+| `src/gmail_dry_run.py` | Local Gmail dry run |
+| `data/sources.json` | The source list, with probe notes for sources that have no feed |
+| `data/glossary.json` | Hand-written glossary for the sweep sheet |
+| `scripts/weekly-run.sh`, `scripts/com.advice-monitor.weekly.plist` | The Monday 07:00 `launchd` run |
+| `web/` | Next.js 16 dashboard. Reads `web/lib/digest.json`; no database |
+| `web/lib/briefing.ts`, `web/lib/bundle.ts`, `web/lib/zip.ts` | The download panel's files, byte-identical to the CLI's `--brief --group-by` |
+| `web/lib/whatsapp.ts` | Browser twin of `src/whatsapp_sender.py`'s formatter |
+| `web/app/api/*` | `GET /api/items` (`flag`, `source`, `query`, `exactness`, `limit`), `POST /api/search`, `GET /api/status`, `/api/email/preview`, `POST /api/whatsapp/send` |
+| `tests/` | pytest, all offline |
+| `archive/` | Superseded plans and setup pages — history only; see [archive/README.md](archive/README.md) |
 
-- `src/whatsapp_sender.py` — formats the digest, splits on item boundaries
-  under WhatsApp's 1600-character cap, repeats a heading when a section
-  continues, and translates every Twilio rejection into plain words
-  (`explain_twilio_error`). Tested in `tests/test_whatsapp_errors.py`.
-- `web/lib/whatsapp.ts` — the same formatting in the browser, so the dashboard
-  preview matches what the CLI sends. Tested in `web/lib/whatsapp.test.ts`.
-- `web/app/api/whatsapp/send/route.ts` — the dashboard's send endpoint.
-- [WHATSAPP_SETUP.md](WHATSAPP_SETUP.md) — the user-facing setup, written to
-  keep a Twilio account on free trial credit and make a charge impossible.
-- [WHATSAPP_IMPLEMENTATION.md](WHATSAPP_IMPLEMENTATION.md) — **the brief for
-  this stream**: the four ways to close the endpoint with their trade-offs, the
-  jobs either side of it, and what done looks like. Read it before starting.
-
-With no credentials, `--whatsapp` prints the exact messages instead of sending.
-That is the default and it must stay usable with no account at all.
-
-### What finished looks like
-
-1. **Close the send-endpoint exposure.** `POST /api/whatsapp/send` takes
-   `phoneNumber` from the request body and has no authentication and no rate
-   limit. On a laptop that is fine. Deployed with Twilio credentials in the
-   environment, anyone who finds the URL can send messages on the account.
-   Pick one: take the recipient from `WHATSAPP_TO` on the server and ignore the
-   body, require a shared secret, add a rate limit, or keep sending
-   CLI-only and leave the deployed route in preview mode. Whichever it is,
-   [WHATSAPP_SETUP.md](WHATSAPP_SETUP.md) and
-   [INTEGRATIONS.md](INTEGRATIONS.md) both describe the current behaviour and
-   must be corrected with it.
-2. **Carry the summaries.** `_format_item` reads only `summary`, so a summary
-   pasted back by hand never reaches WhatsApp. That is item 4 of
-   IMPROVEMENTS.md and it applies to the email digest in the same way.
-3. **Handle the window, do not fight it.** A sandbox send is refused unless the
-   recipient's phone messaged the sandbox in the last 24 hours, and a join
-   lapses after 72. Any scheduling must expect the refusal and report it. **No
-   retry loop** — the agent rules ban them, and a retry against a messaging API
-   is how a free trial becomes a bill.
-
-### Rules
-
-- Never buy a Twilio number and never upgrade the account. A trial account has
-  no card on file, so a failed send cannot become a charge.
-- Keep the Python and TypeScript formatters in step. They are tested
-  separately; if they drift, the dashboard preview stops being a preview.
-- An unrecognised Twilio code must still surface Twilio's own message. Nothing
-  is hidden by not being on the translation list.
+**Repos and deploys.** `origin` is `github.com/ahaythorpe/industry-update-monitor`
+— **private**, the real project. `github.com/ahaythorpe/advice-monitor` is a
+different, **public** repo holding only an older copy of the `web/` dashboard
+with unrelated history. **Never push this repo there**; it would overwrite a
+public site. Dashboard deploys are Vercel previews, made by hand from `web/`
+(`cd web && npx vercel deploy`). The Vercel project must hold no Twilio values —
+see [SETUP.md Part 5](SETUP.md#3-keep-the-credentials-on-your-own-machine-never-in-vercel).
+Never commit `.env`, `web/.env.local`, `credentials.json` or `token.json`; all
+are git-ignored, and `git log --all` showed none ever committed (17 Sep 2026).
 
 ---
 
-## Stream B — Ollama, a model on the machine
+## Command-line reference
 
-### Where it stands
+| Flag | Default | Effect |
+| --- | --- | --- |
+| `--json [PATH]` | `web/lib/digest.json` | Write the digest the dashboard reads |
+| `--days` | 14 | Drop items older than N days (`0` = no limit) |
+| `--min-confidence` | 0.0 | Drop items whose flag confidence is below this |
+| `--flags` | `ACT,KNOW,NOTE` | Which tiers to include |
+| `--limit` | 50 | Maximum items in the digest |
+| `--no-check-links` | off | Skip the HEAD/GET check that drops dead links |
+| `--sources` | off | Print the source list first |
+| `--preview` | off | Write `output/digest_preview.html` (the email body) |
+| `--email` | off | Email the digest to `EMAIL_ADDRESS` |
+| `--whatsapp` | off | WhatsApp the digest; prints a preview with no Twilio credentials |
+| `--whatsapp-to` | `$WHATSAPP_TO` | Recipient for the CLI send |
+| `--per-flag` | 6 | Max items per flag in the WhatsApp newsletter |
+| `--gmail` | off | Also read newsletters from the Gmail label (read-only, opt-in) |
+| `--gmail-label` | `industry-update-monitor` | Exists, but `gmail_reader.read_label` refuses any other name |
+| `--gmail-max` | 25 | Maximum newsletters to read |
+| `--sweep [PATH]` | `output/sweep-<date>.md` | Tickable sheet for the weekly sweep; refuses to overwrite |
+| `--brief [PATH]` | `output/briefing.md` | Paste-ready briefing for an AI web tool |
+| `--deep` | off | Detailed prompt and smaller pastes; pair with `--flags ACT,KNOW` |
+| `--group-by` | — | One file per group: `topic`, `flag`, `topic,flag` or `flag,topic` |
+| `--topic` | — | Brief only these categories, e.g. `Compliance,Regulation` |
+| `--import-summaries` | — | Merge summaries pasted back from an AI web tool |
+| `--ollama [MODEL]` | `$OLLAMA_MODEL`, else `llama3.1:8b` | Summarise through a model on this machine |
+| `--ollama-timeout` | 600 | Seconds per paste before giving up |
+| `--ollama-chunk` | 5 | Items per paste through the model |
+| `--ollama-reply` | `output/ollama-reply.md` | Where the model's raw reply is kept |
+| `--digest` | `web/lib/digest.json` | The digest `--brief`, `--sweep`, `--ollama` and `--import-summaries` read |
 
-**Built, 17 September 2026.** `--ollama` runs the briefing through a model on
-the machine and merges the replies back. [OLLAMA_SETUP.md](OLLAMA_SETUP.md) has
-the install, the model choice, what it did on its first real run, and the
-constraints to keep. What is left is judgement, not code: whether a local model
-is good enough to trust for KNOW items, which only weeks of reading answers.
+### Tuning and extending
 
-The short version: the manual round trip (`--brief` → paste → reply →
-`--import-summaries`) already defines the prompt, the item blocks, the reply
-format and the ID matching, and all of it is tested. A local model slots into
-the middle of that, so the work is a transport, not a new feature.
-
-### What finished looks like
-
-- `--ollama` runs the existing briefing blocks through a local model and merges
-  the replies through the existing importer.
-- The origin is recorded as `ollama:<model>`, never `manual`, and the dashboard
-  says "Summarised by a local model" rather than a bare "Summary".
-- Ollama not running produces one clear sentence and a stop. No retry, no
-  silent fallback to anything paid.
-- The whole path is tested offline against a fake local server.
-
-### Rules
-
-- The input stays title and teaser. A local model is not a reason to fetch an
-  article body.
-- `BRIEF_PROMPT` is SAFEGUARDS section D verbatim. Do not reword it to make a
-  small model behave; change the model or the block size instead.
-- The only network call is to 127.0.0.1. Assert it.
-
----
-
-## Stream C — make the downloaded briefing easy to feed to an AI tool
-
-### Where it stands
-
-The dashboard's **Download for summarising** builds the briefing in the browser
-from the digest already loaded — no request, no publisher contacted.
-
-- `web/lib/briefing.ts` — `buildBriefingFiles` writes one Markdown file per
-  group, each holding the prompt and then `ID / TITLE / SOURCE / DATE / TEASER /
-  LINK` blocks, chunked to a comfortable paste.
-- `web/lib/zip.ts` — a small ZIP writer, entries STORED, no dependency added.
-- The output is byte-identical to the CLI's `--brief --group-by`, checked
-  against it over a real digest, so a reply imports the same way whichever
-  route produced it.
-
-So every item's link **is** in the download today, on its own `LINK:` line, and
-the prompt tells the model to keep it unchanged. What is missing is everything
-around them.
-
-### What finished looks like
-
-Unzipping gives a folder a person or a tool can use without being told how:
-
-1. **`README.md` inside the zip** — what this is, which digest and date it came
-   from, how many items and pastes, what to do with it (paste a file, get
-   `ID | FLAG | summary | LINK` lines back, import them), and the one-line
-   boundary: these are the publisher's own titles and teasers, no article text,
-   so do not ask a tool to fetch the links.
-2. **`links.md` inside the zip** — every item once: ID, flag, source, date,
-   title, URL. This is the list to hand to a tool or to open by hand, and it is
-   the thing a reader currently has to dig out of the blocks.
-3. **Mailbox links marked as such.** A newsletter item's link is a
-   `mail.google.com` URL that only the owner's browser can open. It must be
-   labelled in `links.md`, so nobody — person or tool — treats it as a public
-   article. The digest field to test is `intake === 'email'` (not
-   `email_newsletter`, which is the sources.json value and never reaches an
-   item; that exact mistake has already been made once and fixed).
-4. **The CLI writes the same two files** for `--brief --group-by`, and the
-   existing parity test is extended to cover them. Two routes, one output, or
-   they drift.
-
-### Rules
-
-- The prompt stays SAFEGUARDS section D verbatim, and the IDs stay the refs the
-  monitor wrote — `--import-summaries` matches on them, and an invented ID
-  attaches a summary to the wrong article.
-- An item with no ref is left out and counted, never given a made-up one. That
-  behaviour exists; keep it.
-- No article body, ever. The briefing carries the feed's own teaser and that is
-  the whole input.
-- Keep the zip dependency-free.
+- **Classification** is weighted keywords, no AI. A term in the headline counts
+  double. Confidence rises with how far the winner cleared its threshold and
+  how far clear it stayed of the runner-up. A source's `flag` in
+  `sources.json` is a **prior**, not a verdict.
+- **Categories.** Every item gets one: Compliance, Regulation, Super & tax,
+  Insurance, Key personnel movements, Business, Markets & investing, Fees &
+  pricing, Practice & technology, or **General** when no rule matches. General
+  is the fallback, not a subject: a large pile there means rules are missing. It
+  sat at 19 of 50 until the last three categories were added; it is now about 2.
+  If a recognisable subject collects there again, write another rule.
+- **Adding a source.** A source is fetched if it has an `rss` URL, and
+  `validate_feed_source` requires it to be free, on the same host as `home`, and
+  to look like a feed. Probe a new feed for *current* items before adding it —
+  `ministers.treasury.gov.au/rss.xml` parses perfectly and its newest entry is
+  from 2023. Record what was probed in the source's notes. Never scrape a media
+  centre page to fake a feed.
+- **Adding a glossary term.** Add an entry to `data/glossary.json`: `term`,
+  `means`, `matters`, `check`, optionally `also` for other spellings and
+  `changing: true` if its substance is still moving (it then reads `Possible
+  meaning` / `Needs confirmation`). Matching is on the term's own spelling; four
+  terms per item is the cap. Tests check every entry says what it means and
+  where to check it.
 
 ---
 
-## When you have finished a stream
+## Summaries: the round trip, and Ollama
+
+Built. The manual round trip (`--brief` → paste → reply →
+`--import-summaries`) defines the prompt, the item blocks, the reply format
+(`ID | FLAG | summary | LINK`) and the ID matching. `--ollama` is a transport
+into the middle of it, not a separate feature. Summaries are stored in the
+digest with `ai_source` (`manual` or `ollama:<model>`), survive the next
+`--json` run (`attach_saved_summaries`), and are labelled through one
+`summary_origin` on every route — dashboard, email, WhatsApp, and the
+"Finished summaries" download.
+
+Constraints anyone changing `--ollama` must keep:
+
+- **Opt-in.** No flag, no model call. `OLLAMA_MODEL` in `.env` sets the model
+  (the owner uses `qwen3:8b`).
+- **Reuse `format_briefing`.** `BRIEF_PROMPT` is SAFEGUARDS section D verbatim
+  and must not be reworded to make a small model behave — change the model or
+  the block size instead. `--deep` / `DEEP_PROMPT` is the second pass, same
+  rule. `--deep` through a local model is untested.
+- **POST to `/api/generate` on localhost** (`LOCAL_HOSTS`), `stream: false`,
+  `temperature: 0`, one request per block, in sequence. The only network call is
+  to this machine — asserted in `tests/test_ollama.py` against a fake server.
+- **Parse with `parse_summaries`.** It tolerates a chat model's bullets, bold
+  and numbering. Do not write a second parser. Unmatched IDs are reported,
+  never guessed.
+- **Write the raw reply to disk before merging** (`--ollama-reply`).
+- **Bounded.** `OLLAMA_CHUNK` 5 items per paste, `OLLAMA_MAX_BLOCKS` 12 pastes,
+  `OLLAMA_TIMEOUT` 600 s per paste. A 50-item week takes about 20 minutes.
+- **Fail loudly, never retry, never fall back to anything paid.** "Not
+  running" and "slow" are told apart in the error.
+- `scripts/weekly-run.sh` runs `--ollama` after the digest, as a separate step
+  that is skipped (and logged) when `localhost:11434` does not answer, so a
+  closed Ollama costs the summaries, never the digest.
+
+What is left is judgement, not code: whether a local model is good enough to
+trust for KNOW items. On the first run one summary of three added a word the
+teaser did not contain.
+
+---
+
+## WhatsApp: what was decided, and what is still open
+
+Sending works from the command line and from the local dashboard, and the
+formatting is tested on both sides (`tests/test_whatsapp_errors.py`,
+`web/lib/whatsapp.test.ts`). With no credentials, both sides return the exact
+message bodies instead of sending — that is the mode the project is designed
+to be usable in, and it must keep working.
+
+**The send endpoint decision (17 Sep 2026).** `POST /api/whatsapp/send` used to
+take the recipient from the request body with no authentication and no rate
+limit — a send-to-anyone API for whoever found the URL. Four fixes were
+weighed:
+
+- **A. Send only to `WHATSAPP_TO`, ignore the body.** Chosen. At worst a
+  stranger can send the digest to the owner's own phone. The dashboard's
+  recipient box was removed rather than left decorative.
+- B. Command-line sending only; delete the route's send path. Honest if nobody
+  wants browser sending.
+- C. A shared-secret header. Rejected: the secret would have to live in the
+  browser, so it is not secret.
+- D. Real authentication. Out of proportion, and it drags in the database
+  question [IMPROVEMENTS.md](IMPROVEMENTS.md) item 7 settled the other way.
+
+Do not reintroduce a body-supplied recipient without replacing that
+protection. The route still has no auth and no rate limit, which is why Twilio
+values must never be added to Vercel.
+
+**Still open** (none of it blocks use; all of it is web-route polish):
+
+- `perFlagLimit` is taken from the request body and only checked for being a
+  number. Clamp it to the range the CLI allows, so a large value cannot mean
+  more messages against trial credit.
+- The web route does not translate Twilio errors: it logs the detail and returns
+  `Twilio rejected the message (HTTP …)`. Port `explain_twilio_error`'s table, or
+  share it, so there is one list rather than two that drift.
+- **Partial sends.** A digest can be three messages; if part 2 fails, part 1 has
+  already arrived and been charged. The route should say how many parts went
+  and which failed.
+
+Rules: never buy a Twilio number and never upgrade the account (a trial has no
+card, so a failed send cannot become a charge). **No retry loop** — a retry
+against a messaging API is how a free trial becomes a bill. Keep the Python and
+TypeScript formatters in step. An unrecognised Twilio code must still surface
+Twilio's own message. The sandbox's 24-hour window and 72-hour join are facts to
+report, not to retry around; the Monday run deliberately never sends.
+
+---
+
+## The download bundle
+
+Built (IMPROVEMENTS item 12). The dashboard builds its download in the browser
+from the digest already loaded — no request, no publisher contacted. The zip and
+the CLI's `--brief --group-by` folder both carry a `README.md` (which digest,
+counts, the round trip, the boundary) and a `links.md` (every item once). A
+newsletter item's link is a mailbox URL only its owner can open, so it is
+labelled rather than offered as a link; the digest field to test is
+`intake === 'email'`, not `email_newsletter` (the `sources.json` value, which
+never reaches an item — that mistake has been made once).
+
+Rules: the prompt stays SAFEGUARDS section D verbatim; IDs stay the refs the
+monitor wrote, and an item with no ref is left out and counted, never given a
+made-up one; no article body, ever; keep the zip dependency-free; keep the two
+routes byte-identical and the parity test covering them.
+
+---
+
+## Things removed, so nobody rebuilds them by accident
+
+- **Supabase** — deleted 17 Sep 2026. `web/lib/supabase.ts` and
+  `@supabase/supabase-js` were imported by nothing. The dashboard reads
+  `web/lib/digest.json`; read state lives in the browser's local storage, per
+  browser. A hosted database starts from IMPROVEMENTS item 7, and the first
+  question is privacy, since it moves teasers and links off this machine.
+- **A paid AI mode** — never existed. There is no `USE_AI` switch, no `--ai`
+  flag and no API key anywhere in `src/`. Any paid route must first pass
+  IMPROVEMENTS item 2 and SAFEGUARDS section C.
+
+---
+
+## When you have finished something
 
 Update [IMPROVEMENTS.md](IMPROVEMENTS.md) to say what was built and what is
-still open, the way items 1 and 3 do. A list that only ever grows is a list
-nobody reads.
+still open, the way the existing items do, and correct any user-facing
+sentence in README.md or SETUP.md that your change made untrue. A fix that
+leaves the docs stale is half a fix.

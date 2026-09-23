@@ -59,8 +59,8 @@ Only email/RSS sources flow through the script. Bookmark and listen sources are 
 - Weekly sweep: open the folder, read top-down by flag.
 - **Status (17 Sep 2026): the code is built and tested but has never run.** `src/gmail_reader.py`
   and `--gmail` read one label, read-only, and the suite of 202 tests passes without them. What is missing is
-  `credentials.json` — see [SETUP.md](SETUP.md) Part 4 and item 5 in
-  [IMPROVEMENTS.md](IMPROVEMENTS.md). Until it runs, ABS, FS Industry Moves, Macquarie Technical
+  `credentials.json` — see [SETUP.md](../SETUP.md) Part 4 and item 5 in
+  [IMPROVEMENTS.md](../IMPROVEMENTS.md). Until it runs, ABS, FS Industry Moves, Macquarie Technical
   Services and CFS FirstTech reach no digest, so a quiet digest is not a quiet week.
 
 ### Phase 3 — AI weekly summary (cents/week) [NOT BUILT]

@@ -154,7 +154,7 @@ tool writes a briefing, you paste it in, you paste the reply back.
 
 This is deliberate. An API key would mean a balance to watch and a bill to cap.
 See [BUILD_STEPS.md](BUILD_STEPS.md) for what an API-key version would involve
-if it is ever worth it, and [SAFEGUARDS.md](SAFEGUARDS.md) section C for the cost
+if it is ever worth it, and [SAFEGUARDS.md](../SAFEGUARDS.md) section C for the cost
 rules it would have to follow.
 
 ---
@@ -188,7 +188,7 @@ the honest trade of keeping everything on one laptop, and it is the current desi
 gap waiting to be filled.
 
 If a hosted database is ever wanted, it starts from item 7 of
-[IMPROVEMENTS.md](IMPROVEMENTS.md) — and the first question is the privacy one, since it moves
+[IMPROVEMENTS.md](../IMPROVEMENTS.md) — and the first question is the privacy one, since it moves
 teasers and links off this machine.
 
 ---
@@ -201,5 +201,5 @@ teasers and links off this machine.
 | Buying a phone number | Recurring monthly cost, and the sandbox does not need one |
 | Putting Twilio credentials in Vercel | The send endpoint has no auth; see the exposure note |
 | An Anthropic/OpenAI API key | Not needed — your existing subscription does the summarising for free |
-| A paid news subscription | [PAID_CONSIDER_LATER.md](paid_later/PAID_CONSIDER_LATER.md): pay for a gap you actually hit, not in advance |
-| Anything that fetches article bodies | [SAFEGUARDS.md](SAFEGUARDS.md) section A — the paywall boundary is the one rule with no exceptions |
+| A paid news subscription | [PAID_CONSIDER_LATER.md](../paid_later/PAID_CONSIDER_LATER.md): pay for a gap you actually hit, not in advance |
+| Anything that fetches article bodies | [SAFEGUARDS.md](../SAFEGUARDS.md) section A — the paywall boundary is the one rule with no exceptions |

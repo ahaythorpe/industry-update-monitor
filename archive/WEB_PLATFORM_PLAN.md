@@ -301,7 +301,7 @@ underneath it.
 **Decided 17 September 2026: deleted.** `web/lib/supabase.ts` and the `@supabase/supabase-js`
 dependency are gone. The dashboard works on `web/lib/digest.json` and will continue to, so the
 database half of this plan is not deferred — it is dropped. Item 7 of
-[IMPROVEMENTS.md](IMPROVEMENTS.md) is closed.
+[IMPROVEMENTS.md](../IMPROVEMENTS.md) is closed.
 
 What this costs, stated plainly so it is not rediscovered as a bug: read state lives in one
 browser's local storage. It does not follow you between machines and is lost if site data is

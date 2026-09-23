@@ -46,7 +46,7 @@ export function GET() {
     ai: {
       configured: false,
       detail:
-        'Not built. Classification is weighted keywords only — no AI, no API key, no per-run cost. See BUILD_STEPS.md for the opt-in AI stage.',
+        'Not built. Classification is weighted keywords only — no AI, no API key, no per-run cost. Free summaries: --ollama on this machine (SETUP.md Part 2).',
     },
   })
 }
