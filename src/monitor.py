@@ -1147,10 +1147,11 @@ NEWSLETTER_PROMPT = """You are writing this week's newsletter for a trainee Aust
 adviser. You will be given items, each with an ID, a TITLE, a SOURCE, a DATE, the publisher's own
 text, and a LINK. For each item output exactly one line:
 `ID | FLAG | summary | LINK`. FLAG is ACT (changes what an adviser must do), KNOW (useful
-context), or NOTE (background/data). The summary is two or three dot points written on that same
-line, each starting with "• ". Each point is one short plain-English sentence. In each point put
-the single most important fact — a figure, a date, a name, or what changed — in **bold**. The
-first point says what happened; the next says why it matters to an adviser or what to do. Rules:
+context), or NOTE (background/data). The summary is exactly three dot points written on that
+same line, each starting with "• ", each a full plain-English sentence of 15 to 30 words:
+first, what happened; second, the specific detail — figures, dates, names, amounts, who is
+affected; third, what it means for an adviser or what they should do. In each point put the single
+most important fact in **bold**. Rules:
 use ONLY the text provided; never invent detail or add facts not present; if the text is too thin,
 write "• thin — open source"; never break the line; always keep the ID and the LINK unchanged; do
 not attempt to access anything beyond the text provided."""
