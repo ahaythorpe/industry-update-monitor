@@ -70,9 +70,9 @@
       "confidence": 0.88,
       "is_read": false,
       "created_at": "2026-09-17T01:59:01+00:00",
-      "ai_summary": "TPB outlines new sanctions powers to address misconduct and non-compliance by tax practitioners",
+      "ai_summary": "• **TPB has published guidance on new sanctions powers** following the Royal Assent of the Treasury Laws Amendment Bill 2026. • Advisers must understand the enhanced sanctions framework to avoid penalties for misconduct or non-compliance.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/asic-halts-remara-s-private-credit-products-for-tmd-deficiencies-179814044",
@@ -89,9 +89,9 @@
       "confidence": 0.83,
       "is_read": false,
       "created_at": "2026-09-23T01:29:00+00:00",
-      "ai_summary": "ASIC halts Remara's private credit products due to inadequate target market determination for retail investors",
+      "ai_summary": "• **ASIC has halted Remara's private credit products** due to TMD deficiencies, affecting retail investors. • Advisers must avoid recommending these products and ensure compliance with ASIC's interim stop orders.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/faaa-calls-for-review-of-proposed-privacy-breach-report-deadline",
@@ -108,9 +108,9 @@
       "confidence": 0.76,
       "is_read": false,
       "created_at": "2026-09-22T06:34:32+00:00",
-      "ai_summary": "FAAA seeks review of the 72-hour data breach reporting deadline for small businesses due to practical challenges",
+      "ai_summary": "• **FAAA calls for review of the 72-hour data breach report deadline** for small businesses. • Advisers should be aware of the challenges in meeting the deadline and the need for clarity on when the period starts.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.ifa.com.au/treasury-opens-consultation-for-cslr-special-levy",
@@ -127,9 +127,9 @@
       "confidence": 0.74,
       "is_read": false,
       "created_at": "2026-09-22T00:30:35+00:00",
-      "ai_summary": "Treasury consults on a waterfall framework to fund the CSLR special levy following sector cap exceedance",
+      "ai_summary": "• **Treasury launched consultation on a waterfall framework** to fund the 2026-27 CSLR special levy after exceeding the financial advice sub-sector cap by **$170.3 million**. • Advisers must prepare for potential cost allocations under the new framework, which aims to distribute levy costs across financial services sub-sectors to ensure sustainability.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/beyond-warnings-asic-to-come-down-heavy-on-private-179814034",
@@ -146,9 +146,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-22T02:24:00+00:00",
-      "ai_summary": "ASIC warns private credit sector to improve standards and prepare for enforcement action amid structural risks",
+      "ai_summary": "• **ASIC is moving beyond warnings** and will enforce strict compliance with 10 best practice principles in the private credit sector. • Advisers must ensure their clients and investment strategies align with ASIC’s expectations to avoid enforcement action, especially regarding redemption practices and illiquid assets.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/class-action-against-macquarie-echoes-soon-to-be-eliminated-but-for-determinations",
@@ -165,9 +165,9 @@
       "confidence": 0.64,
       "is_read": false,
       "created_at": "2026-09-17T06:36:06+00:00",
-      "ai_summary": "Class action against Macquarie highlights concerns over compensation for lost super growth despite initial capital repayment",
+      "ai_summary": "• **A class action against Macquarie** mirrors the soon-to-be-eliminated “but for” determinations under AFCA. • The case highlights investor claims for lost growth and distress, which may not be resolved under the new framework, prompting legal and advisory considerations for affected clients.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/regulators-closely-monitoring-ai-developments-concerning-the-financial-advice-industry",
@@ -184,9 +184,9 @@
       "confidence": 0.63,
       "is_read": false,
       "created_at": "2026-09-16T06:00:20+00:00",
-      "ai_summary": "ASIC is monitoring AI developments like Claude for potential impacts on the Australian financial advice industry",
+      "ai_summary": "• **ASIC is monitoring Claude’s potential impact** on the financial advice industry as it may affect regulatory requirements and market dynamics. • Advisers should stay informed about AI developments and consider how they might integrate such tools in the future.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/div-296-no-hurdle-to-smsf-establishments-class-research-finds",
@@ -203,9 +203,9 @@
       "confidence": 0.62,
       "is_read": false,
       "created_at": "2026-09-14T19:30:00+00:00",
-      "ai_summary": "SMSF establishment numbers hit record highs in FY26 despite regulatory challenges like Div 296",
+      "ai_summary": "• **Over 52,000 new SMSFs were established in FY26**, the highest ever, with total funds surpassing 680,000. • **Div 296 hasn’t deterred SMSF growth**, showing strong consumer interest despite regulatory challenges.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/named-but-not-accused-asics-warning-that-isnt-a-warning",
@@ -222,9 +222,9 @@
       "confidence": 0.57,
       "is_read": false,
       "created_at": "2026-09-14T05:17:04+00:00",
-      "ai_summary": "ASIC's list of superannuation lead generators includes businesses not accused of wrongdoing, raising questions about consumer warnings",
+      "ai_summary": "• **ASIC has named 63 entities** on a list related to superannuation lead generation, but no legal breaches have been confirmed. • **Consumers are warned to be cautious** about high-pressure tactics and misleading claims in superannuation advice.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://faaa.au/paraplannings-next-era-strategic-tech-driven-compliance-led",
@@ -241,9 +241,9 @@
       "confidence": 0.55,
       "is_read": false,
       "created_at": "2026-09-22T01:20:51+00:00",
-      "ai_summary": "Paraplanning is evolving into a strategic, tech-driven, and compliance-led role within financial advice practices",
+      "ai_summary": "• Modern paraplanners are now strategic partners and compliance gatekeepers, not just note-takers",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/court-ruling-highlights-member-benefits-and-disputes-in-intergenerational-wealth-transfer",
@@ -260,9 +260,9 @@
       "confidence": 0.54,
       "is_read": false,
       "created_at": "2026-09-22T19:45:20+00:00",
-      "ai_summary": "Court case highlights court-appointed receiver's decision not to pursue legal action against family members or adviser in intergenerational wealth transfer dispute",
+      "ai_summary": "• Court ruled against pursuing legal action over intergenerational wealth transfer from fund members",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.ifa.com.au/faaa-urges-treasury-to-refine-trust-tax-before-it-becomes-law",
@@ -279,9 +279,9 @@
       "confidence": 0.5,
       "is_read": false,
       "created_at": "2026-09-22T00:00:09+00:00",
-      "ai_summary": "FAAA urges Treasury to refine trust tax legislation due to uncertainty and compliance costs for trustees and advisers",
+      "ai_summary": "• FAAA urges Treasury to refine trust tax legislation due to uncertainty and compliance costs",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/antares-equities-veteran-resigns-ahead-of-janus-henderson-takeover-179814049",
@@ -298,9 +298,9 @@
       "confidence": 0.94,
       "is_read": false,
       "created_at": "2026-09-23T02:34:00+00:00",
-      "ai_summary": "Antares Equities veteran portfolio manager resigns and will not transition to parent company Janus Henderson",
+      "ai_summary": "• **John Guadagnuolo**, a 18-year veteran at Antares Equities, is resigning and will not move to Janus Henderson. • This change may impact the firm's investment team structure but does not affect its Fixed Income or Fairview Equity Partners businesses.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/15/netwealth-to-acquire-paradino",
@@ -317,9 +317,9 @@
       "confidence": 0.94,
       "is_read": false,
       "created_at": "2026-09-15T04:34:28+00:00",
-      "ai_summary": "Netwealth to acquire Paradino to enhance tools for advisers to automate and streamline advice processes",
+      "ai_summary": "• **Netwealth** is acquiring **Paradino**, an AI automation platform, to enhance adviser tools. • Advisers should prepare for new automation tools that may change how they deliver advice and manage client portfolios.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/igr-predicts-drawdowns-will-be-major-source-of-retirement-income",
@@ -336,9 +336,9 @@
       "confidence": 0.83,
       "is_read": false,
       "created_at": "2026-09-22T19:30:28+00:00",
-      "ai_summary": "IGR report predicts drawdowns from superannuation will become a major source of retirement income, increasing significantly by 2065–66",
+      "ai_summary": "• **Drawdowns** from superannuation are expected to rise from 2.5% to 5.8% of GDP by 2065–66. • Advisers should prepare clients for retirement income strategies that rely more on superannuation pensions than the Age Pension.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/culture-eats-strategy-for-breakfast-esencia-on-maintaining-culture-in-interstate-ma",
@@ -355,9 +355,9 @@
       "confidence": 0.83,
       "is_read": false,
       "created_at": "2026-09-21T20:45:44+00:00",
-      "ai_summary": "Esencia shares tips on maintaining culture during interstate M&A after its first acquisition outside New South Wales",
+      "ai_summary": "• **Esencia completed its first interstate acquisition in Queensland**, adding 300 clients and 4 advisers to its portfolio. • **Maintaining consistent culture is critical for M&A success**, as it can make or break a deal and aligns with Esencia's three pillars of focus.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/cpa-urges-super-funds-to-solve-retirement-phase-or-risk-locking-trillions-out-of-the-economy",
@@ -374,9 +374,9 @@
       "confidence": 0.83,
       "is_read": false,
       "created_at": "2026-09-21T19:23:15+00:00",
-      "ai_summary": "CPA urges super funds to address retirement phase challenges to ensure retirees can access their super savings effectively",
+      "ai_summary": "• **Australia’s superannuation system manages $4.5 trillion**, but retirees struggle to convert savings into sustainable income. • **Super funds must improve retirement income strategies** to help members spend their savings comfortably and avoid locking trillions out of the economy.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/pacific-am-to-land-sma-solutions-down-under-appoints-investment-179814048",
@@ -393,9 +393,9 @@
       "confidence": 0.8,
       "is_read": false,
       "created_at": "2026-09-23T01:36:00+00:00",
-      "ai_summary": "Pacific AM will introduce SMA solutions to Australia and appoints Kyle Lidbury as chief investment officer",
+      "ai_summary": "• **Pacific AM will launch SMA solutions in Australia**, including Moderate, Balanced, Income, Growth, High Growth, and Listed Growth portfolios. • **Kyle Lidbury has been appointed as chief investment officer** to lead the investment team and oversee portfolio construction and adviser communications.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/rest-director-for-product-departs-179814047",
@@ -412,9 +412,9 @@
       "confidence": 0.8,
       "is_read": false,
       "created_at": "2026-09-23T01:30:00+00:00",
-      "ai_summary": "Rest's general manager, product, Scott Tully, has departed after nearly four years at the super fund",
+      "ai_summary": "• Thin — open source",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/praemium-brings-forward-chair-succession-179814046",
@@ -431,9 +431,9 @@
       "confidence": 0.8,
       "is_read": false,
       "created_at": "2026-09-23T01:30:00+00:00",
-      "ai_summary": "Praemium accelerates chair succession as it expands focus on high-net-worth investors and technology",
+      "ai_summary": "• Praemium's chair, Barry Lewin, steps down effective 22 September 2026 **(date)** • Advisers should note the shift in focus to high-net-worth investors and technology **(focus area)**",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.ifa.com.au/advisers-missing-the-third-retirement-risk-warns-aged-care-steps",
@@ -450,9 +450,9 @@
       "confidence": 0.8,
       "is_read": false,
       "created_at": "2026-09-23T00:00:22+00:00",
-      "ai_summary": "Advisers are urged to plan for frailty risk in retirement alongside longevity and sequencing risk due to increased severe disability periods.",
+      "ai_summary": "• Severe disability period for men aged 65 rose from 3.5 to 4.6 years **(increase)** • Advisers should consider frailty risk alongside longevity and sequencing risk **(advice focus)**",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/retirement-confidence-lags-as-investors-turn-to-ai-179814052",
@@ -469,9 +469,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-23T02:17:00+00:00",
-      "ai_summary": "A study shows low retirement confidence and financial literacy are keeping many investors from engaging, with AI becoming a common tool in investment decisions.",
+      "ai_summary": "• **23%** of investors are very confident about retirement, down from 26% last year; • Advisers can boost confidence by providing professional advice, as **half of advised investors** are very confident",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/ubs-appoints-head-of-purpose-in-not-for-profit-shake-up",
@@ -488,9 +488,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-22T19:45:25+00:00",
-      "ai_summary": "UBS is rebranding its not-for-profit segment to 'for purpose' and appointing Anthony Hamawi to lead the division, reflecting a broader focus on social impact organizations.",
+      "ai_summary": "• **UBS** is renaming its not-for-profit segment to ‘for purpose’; • **Anthony Hamawi** is joining UBS from JBWere to lead the new division",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/vietnam-joins-ftse-russell-emerging-market-index-179814039",
@@ -507,9 +507,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-22T04:55:00+00:00",
-      "ai_summary": "Vietnam has been reclassified from frontier to secondary emerging market status in the FTSE Russell index, signaling improved market infrastructure and regulatory reforms.",
+      "ai_summary": "• **Vietnam** joined the FTSE Russell Emerging Market Index on 21 September 2026; • Advisers should consider Vietnam as a new market opportunity with improved access for international investors",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/equity-trustees-responds-to-takeover-bids",
@@ -526,9 +526,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-21T20:30:57+00:00",
-      "ai_summary": "Equity Trustees is reviewing two takeover bids, seeking a revised offer that better reflects the firm's value and is not conditional on certain business exits or litigation outcomes.",
+      "ai_summary": "• thin — open source",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/how-nvidias-jensen-huang-could-reshape-geopolitics-for-investors",
@@ -545,9 +545,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-18T06:25:04+00:00",
-      "ai_summary": "Computing power dominance in the US could reshape geopolitical dynamics for investors, according to historian Stephen Kotkin.",
+      "ai_summary": "• thin — open source",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.ifa.com.au/the-new-class-of-adviser-vertical-integration-and-the-case-for-advice-practices",
@@ -564,9 +564,9 @@
       "confidence": 0.76,
       "is_read": false,
       "created_at": "2026-09-23T00:30:11+00:00",
-      "ai_summary": "The government has limited the 'New Class of Adviser' to superannuation funds and insurance providers, with potential for advice practices to be included in the future.",
+      "ai_summary": "• thin — open source",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/faaa-flags-gaps-in-discretionary-trusts-tax-reforms-deficient-framework-179814037",
@@ -583,9 +583,9 @@
       "confidence": 0.76,
       "is_read": false,
       "created_at": "2026-09-22T02:29:00+00:00",
-      "ai_summary": "FAAA warns of potential unfair penalties for trustees under proposed discretionary trusts tax reforms due to rigid rules and lack of clarity.",
+      "ai_summary": "• **FAAA highlights gaps in discretionary trusts tax reforms** with concerns over trustees making irreversible decisions before final rules are set; • **Advisers must stay informed on the proposed 30% minimum tax** and consider the new exemption options for discretionary trusts",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/what-the-2026-intergenerational-report-mean-for-advisers",
@@ -602,9 +602,9 @@
       "confidence": 0.74,
       "is_read": false,
       "created_at": "2026-09-22T20:30:49+00:00",
-      "ai_summary": "The 2026 Intergenerational Report predicts Australians will live longer, leading to extended retirements and increased complexity in wealth transfer and retirement planning.",
+      "ai_summary": "• **Life expectancy in Australia is projected to reach 90 years for women and 86.1 years for men by 2066**; • **Retirement planning must adapt to longer lifespans** with increased healthcare and wealth transfer complexities",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/beyond-traditional-bucketing-why-advisers-are-rethinking-smsf-retirement-strategies",
@@ -621,9 +621,9 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-23T00:11:06+00:00",
-      "ai_summary": "Advisers are rethinking SMSF retirement strategies by incorporating guaranteed lifetime income solutions to improve retirement outcomes.",
+      "ai_summary": "• **New research suggests guaranteed lifetime income is critical for retirement planning**; • **Combining bucketing with lifetime income solutions improves retirement outcomes** for SMSF members",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.ifa.com.au/cpa-worried-more-people-will-seek-financial-advice",
@@ -640,9 +640,9 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-21T23:45:52+00:00",
-      "ai_summary": "CPA warns government changes to discretionary trusts could lead to $2.8 billion in advice fees due to uncertainty",
+      "ai_summary": "• **CPA warns of $2.8 billion in advice fees** due to uncertainty over discretionary trust tax changes. • Advisers must prepare for increased demand for advice as trustees face complex decisions under the new rules.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/the-kids-inheriting-older-clients-wealth-might-soon-be-retirees-themselves",
@@ -659,9 +659,9 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-21T06:12:18+00:00",
-      "ai_summary": "Treasury's report indicates inheriting clients' wealth may soon go to retirees rather than younger generations",
+      "ai_summary": "• **Treasury’s 2026 Intergenerational Report** shows inheriting clients’ wealth may soon go to retirees, not younger generations. • Advisers should consider targeting grandchildren for new clients as the traditional client succession model changes.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/21/confusion-driving-consumers-away-from-life-insurance",
@@ -678,9 +678,9 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-21T05:30:37+00:00",
-      "ai_summary": "Confusion among Australian consumers is driving them away from life insurance purchases",
+      "ai_summary": "• **48% of Australians** feel confused about life insurance, leading to abandoned purchases. • **Confusion** is a key barrier to life insurance uptake, highlighting a need for clearer product communication.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/art-owned-g-day-group-invests-200m-in-regional-holiday-179814045",
@@ -697,9 +697,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-23T01:32:00+00:00",
-      "ai_summary": "ART-owned G'day Group plans $200 million investment in regional holiday parks ahead of 2032 Olympics",
+      "ai_summary": "• **ART-owned G'day Group is investing $200m in regional holiday parks** in Queensland ahead of the 2032 Olympic Games. • Advisers should note the expansion of holiday parks and potential increased demand for accommodation in regional areas due to major events.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/questions-raised-about-how-ato-will-deal-with-investment-strategy-documentation",
@@ -716,9 +716,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-22T19:35:37+00:00",
-      "ai_summary": "Questions raised about ATO's role in reviewing SMSF investment strategies",
+      "ai_summary": "• **ATO may review SMSF investment strategies**, with concerns about what they will look for in terms of diversification. • Advisers should be aware that auditors already review these strategies annually, and the ATO's role in this area is unclear.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/fewer-clearer-decisions-hamilton-wealth-takes-the-ocio-route",
@@ -735,9 +735,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-22T06:35:51+00:00",
-      "ai_summary": "Hamilton Wealth is exploring OCIO solutions to address complexity and improve decision-making.",
+      "ai_summary": "• **Hamilton Wealth is adopting an OCIO model** to streamline decision-making and reduce reliance on product-specific advice. • Advisers should consider the benefits of OCIO models in managing complexity and aligning with client needs.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.ifa.com.au/a-slice-of-the-pie-macquarie-class-action-under-scrutiny",
@@ -754,9 +754,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-22T00:15:21+00:00",
-      "ai_summary": "Macquarie faces scrutiny over potential undercompensation in a class action related to the Shield Master Fund collapse.",
+      "ai_summary": "• thin — open source",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/clients-prolonged-frailty-years-is-a-risk-advisers-must-consider",
@@ -773,9 +773,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-21T06:11:37+00:00",
-      "ai_summary": "Advisers must consider frailty risk, as Australian retirees are spending more time with severe disabilities.",
+      "ai_summary": "• Frailty risk is rising, with men over 65 now spending 4.6 years with severe disability (up from 3.5 years) and women spending 6.4 years (up from 5.5 years)",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/big-data-could-help-predict-the-next-big-advice-calamity",
@@ -792,9 +792,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-17T06:47:08+00:00",
-      "ai_summary": "Big data and predictive models could help detect and prevent future advice scandals.",
+      "ai_summary": "• Big data could help predict major advice scandals by analysing patterns like advisers managing thousands of clients",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.ifa.com.au/how-battles-of-super-could-rewrite-long-term-advice-strategies",
@@ -811,9 +811,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-23T00:25:46+00:00",
-      "ai_summary": "Political debates over superannuation could influence long-term advice strategies and access to funds.",
+      "ai_summary": "• **One Nation proposed allowing Australians to access 3% of their super contributions for up to three years to help with home ownership**. • Advisers must consider how policy changes like this could impact long-term advice strategies and client financial planning.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/neos-partners-with-paradino",
@@ -830,9 +830,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-22T19:30:44+00:00",
-      "ai_summary": "NEOS integration with Paradino provides advisers with fast access to insurance pricing within their workflows",
+      "ai_summary": "• **NEOS has integrated with Paradino to provide advisers with fast access to pricing for protection options**. • This integration allows advisers to compare insurance options quickly and maintain the role of professional advice in client outcomes.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/22/new-neos-partnership",
@@ -849,9 +849,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-22T03:42:50+00:00",
-      "ai_summary": "NEOS integration with Paradino gives advisers direct access to indicative pricing across all products within their existing advice workflows",
+      "ai_summary": "• **NEOS has integrated with Paradino to give advisers direct access to indicative pricing across all products within their existing workflows**. • This integration supports advisers in providing informed advice by streamlining access to insurance insights.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/22/life-insurance-affordability-poll",
@@ -868,9 +868,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-22T03:05:06+00:00",
-      "ai_summary": "Poll suggests life insurance affordability is often a perception issue rather than a reality",
+      "ai_summary": "• thin — open source",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/intergenerational-report-looks-to-ai-to-buoy-productivity-slump-179814036",
@@ -887,9 +887,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-22T02:26:00+00:00",
-      "ai_summary": "Intergenerational Report forecasts Australia's economy to grow at 2% annually over the next 40 years, with AI seen as a key driver for productivity",
+      "ai_summary": "• Australia's economy is projected to grow at 2% annually over the next 40 years, below the 3% experienced previously • Advisers should consider AI's potential impact on productivity and economic growth when advising clients",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/magellan-terminates-vinva-global-equity-fund",
@@ -906,9 +906,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-21T20:30:14+00:00",
-      "ai_summary": "Magellan Asset Management will terminate the Vinva Global Equity fund due to insufficient scale",
+      "ai_summary": "• Magellan will terminate the Vinva Global Equity fund on 12 October 2026 after it failed to reach sufficient scale • Advisers should advise clients on switching to alternative funds like the Vinva Global Alpha Fund if affected",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/class-expands-registry-capabilities-to-streamline-smsf-administration",
@@ -925,9 +925,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-20T19:04:24+00:00",
-      "ai_summary": "Class expands registry capabilities with automation tools for SMSF administration",
+      "ai_summary": "• **Class expanded registry capabilities** with integration for unlisted investments, document feeds from MUFG and CBA, and automation tools to streamline SMSF administration. • **Advisers must adapt to new automation tools** to meet reporting obligations efficiently and reduce manual effort in managing complex SMSF portfolios.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/somethings-wrong-when-the-biggest-bill-lands-with-the-smallest-players",
@@ -944,9 +944,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-16T04:15:02+00:00",
-      "ai_summary": "Analysis reveals significant financial disparity between platforms and advisers in the advice industry",
+      "ai_summary": "• **Advisers and licensees earned only $11 million** for a year’s work across $48.2 billion under advice. • **Platform and insurer profits are hidden from advisers’ accounts**, impacting their revenue and profitability, which advisers must understand when advising clients.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/cgt-overhaul-could-reshape-super-contribution-strategies",
@@ -963,9 +963,9 @@
       "confidence": 0.62,
       "is_read": false,
       "created_at": "2026-09-20T19:12:03+00:00",
-      "ai_summary": "CGT overhaul may impact super contribution strategies with new tax rules starting 1 July 2027",
+      "ai_summary": "• **CGT changes start on 1 July 2027**, affecting assets bought and sold after that date with cost-based indexation and a 30% minimum tax rate. • **Advisers must review contribution strategies** to account for new CGT rules and their impact on tax planning for clients.",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/definition-of-trust-needs-to-be-crystal-clear-warns-smsfa",
@@ -982,9 +982,9 @@
       "confidence": 0.59,
       "is_read": false,
       "created_at": "2026-09-21T19:27:33+00:00",
-      "ai_summary": "SMSFA warns of potential inconsistencies in trust definitions affecting superannuation taxation",
+      "ai_summary": "• **Trust income classification could become inconsistent** due to potential separate tests for concessional taxation; • **Advisers must ensure clarity in trust definitions** to avoid unintended tax outcomes",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     },
     {
       "id": "https://faaa.au/early-bird-pricing-closing-soon-for-faaa-congress-2026",
@@ -1001,9 +1001,9 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-09-22T05:40:18+00:00",
-      "ai_summary": "Early bird pricing for FAAA Congress 2026 closes on 30 September with discounted member rates",
+      "ai_summary": "• **Early bird pricing for FAAA Congress 2026 ends 30 September** with member tickets at $1,305 and non-member at $2,695; • **Advisers are encouraged to register early** to save on ticket costs before prices rise",
       "ai_source": "ollama:qwen3:8b",
-      "ai_generated_at": "2026-09-23T07:48:11.986570+00:00"
+      "ai_generated_at": "2026-09-23T08:40:42.945116+00:00"
     }
   ]
 }
