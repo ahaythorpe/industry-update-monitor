@@ -129,8 +129,8 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <div className="space-y-3 rounded-2xl border border-slate-700 bg-slate-800/50 p-5">
               <p className="text-sm text-slate-300">
                 The digest refreshes itself every Monday at 7am on your Mac (see
-                <code> output/weekly-run.log</code>). It never sends email or WhatsApp on its own —
-                sending is always something you start.
+                <code> output/weekly-run.log</code>). Once the summaries are written it emails the newsletter to you — your own
+                address only. It never sends WhatsApp on its own.
               </p>
             </div>
           </div>

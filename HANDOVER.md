@@ -212,7 +212,7 @@ card, so a failed send cannot become a charge). **No retry loop** — a retry
 against a messaging API is how a free trial becomes a bill. Keep the Python and
 TypeScript formatters in step. An unrecognised Twilio code must still surface
 Twilio's own message. The sandbox's 24-hour window and 72-hour join are facts to
-report, not to retry around; the Monday run deliberately never sends.
+report, not to retry around; the Monday run never sends WhatsApp (it emails only the owner's own address).
 
 ---
 

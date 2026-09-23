@@ -21,8 +21,9 @@ its original source.
 
 1. **Monday 07:00 — it runs by itself.** The laptop fetches the week's news,
    writes the dashboard's digest, a sweep sheet and a briefing, and — if Ollama
-   is open — writes a summary of every item (about 20 minutes). It **never sends
-   anything** on its own. If the laptop was closed at 07:00, it runs when it
+   is open — writes a summary of every item (about 20 minutes). Once the
+   summaries are written it **emails the newsletter to you**, your own
+   address only. It never sends WhatsApp or emails anyone else. If the laptop was closed at 07:00, it runs when it
    next wakes. What happened is in `output/weekly-run.log`.
 2. **Open the dashboard.** In a terminal: `cd web && npm run dev`, then go to
    **http://localhost:3000**.

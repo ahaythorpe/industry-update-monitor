@@ -1,12 +1,10 @@
 #!/bin/bash
 # Weekly unattended run, started by launchd. See IMPROVEMENTS.md item 6.
 #
-# It also runs --ollama afterwards, which stays on this machine.
-#
-# Deliberately does NOT pass --email, --whatsapp or --gmail. The default is
-# "write the digest, send nothing": a scheduled job must never be able to send
-# on your behalf while you are not looking. Delivery stays something you
-# trigger.
+# It also runs --ollama afterwards, which stays on this machine, and then
+# emails the summarised newsletter to EMAIL_ADDRESS — your own address only,
+# chosen 23 Sep 2026. It never passes --whatsapp or --gmail, and never emails
+# anyone else: the recipient is always the account it sends from.
 
 set -uo pipefail
 
@@ -55,6 +53,14 @@ if [ $STATUS -eq 0 ] && [ "$COUNT" != "0" ]; then
   if curl -s -m 5 http://localhost:11434/api/tags >/dev/null; then
     if OLL="$(.venv/bin/python src/monitor.py --ollama 2>&1)"; then
       echo "$STAMP  ok — $(echo "$OLL" | grep -o '[0-9]* of [0-9]* summaries merged' || echo 'summaries merged') by the local model" >>"$LOG"
+      # Email the newsletter to yourself, summaries included. Only once the
+      # summaries exist, so you never get a half-finished issue.
+      if MAIL="$(.venv/bin/python src/monitor.py --email --from-digest 2>&1)" && echo "$MAIL" | grep -q "✅"; then
+        echo "$STAMP  ok — newsletter emailed to you" >>"$LOG"
+      else
+        echo "$STAMP  EMAIL NOT SENT — last lines:" >>"$LOG"
+        echo "$MAIL" | tail -3 | sed 's/^/    /' >>"$LOG"
+      fi
     else
       echo "$STAMP  SUMMARIES FAILED — digest is fine, summaries not written. Last lines:" >>"$LOG"
       echo "$OLL" | tail -3 | sed 's/^/    /' >>"$LOG"

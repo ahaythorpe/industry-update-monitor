@@ -160,9 +160,10 @@ does the same thing with no pasting.
 
 Installed 17 September 2026: a `launchd` agent runs **Monday at 07:00**. It
 refreshes the digest, the sweep sheet and the briefing, then — if Ollama is
-running — writes the summaries (Part 2). It deliberately passes no `--email`,
-`--whatsapp` or `--gmail`: **a scheduled job must never send on your behalf
-while you are not looking.** Delivery stays something you trigger.
+running — writes the summaries (Part 2). Once the
+summaries exist it emails the newsletter **to your own address only**
+(`--email --from-digest`; chosen 23 Sep 2026). It never passes `--whatsapp` or
+`--gmail`, and never emails anyone else.
 
 - **The file:** `~/Library/LaunchAgents/com.advice-monitor.weekly.plist`,
   copied from `scripts/com.advice-monitor.weekly.plist`. What it runs:
@@ -394,8 +395,9 @@ python src/monitor.py --email
 You should see `✅ Digest emailed to you@gmail.com via smtp.gmail.com`. Check
 your inbox.
 
-**The Monday run never emails.** Sending stays a command you type, for the same
-reason it never sends WhatsApp.
+**The Monday run emails you** once the local model has written the summaries —
+to `EMAIL_ADDRESS` only, which is the same account it sends from. To send the
+current digest yourself at any time: `python src/monitor.py --email --from-digest`.
 
 ### Want it filed under your "Advice Monitor" label?
 
