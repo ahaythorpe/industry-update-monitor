@@ -1,0 +1,5 @@
+# Never upload local secrets. Next.js would load web/.env.local at build time
+# and the deployed send button would go live with no login in front of it.
+.env
+.env.*
+!.env.local.example

@@ -201,7 +201,7 @@ Nothing here fetches one.
 
 **1. Only a handful of places in the Python code touch the network, and none
 reads an article page.** Fetching a feed. Checking a link resolves. Sending your
-own digest to your email or WhatsApp. And two opt-in ones: `--gmail` reading your
+own digest to your email or Telegram (or the retired WhatsApp sender). And two opt-in ones: `--gmail` reading your
 own mailbox label, and `--ollama` talking to the model on this laptop
 (localhost only — nothing leaves the machine).
 
@@ -237,7 +237,8 @@ digest.
 Do not take the above on trust:
 
 ```bash
-# Every web request in the Python code: feed, link check, Ollama (localhost), WhatsApp.
+# Every web request in the Python code: feed, link check, Ollama (localhost),
+# Telegram, and the retired WhatsApp sender.
 # Email goes out through smtplib in src/email_sender.py; Gmail through src/gmail_reader.py.
 grep -rn "urlopen\|requests\." src/
 

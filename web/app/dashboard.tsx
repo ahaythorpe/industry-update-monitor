@@ -29,7 +29,7 @@ type DateRange = 'week' | 'month' | 'all'
 type IntegrationStatus = { configured: boolean; detail: string }
 type Status = {
   digest: { generated_at: string; items: number; sources: number }
-  whatsapp: IntegrationStatus
+  telegram: IntegrationStatus
   email: IntegrationStatus
   ai: IntegrationStatus
 }
@@ -253,9 +253,9 @@ export default function Dashboard({
   // filter's result depend on when React happened to re-render.
   const [mountedAt] = useState(() => Date.now())
 
-  const [whatsappLoading, setWhatsappLoading] = useState(false)
-  const [whatsappMessage, setWhatsappMessage] = useState('')
-  const [whatsappPreview, setWhatsappPreview] = useState('')
+  const [telegramLoading, setTelegramLoading] = useState(false)
+  const [telegramMessage, setTelegramMessage] = useState('')
+  const [telegramPreview, setTelegramPreview] = useState('')
 
   useEffect(() => {
     fetch('/api/status')
@@ -519,15 +519,15 @@ export default function Dashboard({
     setHideRead(false)
   }
 
-  // The recipient is WHATSAPP_TO on the server and is deliberately not sent
-  // from here — see the comment in app/api/whatsapp/send/route.ts.
-  const handleWhatsappSend = async () => {
-    setWhatsappLoading(true)
-    setWhatsappMessage('')
-    setWhatsappPreview('')
+  // The recipient is TELEGRAM_CHAT_ID on the server and is deliberately not
+  // sent from here — see the comment in app/api/telegram/send/route.ts.
+  const handleTelegramSend = async () => {
+    setTelegramLoading(true)
+    setTelegramMessage('')
+    setTelegramPreview('')
 
     try {
-      const response = await fetch('/api/whatsapp/send', {
+      const response = await fetch('/api/telegram/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ selectedFlag }),
@@ -536,20 +536,20 @@ export default function Dashboard({
 
       if (data.success) {
         if (!data.sent) {
-          setWhatsappMessage(
-            `Twilio is not configured, so nothing was sent. This is the exact message it would send, in ${data.parts} part${data.parts === 1 ? '' : 's'}:`
+          setTelegramMessage(
+            `Telegram is not set up here, so nothing was sent. This is the exact message it would send, in ${data.parts} part${data.parts === 1 ? '' : 's'}:`
           )
-          setWhatsappPreview(data.preview || '')
+          setTelegramPreview(data.preview || '')
         } else {
-          setWhatsappMessage(`✓ Sent to your saved number in ${data.parts} part${data.parts === 1 ? '' : 's'}`)
+          setTelegramMessage(`✓ Sent to your Telegram chat in ${data.parts} message${data.parts === 1 ? '' : 's'}`)
         }
       } else {
-        setWhatsappMessage(data.error || 'Failed to send')
+        setTelegramMessage(data.error || 'Failed to send')
       }
     } catch {
-      setWhatsappMessage('Could not reach /api/whatsapp/send')
+      setTelegramMessage('Could not reach /api/telegram/send')
     } finally {
-      setWhatsappLoading(false)
+      setTelegramLoading(false)
     }
   }
 
@@ -1093,48 +1093,54 @@ export default function Dashboard({
               </a>
             }
           />
-          <IntegrationCard title="WhatsApp" status={status?.whatsapp} />
+          <IntegrationCard title="Telegram" status={status?.telegram} />
           <IntegrationCard title="AI summariser" status={status?.ai} />
         </section>
 
-        <section id="whatsapp-scroll" className="mt-10 rounded-3xl border border-slate-800 bg-slate-900 p-8">
-          <h2 className="text-2xl font-semibold text-white">📱 Send this digest to WhatsApp</h2>
+        <section id="telegram-scroll" className="mt-10 rounded-3xl border border-slate-800 bg-slate-900 p-8">
+          <h2 className="text-2xl font-semibold text-white">✈️ Send this digest to Telegram</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Sends the items currently selected by the flag filter. Without Twilio credentials nothing is sent — you get
-            the exact message back to proof-read.
+            Sends the items currently selected by the flag filter, up to six per flag, to your own chat with your bot.
+            Telegram is free — no trial, no per-message charge. Without the bot token and chat ID nothing is sent — you
+            get the exact message back to proof-read.
           </p>
           <p className="mt-2 text-sm text-slate-400">
-            It goes to one number only: <code className="text-slate-300">WHATSAPP_TO</code> in the server environment.
-            There is no recipient box, deliberately — this page is public, and an endpoint that sent wherever it was
-            asked could be used by anyone who found the URL.
+            It goes to one chat only: <code className="text-slate-300">TELEGRAM_CHAT_ID</code> in the server
+            environment. There is no recipient box, deliberately — an endpoint that sent wherever it was asked could be
+            used by anyone who found the URL.
           </p>
           <div className="mt-6 space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row">
               <button
-                onClick={handleWhatsappSend}
-                disabled={whatsappLoading}
-                className="rounded-lg bg-green-600 px-6 py-2 font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                onClick={handleTelegramSend}
+                disabled={telegramLoading}
+                className="rounded-lg bg-sky-600 px-6 py-2 font-medium text-white hover:bg-sky-700 disabled:opacity-50"
               >
-                {whatsappLoading ? 'Working…' : status?.whatsapp.configured ? 'Send' : 'Preview message'}
+                {telegramLoading ? 'Working…' : status?.telegram.configured ? 'Send' : 'Preview message'}
               </button>
             </div>
-            {whatsappMessage ? (
+            {telegramMessage ? (
               <div
                 className={`rounded-lg px-4 py-3 text-sm ${
-                  whatsappMessage.startsWith('✓')
+                  telegramMessage.startsWith('✓')
                     ? 'bg-green-500/10 text-green-300'
-                    : whatsappPreview
+                    : telegramPreview
                       ? 'bg-slate-800 text-slate-300'
                       : 'bg-red-500/10 text-red-300'
                 }`}
               >
-                {whatsappMessage}
+                {telegramMessage}
               </div>
             ) : null}
-            {whatsappPreview ? (
-              <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-xl border border-slate-700 bg-slate-950 p-4 text-xs leading-5 text-slate-300">
-                {whatsappPreview}
-              </pre>
+            {telegramPreview ? (
+              <>
+                <p className="text-xs text-slate-500">
+                  Shown as raw text: the &lt;b&gt; and &lt;i&gt; tags become bold and italics in Telegram.
+                </p>
+                <pre className="max-h-96 overflow-auto whitespace-pre-wrap rounded-xl border border-slate-700 bg-slate-950 p-4 text-xs leading-5 text-slate-300">
+                  {telegramPreview}
+                </pre>
+              </>
             ) : null}
           </div>
         </section>
@@ -1146,7 +1152,7 @@ export default function Dashboard({
             <li>• No paywalls: nothing behind a login or subscription is fetched, stored or reconstructed.</li>
             <li>• Teasers only: the publisher&apos;s own summary, never the full article text.</li>
             <li>• Flags are weighted keywords with a confidence score — read the source before relying on a call.</li>
-            <li>• Email, WhatsApp and AI stay off until you configure them; the cards above say which are live.</li>
+            <li>• Email, Telegram and AI stay off until you configure them; the cards above say which are live.</li>
           </ul>
         </section>
 

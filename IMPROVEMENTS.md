@@ -344,6 +344,10 @@ paid AI integration this repo has never had.
 
 ## 10. WhatsApp delivery, finished properly
 
+> **Retired 23 September 2026 — see [item 15](#15-telegram-replaces-whatsapp-as-the-phone-channel).**
+> The phone channel is now Telegram. What follows is kept as the record of how the send
+> endpoint's safety rule was decided; that rule carried over to Telegram unchanged.
+
 Sending works from the command line and the formatting is tested on both sides. What is not
 finished is the part that decides whether it can be deployed at all.
 
@@ -360,7 +364,7 @@ Requirements:
 - Cost stays nil: trial credit, shared sandbox number, never buy a number, never upgrade.
 - The four ways to close the endpoint, with trade-offs and a recommendation, and the jobs
   either side of it: [archive/WHATSAPP_IMPLEMENTATION.md](archive/WHATSAPP_IMPLEMENTATION.md). The
-  decision and what is still open now live in [HANDOVER.md](HANDOVER.md#whatsapp-what-was-decided-and-what-is-still-open).
+  decision now lives in [HANDOVER.md](HANDOVER.md#telegram-the-phone-channel-and-why-not-whatsapp).
 
 Checked 17 September 2026, before deciding anything: **nothing is exposed today, and there was
 nothing to remove.** `vercel env ls` on the linked project returns "No Environment Variables
@@ -372,7 +376,7 @@ That does not close the item, it only dates it. The endpoint is still a send-to-
 moment a credential is added, and it is published at `github.com/ahaythorpe/advice-monitor` for
 anyone to read. The fix is still A or B above, and it should land before Twilio is ever
 configured, not after. The two commands to re-check this, and the masked shape of where the
-credentials belong, are in [SETUP.md Part 5](SETUP.md#part-5--whatsapp-via-a-twilio-trial).
+credentials belong, were in SETUP.md Part 5, now [archive/WHATSAPP_TWILIO_RETIRED.md](archive/WHATSAPP_TWILIO_RETIRED.md).
 
 Closed, 17 September 2026. The endpoint took option A — it reads `WHATSAPP_TO` from the server
 environment and ignores the request's recipient — and the dashboard's recipient box is gone rather
@@ -389,7 +393,8 @@ the parity tests item 12 asks for.
 Left open, checked against the code on 23 September 2026 — none of it blocks use, all of it is in
 the web route: `perFlagLimit` is not clamped, a Twilio refusal is reported as a bare HTTP status
 rather than translated the way the command line does it, and a partial send does not say how many
-parts arrived. Listed in [HANDOVER.md](HANDOVER.md#whatsapp-what-was-decided-and-what-is-still-open).
+parts arrived. Not fixed on the WhatsApp route — it was removed on 23 September 2026 — but all
+three are fixed in the Telegram route that replaced it (item 15).
 
 
 
@@ -552,3 +557,36 @@ read oddly. The title and the link are correct, and an ACT item is read at its s
 
 `legislation.gov.au` was not added — it serves HTML, not a feed. Nothing to configure.
 
+
+
+## 15. Telegram replaces WhatsApp as the phone channel
+
+Decided 23 September 2026 by the owner. **Why:** the Telegram Bot API is free for good — no
+trial, no balance, no per-message charge, no card — while every WhatsApp route ends up costing
+money: Twilio's trial credit runs out and then each message is a few cents, and Meta's own
+WhatsApp Business route needs business verification and bills per conversation. WhatsApp also
+refuses a message unless you have messaged it in the last 24 hours, which a weekly digest always
+trips over. A free tool should not depend on a balance.
+
+Built, 23 September 2026:
+
+- `src/telegram_sender.py` and `python src/monitor.py --telegram [--from-digest]`. Sends only to
+  `TELEGRAM_CHAT_ID` — your own chat with your own bot, **@advicemonitor_bot** — and previews
+  without settings. `find_chat_id` finds the chat ID after you press Start on the bot.
+- The dashboard's WhatsApp section became **Send this digest to Telegram**
+  (`POST /api/telegram/send`, `web/lib/telegram.ts`). Same safety rule as item 10: the recipient
+  comes from the server environment, never the request. The three gaps item 10 left open on the
+  web route are closed here — the per-flag limit is clamped, Telegram's refusal is put into plain
+  words, and a failure part-way says how many parts had arrived. `/api/status` reports Telegram
+  as live only when both the token and the chat ID are present.
+- Tests on both sides: `tests/test_telegram.py`, `web/lib/telegram.test.ts`.
+- Docs: [SETUP.md Part 5](SETUP.md#part-5--telegram--free) is now the Telegram setup; the old
+  Twilio page is [archive/WHATSAPP_TWILIO_RETIRED.md](archive/WHATSAPP_TWILIO_RETIRED.md).
+
+Retired, not deleted: `src/whatsapp_sender.py` and `--whatsapp` still work and are still tested,
+but are optional and not recommended. The dashboard's WhatsApp button, route, formatter and their
+tests were removed.
+
+Still open: the Monday run sends email only. Whether it also sends to Telegram is the owner's to
+decide in `scripts/weekly-run.sh`. For the dashboard button to send rather than preview, the two
+`TELEGRAM_` values also have to go in `web/.env.local` — never in Vercel.

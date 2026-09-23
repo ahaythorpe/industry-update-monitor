@@ -71,6 +71,11 @@ The link is the safety net.
   for the chat answers, and only when needed.
 - **Short output.** Output tokens cost ~5x input, so force one-line summaries.
 - **No agentic loops.** No feature should re-read or re-call in a loop dozens of times per run.
+- **Free delivery only, and only to you.** The digest reaches you by email (your own Gmail) or
+  Telegram (your own chat with your own bot) — both free, with no per-message charge. WhatsApp
+  was retired on 23 Sep 2026 for this reason: every WhatsApp route (Twilio, Meta) ends up
+  costing money. A sender never takes its recipient from a request, never retries in a loop,
+  and its credentials never go into Vercel.
 
 Order-of-magnitude at personal scale: a few dollars a YEAR. Verify current pricing before you
 turn AI on.
@@ -98,6 +103,7 @@ Why each clause matters:
 - Personal scale is very different from distribution — at any scale beyond yourself, YOU become
   responsible for how it handles the paywall boundary. Keep it personal until you're sure.
 - Don't ship it with your API key in it. Each user brings their own prepaid-capped key.
+- The same for the Telegram bot token and chat ID: each person makes their own bot.
 
 ## F. Source-integrity safeguards
 

@@ -13,7 +13,7 @@ Work down the page and stop whenever you have enough.
 | [Part 2 — Ollama (local model)](#part-2--ollama-summaries-from-a-model-on-this-laptop) | Summaries written on this laptop | Free, no accounts | Running, in the Monday run |
 | [Part 3 — Email digest](#part-3--the-email-digest) | The week's digest in your inbox | Free | Needs a Gmail app password |
 | [Part 4 — Gmail newsletter intake](#part-4--the-gmail-newsletter-intake) | Four email-only sources join the digest | Free — decline the card | **Not connected** |
-| [Part 5 — WhatsApp (Twilio trial)](#part-5--whatsapp-via-a-twilio-trial) | The digest on your phone | Free trial credit only | Not set up |
+| [Part 5 — Telegram](#part-5--telegram--free) | The digest on your phone | Free, no accounts to pay | Set up on the command line; dashboard needs `web/.env.local` |
 
 Also on this page: [what it all costs and how to stop it costing](#what-it-costs-and-how-to-stop-it-costing),
 [the dashboard on a Vercel link](#the-dashboard-on-a-vercel-link),
@@ -33,18 +33,18 @@ yourself before relying on any figure here — they change.
 | **Ollama** | Summaries on this laptop | Nothing — disk, memory and a warm laptop | Nothing to do; there is no account |
 | **Gmail app password (SMTP)** | Emailed digest | Free | Nothing to do; revoke it any time |
 | **Gmail API** | Reads newsletters from one label | Free | **Decline every offer of a free trial or card.** If a step insists on billing, stop |
-| **Twilio** | WhatsApp digest | Free trial credit, then a few cents a message | **Never upgrade, never buy a number, never put the credentials in Vercel** |
+| **Telegram** | The digest on your phone | Free — no trial, no per-message charge | Nothing to do; never put the token in Vercel |
+| **Twilio** | Retired WhatsApp route (23 Sep 2026) — not recommended | Trial credit, then a few cents a message | Don't sign up. If you did: never upgrade, never buy a number |
 | **An AI web tool** (Claude, ChatGPT) | Summaries pasted by hand | The subscription you already have | No API key, ever |
-| **Vercel** | Hosts the dashboard on a link | Free Hobby tier | Deploy by hand only; no Twilio values in it |
+| **Vercel** | Hosts the dashboard on a link | Free Hobby tier | Deploy by hand only; no credentials in it |
 | **Supabase** | Nothing — removed 17 Sep 2026 | — | — |
 
 What to avoid:
 
 | Tempting | Why not |
 |---|---|
-| Upgrading Twilio "to be safe" | It is the opposite of safe — upgrading is what makes charges possible |
-| Buying a Twilio phone number | Recurring monthly cost, and the sandbox does not need one |
-| Putting Twilio credentials in Vercel | The send endpoint has no login and no rate limit; see [Part 5](#3-keep-the-credentials-on-your-own-machine-never-in-vercel) |
+| WhatsApp (Twilio or Meta) for the phone digest | Every WhatsApp route costs money in the end; Telegram does the same job free ([Part 5](#part-5--telegram--free)) |
+| Putting the Telegram token in Vercel | The send endpoint has no login and no rate limit; see [Part 5, the dashboard button](#the-dashboard-button) |
 | An Anthropic/OpenAI API key | Not needed — Ollama or your existing subscription does the summarising for free |
 | A paid news subscription | [paid_later/PAID_CONSIDER_LATER.md](paid_later/PAID_CONSIDER_LATER.md): pay for a gap you actually hit, not in advance |
 | Anything that fetches article bodies | [SAFEGUARDS.md](SAFEGUARDS.md) section A — the paywall boundary is the one rule with no exceptions |
@@ -53,8 +53,7 @@ Check what your machine can actually do at any time — neither command sends or
 charges anything:
 
 ```bash
-python src/monitor.py --whatsapp --whatsapp-to +61400000000   # prints, does not send
-curl -s localhost:3000/api/status                             # what the dashboard server can do
+curl -s localhost:3000/api/status   # what the dashboard server can do
 ```
 
 `/api/status` reports what is really configured rather than showing switches
@@ -136,7 +135,7 @@ dashboard re-reads it on every request, so a browser refresh is enough.
 **Running locally is the private setup.** The dev server listens on your own
 machine only; nothing is reachable from the internet, so credentials on this
 laptop are not exposed by having a dashboard. That is why the local dashboard
-can be *more* capable than a deployed one — it can send WhatsApp (Part 5), and
+can be *more* capable than a deployed one — it can send to Telegram (Part 5), and
 a deployed one deliberately cannot.
 
 ### Summaries by hand (optional, no setup)
@@ -162,8 +161,9 @@ Installed 17 September 2026: a `launchd` agent runs **Monday at 07:00**. It
 refreshes the digest, the sweep sheet and the briefing, then — if Ollama is
 running — writes the summaries (Part 2). Once the
 summaries exist it emails the newsletter **to your own address only**
-(`--email --from-digest`; chosen 23 Sep 2026). It never passes `--whatsapp` or
-`--gmail`, and never emails anyone else.
+(`--email --from-digest`) and to your own Telegram chat (`--telegram
+--from-digest`), chosen 23 Sep 2026. It never passes `--whatsapp` or `--gmail`,
+and never sends to anyone else.
 
 - **The file:** `~/Library/LaunchAgents/com.advice-monitor.weekly.plist`,
   copied from `scripts/com.advice-monitor.weekly.plist`. What it runs:
@@ -268,7 +268,7 @@ week**; the laptop will be warm and loud meanwhile. Limits built in:
 
 The model's raw reply is kept at `output/ollama-reply.md` — **read it.**
 Summaries are labelled "Summarised by a local model (qwen3:8b)" everywhere they
-appear — dashboard, email, WhatsApp — never as this tool's own work.
+appear — dashboard, email, Telegram — never as this tool's own work.
 
 ### In the Monday run
 
@@ -325,10 +325,8 @@ keeps its source link. Proof-read it first without sending anything:
 `python src/monitor.py --preview` writes `output/digest_preview.html`, or open
 `/api/email/preview` on the dashboard.
 
-**Why email is the better default than WhatsApp for a weekly digest:** no
-24-hour window, no 72-hour re-join, no balance to run down, no trial to expire.
-WhatsApp is nicer to read on a phone; email is the one still working in six
-months without you thinking about it. Running both is reasonable.
+**Email or Telegram?** Both are free. The Monday run sends both by itself;
+Telegram (Part 5) is nicer to read on a phone.
 
 ### What it needs
 
@@ -545,212 +543,118 @@ link rather than pretending it is a public article.
 
 ---
 
-## Part 5 — WhatsApp via a Twilio trial
+## Part 5 — Telegram — free
 
-**Free trial credit only, about 15 minutes. Not set up.** The digest can arrive
-on your phone as a WhatsApp message. This Part gets you there on free trial
-credit only, and keeps it that way.
+**Free, about 10 minutes. Set up on this laptop's command line 23 Sep 2026.**
+The digest arrives on your phone as a Telegram message from your own bot,
+**@advicemonitor_bot** ("Advice-Monitor"). Telegram's bot service costs nothing:
+no trial, no balance, no per-message charge, no card.
 
-Before anything else: **email (Part 3) does the same job with none of these
-limits.** WhatsApp is nicer to read on a phone.
+**Why not WhatsApp?** Every WhatsApp route costs money in the end. Twilio gives
+trial credit, then charges a few cents a message; Meta's own route needs
+business verification and bills per conversation. WhatsApp also refuses a
+message unless you have messaged it in the last 24 hours. Telegram has none of
+that, so it replaced WhatsApp on 23 September 2026. The old WhatsApp setup is in
+[archive/WHATSAPP_TWILIO_RETIRED.md](archive/WHATSAPP_TWILIO_RETIRED.md) — not
+recommended.
 
-### First: see it for free, before signing up for anything
+### First: see it for free, before setting anything up
 
-With no credentials at all, the tool prints the exact messages it would send:
-
-```bash
-python src/monitor.py --whatsapp --whatsapp-to +61400000000 --per-flag 2
-```
-
-Nothing is sent, nothing is charged, no account exists yet. Proof-read the
-formatting. If you do not like it, you have lost nothing. The dashboard's
-WhatsApp button does the same — it shows a preview until Twilio is configured.
-
-### The three rules that make charges impossible
-
-Follow these and Twilio has no mechanism to bill you.
-
-#### 1. Stay on the trial account. Never click "Upgrade"
-
-A trial account has **no card on file**. There is nothing to charge. When the
-trial credit runs out, sends fail — they do not bill. Upgrading is the single
-action that makes a charge possible, and nothing here needs it.
-
-#### 2. Never buy a phone number
-
-This is how people get a surprise recurring bill: a number is rented monthly
-whether you use it or not.
-
-**The WhatsApp sandbox does not need one.** You use Twilio's shared sandbox
-number. If you find yourself on a "Buy a number" screen, you have taken a wrong
-turn — back out.
-
-#### 3. Keep the credentials on your own machine, never in Vercel
-
-They go in two git-ignored files on this laptop (see Step 5 below), never in
-Vercel, never in a commit, never in a message.
-
-> **Do not add Twilio variables to the Vercel project.** Since 17 September 2026
-> the dashboard's send endpoint reads the recipient from `WHATSAPP_TO` and
-> **ignores any recipient in the request**, so it cannot be aimed at a stranger's
-> phone. It still has **no login and no rate limit**, though, so with
-> credentials attached to a public link anyone who found it could trigger
-> repeated sends — to your phone, on your balance. Locally that is fine: the dev
-> server listens on your machine only. Without those variables the deployed
-> dashboard stays in preview mode: it composes the message and shows it instead
-> of sending. That is the intended state, not a fault to fix.
-
-It becomes a real problem only if **both** happen: Twilio values are added to
-Vercel, **and** Vercel's login protection is turned off to make the dashboard
-public.
-
-**Checked on 17 September 2026: the Vercel project has no environment variables
-at all**, so the deployed dashboard is in preview mode and cannot send. The
-public repo's whole history was also scanned — no `.env`, no credentials file,
-no hardcoded token; every Twilio reference in the code is `process.env.NAME`, a
-name and never a value. Nothing was exposed. This section is about keeping it
-that way.
-
-Note that `github.com/ahaythorpe/advice-monitor` **is public**, and the send
-endpoint (`app/api/whatsapp/send/route.ts`) is in it. The code being public is
-not the problem — the credentials would be.
-
-**Checking it yourself** — two commands, neither of which prints a secret:
+With nothing set up, the tool prints the exact messages it would send:
 
 ```bash
-cd web && vercel env ls          # expect: "No Environment Variables found"
-grep -rn "TWILIO" .env.example   # placeholders only, never real values
+python src/monitor.py --telegram --from-digest
 ```
 
-If `vercel env ls` ever lists `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN` or
-`TWILIO_WHATSAPP_NUMBER`, remove them with `vercel env rm <NAME>` **before**
-doing anything else, then treat the token as compromised and rotate it in the
-Twilio console. An auth token that has sat on a public send endpoint is not made
-safe by deleting it afterwards.
+Nothing is sent. The dashboard's **Send this digest to Telegram** button does
+the same — it shows the message until it is set up.
 
-### Two more safety nets
+### Setup
 
-- **Set a balance alert.** Twilio Console → Billing → Alerts. It tells you
-  before the credit is gone rather than after.
-- **If you ever do upgrade, turn auto-recharge OFF.** Console → Billing. Auto
-  recharge tops your balance up from a card automatically; off means the balance
-  simply runs out. (Better: don't upgrade.)
-
-Nothing sends on a schedule: the Monday run never passes `--whatsapp`. A message
-goes only when you type `python src/monitor.py --whatsapp` or press **Send** on
-your local dashboard.
-
-### Setup, about 15 minutes
-
-1. **Sign up** at [twilio.com/try-twilio](https://www.twilio.com/try-twilio).
-   Free, comes with trial credit, no card needed. **Do not upgrade.**
-2. **Open the sandbox**: Console → Messaging → Try it out → Send a WhatsApp
-   message. It shows a sandbox number (often `+1 415 523 8886`) and a join
-   phrase like `join russet-panther`.
-3. **Join from your own phone**: WhatsApp that exact phrase to that number. You
-   will get a confirmation back. *Your phone must be the one you want the digest
-   on.*
-4. **Copy two values** from the Console home page: the **Account SID** (starts
-   `AC`) and the **Auth Token**.
-5. **Put the same four values in BOTH files** — this is the part that catches
-   people:
+1. **Install Telegram** on your phone (App Store or Google Play) and sign up
+   with your phone number. Free.
+2. **Make your bot.** In Telegram, search for **@BotFather** (the official one,
+   with the blue tick) and send it `/newbot`. When it asks for a name, type
+   **Advice Monitor**. When it asks for a username, give one ending in `bot`
+   (this one is `advicemonitor_bot`). BotFather replies with a **token** — a long
+   line like `1234567890:AA…`. **Treat it as a password.**
+3. **Paste the token into `.env`.** In Finder, open the project folder, press
+   **Cmd+Shift+.** to show hidden files, and open `.env` with **TextEdit**. Add
+   one line, with your token after the `=` and no spaces:
 
    ```bash
-   cp .env.example .env                        # the Python side (repo root)
-   cp web/.env.local.example web/.env.local    # the dashboard side
+   TELEGRAM_BOT_TOKEN=••••••••••:•••••••••••••••••••••••••••••••••••
    ```
 
-   The command line reads `.env`. The dashboard reads **`web/.env.local`** and
-   does **not** read the root `.env`. Fill in only `.env` and the command line
-   sends while the dashboard button stays on "Preview message" with nothing
-   telling you why. Both files are git-ignored. The shape, every value masked:
+   Save and close. (`.env` is git-ignored — it never leaves this laptop.)
+4. **Press Start on your bot.** In Telegram, search for your bot's username,
+   open it and press **Start**. A bot cannot message you until you have
+   messaged it first; this is how Telegram stops bots spamming people.
+5. **Add your chat ID.** It is a number that says "this chat", and the tool
+   finds it for you from the Start you just pressed. The easy way: **ask
+   Claude** to "find my Telegram chat ID and add it to .env". Or run this short
+   command yourself — it prints the number and sends nothing:
 
    ```bash
-   TWILIO_ACCOUNT_SID=AC••••••••••••••••••••••••••••••••   # 34 chars, starts AC
-   TWILIO_AUTH_TOKEN=••••••••••••••••••••••••••••••••      # 32 chars — treat as a password
-   TWILIO_WHATSAPP_NUMBER=+1415•••••••                     # the shared sandbox number
-   WHATSAPP_TO=+614••••••••                                # your own phone, +61 form
+   python -c "from dotenv import load_dotenv; load_dotenv(); import os; from src.telegram_sender import find_chat_id; print(find_chat_id(os.environ['TELEGRAM_BOT_TOKEN']))"
    ```
 
-   (If you already have a `.env`, don't copy over it — add the four lines.)
-
-6. **Send one**:
+   Add it to `.env` the same way as the token: `TELEGRAM_CHAT_ID=` then the
+   number. If it prints `None`, press Start (or send the bot "hi") and run it
+   again.
+6. **Send one:**
 
    ```bash
-   python src/monitor.py --whatsapp --per-flag 2
+   python src/monitor.py --telegram --from-digest
    ```
 
-   `--per-flag 2` keeps the first real send to one message.
+   `--from-digest` sends the digest you already have, summaries included,
+   instead of fetching the news again.
 
-**The auth token is a password in every sense:** it is shown once, it grants
-spending on your account, and anyone holding it can send as you. If it is ever
-pasted anywhere shared — a chat, a screenshot, an issue — rotate it in the
-Twilio console rather than hoping.
+**It sends to one chat only** — `TELEGRAM_CHAT_ID`, your own chat with your own
+bot. Nothing in the code takes a recipient from anywhere else, so it cannot be
+pointed at another person.
 
-**The dashboard sends to one number only** — `WHATSAPP_TO`, your own phone. The
-endpoint ignores any recipient in the request, and there is deliberately no
-recipient box on the page.
+**If the token is ever pasted anywhere shared** — a chat, a screenshot, an
+issue — send `/revoke` to BotFather to get a new one and put the new one in
+`.env`. Anyone holding the old token could post as your bot (to chats that have
+pressed Start on it) but could not charge you anything, because there is
+nothing to charge.
 
-### The 72-hour catch — the thing that will actually annoy you
+### The dashboard button
 
-WhatsApp only allows a freeform message **within 24 hours of that phone
-messaging you**, and a sandbox join lapses after **72 hours**. A weekly digest
-is therefore refused unless you message the sandbox number again first.
+The dashboard reads **`web/.env.local`**, not the root `.env` — a Next.js rule.
+To make its button send rather than preview, put the same two lines there too:
 
-So the weekly habit is: **WhatsApp anything to the sandbox number, then run the
-digest.** One message, then the command.
-
-If you forget, the command line tells you exactly that rather than printing
-Twilio's raw error:
-
-```
-❌ WhatsApp part 1 not sent. The 24-hour window has closed. WhatsApp only allows
-   a freeform message within 24 hours of the recipient messaging you.
-   Fix: send any message to the sandbox number from that phone, then re-run.
-   On the sandbox you have to do this every 72 hours.
+```bash
+cp web/.env.local.example web/.env.local   # then add the two TELEGRAM_ lines
 ```
 
-(The dashboard button is less helpful — it says only `Twilio rejected the
-message (HTTP …)`. Assume the window closed and message the sandbox first.)
+**Never put these values in Vercel.** The send endpoint has no login; on your
+own laptop that is fine, because the dev server is reachable from your machine
+only. Without them the deployed dashboard shows the message instead of sending,
+which is the intended state.
 
-The paid way around it is an approved WhatsApp message template, which needs a
-WhatsApp Business sender and Meta business verification. That is real setup and
-real money for a personal project — **not recommended**.
+### What it costs
 
-### What a send actually costs
+Nothing. Telegram does not charge for bots or bot messages. A digest is usually
+one to three messages; Telegram's limit is 4,096 characters each, and the tool
+splits between articles, never through one, numbering the parts "(1 of 3)".
 
-| | |
+### If Telegram refuses, in plain words
+
+| What it says | What to do |
 |---|---|
-| Messages per run | 1–3 (`--per-flag 2` gives 1; the default 6 gives 3) |
-| Cost each | a few cents — check Twilio's current WhatsApp pricing |
-| Trial credit | Twilio has offered around US$15–25; check what you actually get |
-| Monthly, sending weekly | cents, against trial credit |
-| Recurring fees | **none**, as long as you never buy a number |
-
-When the trial credit runs out, sends stop. They do not bill.
-
-### Other errors, in plain words
-
-Every Twilio rejection on the command line is translated
-(`explain_twilio_error` in `src/whatsapp_sender.py`):
-
-| What happened | What to do |
-|---|---|
-| The 24-hour window closed | Message the sandbox from your phone, re-run |
-| The recipient has not joined, or the join lapsed | Re-send `join <your-phrase>` from that phone |
-| Twilio could not reach the recipient | Check `WHATSAPP_TO` is full international form, `+61412345678` |
-| No WhatsApp sender for that number | `TWILIO_WHATSAPP_NUMBER` must be the sandbox number exactly |
-| From and To are not both WhatsApp | You have used an SMS number by mistake |
-| Credentials refused | Re-copy the SID (starts `AC`) and Auth Token |
-
-An unrecognised code still reports Twilio's own message — nothing is hidden by
-not being on this list.
+| The bot token was not recognised | Copy the token from BotFather again into `TELEGRAM_BOT_TOKEN` |
+| Chat not found | Open the bot, press Start, find the chat ID again (Step 5) |
+| The bot was blocked | Unblock it in Telegram and press Start |
+| Too many requests | Wait a minute and try again |
 
 ### Turning it off
 
-Delete the four lines from `.env` **and** `web/.env.local`. That is the whole
-procedure: no account to close, no subscription to cancel, nothing left
-running. `--whatsapp` and the dashboard button go back to showing a preview.
+Delete the two `TELEGRAM_` lines from `.env` (and `web/.env.local` if you added
+them). `--telegram` and the dashboard button go back to showing a preview. To
+remove the bot entirely, send `/deletebot` to BotFather.
 
 ---
 
@@ -770,11 +674,10 @@ Nothing builds unless you run that. Two things to know:
   Redeploy to update it.
 - **Deployments sit behind Vercel's login protection** by default, so the link
   only opens for you. Turning that off makes it public to anyone with the URL —
-  read [Part 5, rule 3](#3-keep-the-credentials-on-your-own-machine-never-in-vercel)
-  before you do.
+  read [Part 5, the dashboard button](#the-dashboard-button) before you do.
 
-The deployed dashboard has no credentials, so it previews WhatsApp and cannot
-send. That is intended.
+The deployed dashboard has no credentials, so it previews the Telegram message
+and cannot send. That is intended.
 
 ---
 
@@ -820,8 +723,8 @@ Point VS Code at the virtual environment so tests and imports resolve:
 | `SUMMARIES SKIPPED` in the Monday log | Ollama was not running at 07:00. Run `python src/monitor.py --ollama` now. |
 | Email refused | See [Part 3, If the email is refused](#if-the-email-is-refused). |
 | `Gmail is not set up: no credentials.json` | Expected until Part 4 is done. Drop `--gmail`. |
-| WhatsApp send refused | The command line says which Twilio code and what to do. Usually: message the sandbox number from your phone again. |
-| Dashboard WhatsApp button only previews | The Twilio values are missing from `web/.env.local` (Part 5, Step 5). |
+| Telegram send refused | The message says what to do — usually press Start on the bot again. See [Part 5](#if-telegram-refuses-in-plain-words). |
+| Dashboard Telegram button only previews | The two `TELEGRAM_` lines are missing from `web/.env.local` ([Part 5, the dashboard button](#the-dashboard-button)). |
 
 ---
 

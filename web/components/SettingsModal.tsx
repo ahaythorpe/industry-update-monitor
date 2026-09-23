@@ -99,26 +99,36 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
           </div>
 
-          {/* WhatsApp Digest */}
+          {/* Telegram Digest */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-white">📱 WhatsApp Digest Setup</h3>
+            <h3 className="mb-4 text-lg font-semibold text-white">✈️ Telegram Digest Setup</h3>
             <div className="space-y-3 rounded-2xl border border-slate-700 bg-slate-800/50 p-5">
               <p className="text-sm text-slate-300">
-                Get instant digests on WhatsApp. Already available on the dashboard.
+                The digest on your phone, free. It goes only to your own chat with your own bot. Chosen over WhatsApp
+                because every WhatsApp route (Twilio, Meta) ends up costing money; Telegram&apos;s bot service does not.
               </p>
+              <ol className="ml-4 space-y-1 text-sm text-slate-300">
+                <li>1. Make a bot with BotFather and put its token in <code>.env</code> (SETUP.md Part 5)</li>
+                <li>2. Press Start on the bot in Telegram</li>
+                <li>
+                  3. Send it: <code>python src/monitor.py --telegram --from-digest</code>
+                </li>
+              </ol>
               <div className="flex gap-2">
                 <button
                   onClick={() => {
                     onClose()
-                    document.getElementById('whatsapp-scroll')?.scrollIntoView({ behavior: 'smooth' })
+                    document.getElementById('telegram-scroll')?.scrollIntoView({ behavior: 'smooth' })
                   }}
-                  className="flex-1 rounded-lg bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700"
+                  className="flex-1 rounded-lg bg-sky-600 px-4 py-2 font-medium text-white hover:bg-sky-700"
                 >
-                  Go to WhatsApp Sender
+                  Go to Telegram Sender
                 </button>
               </div>
               <p className="text-xs text-slate-400">
-                ℹ️ Works in demo mode (shows preview) or with Twilio credentials configured
+                ℹ️ Without a bot token and chat ID the button shows the exact message instead of sending. The dashboard
+                reads <code>web/.env.local</code>, not the root <code>.env</code>. 🔒 Both are git-ignored; never put
+                these in Vercel.
               </p>
             </div>
           </div>
@@ -130,7 +140,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
               <p className="text-sm text-slate-300">
                 The digest refreshes itself every Monday at 7am on your Mac (see
                 <code> output/weekly-run.log</code>). Once the summaries are written it emails the newsletter to you — your own
-                address only. It never sends WhatsApp on its own.
+                address only. It never sends to Telegram on its own.
               </p>
             </div>
           </div>

@@ -2,8 +2,9 @@
 # Weekly unattended run, started by launchd. See IMPROVEMENTS.md item 6.
 #
 # It also runs --ollama afterwards, which stays on this machine, and then
-# emails the summarised newsletter to EMAIL_ADDRESS — your own address only,
-# chosen 23 Sep 2026. It never passes --whatsapp or --gmail, and never emails
+# emails the summarised newsletter to EMAIL_ADDRESS and sends it to your own
+# Telegram chat (TELEGRAM_CHAT_ID) — chosen 23 Sep 2026. It never passes
+# --whatsapp or --gmail, and never emails
 # anyone else: the recipient is always the account it sends from.
 
 set -uo pipefail
@@ -60,6 +61,14 @@ if [ $STATUS -eq 0 ] && [ "$COUNT" != "0" ]; then
       else
         echo "$STAMP  EMAIL NOT SENT — last lines:" >>"$LOG"
         echo "$MAIL" | tail -3 | sed 's/^/    /' >>"$LOG"
+      fi
+      # And to your own Telegram chat (TELEGRAM_CHAT_ID only). Skipped
+      # quietly in the log if Telegram is not set up.
+      if TG="$(.venv/bin/python src/monitor.py --telegram --from-digest 2>&1)" && echo "$TG" | grep -q "✅"; then
+        echo "$STAMP  ok — newsletter sent to Telegram" >>"$LOG"
+      else
+        echo "$STAMP  TELEGRAM NOT SENT — last lines:" >>"$LOG"
+        echo "$TG" | tail -2 | sed 's/^/    /' >>"$LOG"
       fi
     else
       echo "$STAMP  SUMMARIES FAILED — digest is fine, summaries not written. Last lines:" >>"$LOG"

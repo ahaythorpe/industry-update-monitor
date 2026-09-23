@@ -45,7 +45,8 @@ network is a test that will be deleted by the next person.
 |---|---|
 | `src/monitor.py` | Everything on the Python side: source gate, fetch, classify, link check, dedupe, digest JSON, briefing, sweep sheet, glossary, `--ollama`, `--import-summaries`, CLI |
 | `src/email_sender.py` | HTML email via SMTP. Password from env, else the macOS Keychain (`_keychain_password`, service `advice-monitor-email`) |
-| `src/whatsapp_sender.py` | WhatsApp formatting, 1600-char splitting, Twilio send, `explain_twilio_error` |
+| `src/telegram_sender.py` | Telegram formatting (HTML parse mode, 3900-char splitting between articles), `send_telegram_digest` to `TELEGRAM_CHAT_ID` only, `find_chat_id` |
+| `src/whatsapp_sender.py` | **Retired 23 Sep 2026**, kept working: WhatsApp formatting, 1600-char splitting, Twilio send, `explain_twilio_error`. Not recommended — see [the Telegram section](#telegram-the-phone-channel-and-why-not-whatsapp) |
 | `src/gmail_reader.py` | Read-only Gmail: `gmail.readonly` scope, only the `industry-update-monitor` label |
 | `src/gmail_dry_run.py` | Local Gmail dry run |
 | `data/sources.json` | The source list, with probe notes for sources that have no feed |
@@ -53,8 +54,8 @@ network is a test that will be deleted by the next person.
 | `scripts/weekly-run.sh`, `scripts/com.advice-monitor.weekly.plist` | The Monday 07:00 `launchd` run |
 | `web/` | Next.js 16 dashboard. Reads `web/lib/digest.json`; no database |
 | `web/lib/briefing.ts`, `web/lib/bundle.ts`, `web/lib/zip.ts` | The download panel's files, byte-identical to the CLI's `--brief --group-by` |
-| `web/lib/whatsapp.ts` | Browser twin of `src/whatsapp_sender.py`'s formatter |
-| `web/app/api/*` | `GET /api/items` (`flag`, `source`, `query`, `exactness`, `limit`), `POST /api/search`, `GET /api/status`, `/api/email/preview`, `POST /api/whatsapp/send` |
+| `web/lib/telegram.ts` | Browser twin of `src/telegram_sender.py`'s formatter, plus `clampPerFlag` and `explainTelegramError` |
+| `web/app/api/*` | `GET /api/items` (`flag`, `source`, `query`, `exactness`, `limit`), `POST /api/search`, `GET /api/status`, `/api/email/preview`, `POST /api/telegram/send` |
 | `tests/` | pytest, all offline |
 | `archive/` | Superseded plans and setup pages — history only; see [archive/README.md](archive/README.md) |
 
@@ -63,8 +64,8 @@ network is a test that will be deleted by the next person.
 different, **public** repo holding only an older copy of the `web/` dashboard
 with unrelated history. **Never push this repo there**; it would overwrite a
 public site. Dashboard deploys are Vercel previews, made by hand from `web/`
-(`cd web && npx vercel deploy`). The Vercel project must hold no Twilio values —
-see [SETUP.md Part 5](SETUP.md#3-keep-the-credentials-on-your-own-machine-never-in-vercel).
+(`cd web && npx vercel deploy`). The Vercel project must hold no credentials — no `TELEGRAM_*`
+(and no retired `TWILIO_*`) — see [SETUP.md Part 5](SETUP.md#the-dashboard-button).
 Never commit `.env`, `web/.env.local`, `credentials.json` or `token.json`; all
 are git-ignored, and `git log --all` showed none ever committed (17 Sep 2026).
 
@@ -83,9 +84,11 @@ are git-ignored, and `git log --all` showed none ever committed (17 Sep 2026).
 | `--sources` | off | Print the source list first |
 | `--preview` | off | Write `output/digest_preview.html` (the email body) |
 | `--email` | off | Email the digest to `EMAIL_ADDRESS` |
-| `--whatsapp` | off | WhatsApp the digest; prints a preview with no Twilio credentials |
-| `--whatsapp-to` | `$WHATSAPP_TO` | Recipient for the CLI send |
-| `--per-flag` | 6 | Max items per flag in the WhatsApp newsletter |
+| `--telegram` | off | Send the digest to your own Telegram chat (`TELEGRAM_CHAT_ID`); prints a preview when not set up |
+| `--from-digest` | off | Send the saved digest (summaries included) instead of fetching again |
+| `--per-flag` | 6 | Max items per flag in the Telegram (or WhatsApp) newsletter |
+| `--whatsapp` | off | **Retired, not recommended.** WhatsApp via Twilio; prints a preview with no Twilio credentials |
+| `--whatsapp-to` | `$WHATSAPP_TO` | Recipient for the retired `--whatsapp` send |
 | `--gmail` | off | Also read newsletters from the Gmail label (read-only, opt-in) |
 | `--gmail-label` | `industry-update-monitor` | Exists, but `gmail_reader.read_label` refuses any other name |
 | `--gmail-max` | 25 | Maximum newsletters to read |
@@ -136,7 +139,7 @@ Built. The manual round trip (`--brief` → paste → reply →
 into the middle of it, not a separate feature. Summaries are stored in the
 digest with `ai_source` (`manual` or `ollama:<model>`), survive the next
 `--json` run (`attach_saved_summaries`), and are labelled through one
-`summary_origin` on every route — dashboard, email, WhatsApp, and the
+`summary_origin` on every route — dashboard, email, Telegram, and the
 "Finished summaries" download.
 
 Constraints anyone changing `--ollama` must keep:
@@ -168,51 +171,54 @@ teaser did not contain.
 
 ---
 
-## WhatsApp: what was decided, and what is still open
+## Telegram: the phone channel, and why not WhatsApp
 
-Sending works from the command line and from the local dashboard, and the
-formatting is tested on both sides (`tests/test_whatsapp_errors.py`,
-`web/lib/whatsapp.test.ts`). With no credentials, both sides return the exact
-message bodies instead of sending — that is the mode the project is designed
-to be usable in, and it must keep working.
+**Decided 23 Sep 2026 by the owner:** the phone channel is Telegram, because
+the Telegram Bot API is free for good — no trial, no balance, no per-message
+charge — and every WhatsApp route (Twilio's sandbox, Meta's Business API) ends
+up costing money. The bot is **@advicemonitor_bot** ("Advice-Monitor").
 
-**The send endpoint decision (17 Sep 2026).** `POST /api/whatsapp/send` used to
-take the recipient from the request body with no authentication and no rate
-limit — a send-to-anyone API for whoever found the URL. Four fixes were
-weighed:
+Built on both sides and tested on both (`tests/test_telegram.py`,
+`web/lib/telegram.test.ts`): `python src/monitor.py --telegram [--from-digest]`,
+and the dashboard's **Send this digest to Telegram** section
+(`POST /api/telegram/send`). HTML parse mode; all publisher text escaped;
+split between articles under 3900 characters, parts numbered "(1 of 3)";
+summaries labelled through `summaryOrigin` / `summary_origin`. Keep the two
+formatters in step — the WhatsApp pair drifted once (IMPROVEMENTS item 4).
+With no credentials both sides return the exact messages instead of sending,
+and `/api/status` reports `telegram.configured` false (a token with no chat ID
+is reported as half-done, not live).
 
-- **A. Send only to `WHATSAPP_TO`, ignore the body.** Chosen. At worst a
-  stranger can send the digest to the owner's own phone. The dashboard's
-  recipient box was removed rather than left decorative.
-- B. Command-line sending only; delete the route's send path. Honest if nobody
-  wants browser sending.
-- C. A shared-secret header. Rejected: the secret would have to live in the
-  browser, so it is not secret.
-- D. Real authentication. Out of proportion, and it drags in the database
-  question [IMPROVEMENTS.md](IMPROVEMENTS.md) item 7 settled the other way.
+**The send endpoint keeps the 17 Sep 2026 decision (option A).** It sends only
+to `TELEGRAM_CHAT_ID` from the server environment and ignores any recipient in
+the request body; there is no recipient box. The alternatives weighed then —
+B, command-line only; C, a shared-secret header (rejected: the secret would
+live in the browser); D, real authentication (out of proportion, and it drags in the database
+question IMPROVEMENTS item 7 settled the other way) — are recorded in full in
+this file's git history before 23 Sep 2026. Do not reintroduce a body-supplied recipient without replacing
+that protection. The route has no auth and no rate limit, which is why
+`TELEGRAM_*` values must never be added to Vercel. The three web-route gaps the
+WhatsApp route had are closed in the Telegram one: `perFlagLimit` is clamped to
+1–50 (`clampPerFlag`), Telegram's error description is translated into plain
+words (`explainTelegramError`, Telegram's own text kept on the end), and a
+failure part-way says how many parts had already arrived.
 
-Do not reintroduce a body-supplied recipient without replacing that
-protection. The route still has no auth and no rate limit, which is why Twilio
-values must never be added to Vercel.
+Next.js reads `web/.env.local`, not the root `.env`, so the dashboard needs its
+own copy of the two values. The chat ID is found by `find_chat_id(token)` from
+`getUpdates` after the owner presses Start on the bot.
 
-**Still open** (none of it blocks use; all of it is web-route polish):
+Rules: **no retry loop**; never log the token (it is in the request URL, so the
+route logs only Telegram's description and scrubs the token from any error);
+the Monday run sends to Telegram after the email (`scripts/weekly-run.sh`),
+only to `TELEGRAM_CHAT_ID`, and logs a failure without retrying.
 
-- `perFlagLimit` is taken from the request body and only checked for being a
-  number. Clamp it to the range the CLI allows, so a large value cannot mean
-  more messages against trial credit.
-- The web route does not translate Twilio errors: it logs the detail and returns
-  `Twilio rejected the message (HTTP …)`. Port `explain_twilio_error`'s table, or
-  share it, so there is one list rather than two that drift.
-- **Partial sends.** A digest can be three messages; if part 2 fails, part 1 has
-  already arrived and been charged. The route should say how many parts went
-  and which failed.
-
-Rules: never buy a Twilio number and never upgrade the account (a trial has no
-card, so a failed send cannot become a charge). **No retry loop** — a retry
-against a messaging API is how a free trial becomes a bill. Keep the Python and
-TypeScript formatters in step. An unrecognised Twilio code must still surface
-Twilio's own message. The sandbox's 24-hour window and 72-hour join are facts to
-report, not to retry around; the Monday run never sends WhatsApp (it emails only the owner's own address).
+**WhatsApp is retired, not deleted.** `src/whatsapp_sender.py` and `--whatsapp`
+still work and `tests/test_whatsapp_errors.py` still covers them, but the
+dashboard's WhatsApp section, `/api/whatsapp/send`, `web/lib/whatsapp.ts` and
+its tests were removed. Its setup page is
+[archive/WHATSAPP_TWILIO_RETIRED.md](archive/WHATSAPP_TWILIO_RETIRED.md). If
+anyone does use it: never buy a Twilio number, never upgrade the account,
+no retry loop.
 
 ---
 

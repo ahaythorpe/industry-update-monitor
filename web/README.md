@@ -14,5 +14,5 @@ npm test                       # vitest
 ```
 
 The digest is read on every request, so re-running the monitor shows up on the
-next reload without a rebuild. Email, WhatsApp and AI stay off until they are
+next reload without a rebuild. Email, Telegram and AI stay off until they are
 configured; `/api/status` reports what this deployment can actually do.

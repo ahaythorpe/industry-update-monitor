@@ -13,7 +13,7 @@ Parts:
   4. collate_items()         -> dedupe, filter by age/confidence, prioritise
   5. check_links()           -> confirm every link in the digest resolves
   6. summarise_items()       -> plain-text digest with references
-  7. senders                 -> email_sender.py / whatsapp_sender.py
+  7. senders                 -> email_sender.py / telegram_sender.py (whatsapp_sender.py retired)
 
 Run:  python src/monitor.py
 Deps: pip install feedparser python-dotenv
@@ -1952,13 +1952,13 @@ if __name__ == "__main__":
     parser.add_argument("--telegram", action="store_true",
                         help="Send the digest to your own Telegram chat (previews if not set up)")
     parser.add_argument("--from-digest", action="store_true",
-                        help="Send (--email/--whatsapp/--preview) the saved digest, summaries included, instead of fetching again")
+                        help="Send (--email/--telegram/--preview) the saved digest, summaries included, instead of fetching again")
     parser.add_argument("--preview", action="store_true", help="Write a local HTML preview of the digest to output/digest_preview.html")
     parser.add_argument("--json", nargs="?", const="web/lib/digest.json", default=None,
                         help="Write the digest as JSON for the web dashboard (default: web/lib/digest.json)")
-    parser.add_argument("--whatsapp", action="store_true", help="Send the digest as a WhatsApp newsletter (previews if Twilio is unconfigured)")
+    parser.add_argument("--whatsapp", action="store_true", help="Retired, not recommended: send as a WhatsApp newsletter via Twilio (previews if unconfigured)")
     parser.add_argument("--whatsapp-to", help="WhatsApp recipient in +614... form; defaults to WHATSAPP_TO in .env")
-    parser.add_argument("--per-flag", type=int, default=6, help="Max items per flag in the WhatsApp newsletter")
+    parser.add_argument("--per-flag", type=int, default=6, help="Max items per flag in the Telegram (or WhatsApp) newsletter")
     parser.add_argument("--days", type=int, default=DEFAULT_MAX_AGE_DAYS, help="Drop items older than this many days (0 = no limit)")
     parser.add_argument("--min-confidence", type=float, default=DEFAULT_MIN_CONFIDENCE, help="Drop items whose flag confidence is below this (0.0-1.0)")
     parser.add_argument("--flags", default="ACT,KNOW,NOTE", help="Comma-separated flags to include, e.g. ACT,KNOW")
@@ -2213,7 +2213,7 @@ if __name__ == "__main__":
         }
         digest_items = collate_items(items, **collate_kwargs)
 
-        # The email and the WhatsApp message are what get read each week, so a
+        # The email and the Telegram message are what get read each week, so a
         # summary already recorded has to survive a fresh fetch to reach them.
         restored = attach_saved_summaries(digest_items, digest_path)
         if restored:

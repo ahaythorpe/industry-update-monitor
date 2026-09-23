@@ -90,7 +90,7 @@ export function PaywallModal({ isOpen, onClose }: PaywallModalProps) {
               </li>
               <li>
                 <span className="text-white">3. Sending your own digest</span> — to your email or
-                WhatsApp, nothing to do with publishers.
+                Telegram, nothing to do with publishers.
               </li>
             </ul>
             <p className="mt-3 text-slate-400">

@@ -16,11 +16,11 @@ export function GET() {
     (process.env.SMTP_HOST && process.env.SMTP_PASSWORD) ||
       (process.env.EMAIL_ADDRESS && process.env.EMAIL_PASSWORD)
   )
-  const twilioConfigured = Boolean(
-    process.env.TWILIO_ACCOUNT_SID &&
-      process.env.TWILIO_AUTH_TOKEN &&
-      process.env.TWILIO_WHATSAPP_NUMBER
-  )
+  // Both are needed to send: the token says which bot, the chat ID says which
+  // chat. A token alone is not live, so it is reported as half-done.
+  const telegramToken = Boolean(process.env.TELEGRAM_BOT_TOKEN?.trim())
+  const telegramChat = Boolean(process.env.TELEGRAM_CHAT_ID?.trim())
+  const telegramConfigured = telegramToken && telegramChat
 
   return NextResponse.json({
     digest: {
@@ -31,11 +31,13 @@ export function GET() {
       // at build time — a stale digest, honestly labelled.
       live: digest.live,
     },
-    whatsapp: {
-      configured: twilioConfigured,
-      detail: twilioConfigured
-        ? 'Twilio credentials found — sending is live.'
-        : 'No Twilio credentials. Sending returns the exact message instead, so it can be proof-read for free.',
+    telegram: {
+      configured: telegramConfigured,
+      detail: telegramConfigured
+        ? 'Bot token and chat ID found — sending to your own Telegram chat is live. Free, no per-message charge.'
+        : telegramToken
+          ? 'Bot token found but no chat ID yet. Press Start on the bot in Telegram, then ask Claude to find the chat ID. Until then the button shows the exact message instead of sending.'
+          : 'Not set up. The button shows the exact message instead of sending, so it can be proof-read. Set up: SETUP.md Part 5.',
     },
     email: {
       configured: smtpConfigured,
