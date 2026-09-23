@@ -1,6 +1,8 @@
 #!/bin/bash
 # Weekly unattended run, started by launchd. See IMPROVEMENTS.md item 6.
 #
+# It also runs --ollama afterwards, which stays on this machine.
+#
 # Deliberately does NOT pass --email, --whatsapp or --gmail. The default is
 # "write the digest, send nothing": a scheduled job must never be able to send
 # on your behalf while you are not looking. Delivery stays something you
@@ -45,6 +47,21 @@ elif [ "$COUNT" = "0" ]; then
   echo "$STAMP  RAN, BUT FETCHED 0 ITEMS — treat as a failure to check, not a quiet week" >>"$LOG"
 else
   echo "$STAMP  ok — $COUNT items in the digest; briefing written to output/$SWEEP_NOTE" >>"$LOG"
+fi
+
+# Then summarise on this Mac with the local model (about 20 minutes). A
+# separate step, so Ollama being closed costs the summaries, never the digest.
+if [ $STATUS -eq 0 ] && [ "$COUNT" != "0" ]; then
+  if curl -s -m 5 http://localhost:11434/api/tags >/dev/null; then
+    if OLL="$(.venv/bin/python src/monitor.py --ollama 2>&1)"; then
+      echo "$STAMP  ok — $(echo "$OLL" | grep -o '[0-9]* of [0-9]* summaries merged' || echo 'summaries merged') by the local model" >>"$LOG"
+    else
+      echo "$STAMP  SUMMARIES FAILED — digest is fine, summaries not written. Last lines:" >>"$LOG"
+      echo "$OLL" | tail -3 | sed 's/^/    /' >>"$LOG"
+    fi
+  else
+    echo "$STAMP  SUMMARIES SKIPPED — Ollama is not running; open the Ollama app" >>"$LOG"
+  fi
 fi
 
 exit $STATUS

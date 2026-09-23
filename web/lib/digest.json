@@ -70,9 +70,9 @@
       "confidence": 0.79,
       "is_read": false,
       "created_at": "2026-09-17T01:57:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "FAAA Congress will address ASIC's regulatory focus, AFCA developments, and CSLR updates for financial advisers.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.ifa.com.au/auditor-suspended-over-three-australian-fiduciaries-audits",
@@ -89,9 +89,9 @@
       "confidence": 0.74,
       "is_read": false,
       "created_at": "2026-09-17T00:00:22+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Auditor Cameron Bradley suspended for failing to properly audit three Australian Fiduciaries schemes.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/how-to-classify-your-smsf-as-a-wholesale-client-a-compliance-guide-for-trustees-and-advisers",
@@ -108,9 +108,9 @@
       "confidence": 0.74,
       "is_read": false,
       "created_at": "2026-09-16T19:13:29+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "AFCA clarifies SMSFs must meet a $10 million asset threshold to be classified as wholesale clients, with misclassification leading to financial penalties.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/ato-expectations-for-checking-disqualified-trustees-or-directors",
@@ -127,9 +127,9 @@
       "confidence": 0.69,
       "is_read": false,
       "created_at": "2026-09-16T19:52:09+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "ATO requires auditors to verify disqualified trustees' status under SISA, with specific checks for unreliable representations or suspicious fund activity.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/major-compliance-shift-coming-with-director-ids",
@@ -146,9 +146,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-16T19:57:33+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Director IDs will require advisers to link director IDs to companies, overhaul onboarding, and implement stricter identity-matching checks from 1 July 2027.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/regulators-closely-monitoring-ai-developments-concerning-the-financial-advice-industry",
@@ -165,9 +165,9 @@
       "confidence": 0.63,
       "is_read": false,
       "created_at": "2026-09-16T06:00:20+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "ASIC is monitoring Anthropic’s Claude AI tool for potential regulatory implications for Australian financial advisers.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.ifa.com.au/mds-calls-on-treasury-to-investigate-fsc-motives",
@@ -184,9 +184,9 @@
       "confidence": 0.63,
       "is_read": false,
       "created_at": "2026-09-16T00:30:33+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "MDS criticizes FSC’s proposed funding models for financial advice licensing, warning of market consolidation and cost shifts to small AFSLs.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/div-296-no-hurdle-to-smsf-establishments-class-research-finds",
@@ -203,9 +203,9 @@
       "confidence": 0.62,
       "is_read": false,
       "created_at": "2026-09-14T19:30:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Record SMSF growth in FY26 continues despite Div 296 restrictions, highlighting strong public interest in self-managed super funds.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/tribunal-affirms-asic-ban-on-advisers-at-the-centre-of-shield-and-first-guardian-failed-advice",
@@ -222,9 +222,9 @@
       "confidence": 0.62,
       "is_read": false,
       "created_at": "2026-09-11T06:10:02+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Tribunal upholds ASIC’s five-year ban on advisers involved in misleading superannuation advice linked to Shield and First Guardian failures.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/victims-advocate-says-crole-banning-best-thing-asic-has-done",
@@ -241,9 +241,9 @@
       "confidence": 0.62,
       "is_read": false,
       "created_at": "2026-09-08T06:18:47+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "ASIC’s 10-year ban on Garry Crole for failing to address flawed advice models in the Shield and First Guardian collapses is praised by victims’ advocates.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/asic-extends-wholesale-markets-pact-with-fmsb-179813990",
@@ -260,9 +260,9 @@
       "confidence": 0.6,
       "is_read": false,
       "created_at": "2026-09-17T02:03:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "ASIC extends partnership with FMSB to develop global wholesale market standards through 2029, emphasizing collaboration without endorsing FMSB publications",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/mds-drags-treasury-to-assess-fsc-levy-proposal-179813976",
@@ -279,9 +279,9 @@
       "confidence": 0.58,
       "is_read": false,
       "created_at": "2026-09-16T02:35:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "MDS criticizes FSC's proposed levy increase as an attack on small licensees, warning of disproportionate financial impacts under the proposal",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/named-but-not-accused-asics-warning-that-isnt-a-warning",
@@ -298,9 +298,9 @@
       "confidence": 0.57,
       "is_read": false,
       "created_at": "2026-09-14T05:17:04+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "ASIC publishes a list of superannuation lead generators without accusing them, warning of potential consumer risks from high-pressure tactics and misleading practices",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/mirvac-appoints-fund-management-ceo",
@@ -317,9 +317,9 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-09-16T19:45:49+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Mirvac promotes Kit Georgeos as new CEO of its funds management division, effective 6 October, to lead investment vehicles and investor relations",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/unisuper-hires-former-tesltrasuper-s-head-of-retirement-179813978",
@@ -336,9 +336,9 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-09-16T02:45:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "UniSuper hires Melanie Slade, former TelstraSuper executive, to lead advice strategy and technical frameworks for its advice business",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/15/netwealth-to-acquire-paradino",
@@ -355,9 +355,9 @@
       "confidence": 0.94,
       "is_read": false,
       "created_at": "2026-09-15T04:34:28+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Netwealth's acquisition of Paradino aims to equip advisers with AI tools to automate workflows and improve efficiency.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.ifa.com.au/pps-mutual-appoints-new-manager-to-grow-presence-in-victoria",
@@ -374,9 +374,9 @@
       "confidence": 0.88,
       "is_read": false,
       "created_at": "2026-09-15T23:45:30+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "PPS Mutual appoints a senior manager to expand its Victoria presence and strengthen risk insurance capabilities for advisers.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/sodor-capital-plots-new-zealand-expansion-with-new-hire-179813993",
@@ -393,9 +393,9 @@
       "confidence": 0.85,
       "is_read": false,
       "created_at": "2026-09-17T01:59:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Sodor Capital expands into New Zealand and Singapore with a new hire and Singapore office, enhancing Asia-Pacific distribution.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.ifa.com.au/netwealth-to-acquire-ai-adviser-workflow-platform-for-29m",
@@ -412,9 +412,9 @@
       "confidence": 0.85,
       "is_read": false,
       "created_at": "2026-09-16T00:15:13+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Netwealth acquires AI adviser platform Paradino for $29m to accelerate automation tools for financial advisers.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/the-silc-group-names-head-of-trustee-179813996",
@@ -450,9 +450,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-16T02:43:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Antipodes Partners acquires Bennelong FM, including affiliates, to diversify and strengthen distribution capabilities.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/esencia-wealth-enacts-latest-nsw-advice-merger",
@@ -469,9 +469,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-15T20:45:03+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Esencia Wealth merges with Generation Wealth Partners to expand client base and enhance resources.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/new-retirement-solution-helps-advisers-structure-portfolios-for-longer-retirements",
@@ -488,9 +488,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-15T19:15:41+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "New Retirement Solution provides tools for advisers to structure portfolios across retirement time horizons.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/14/pps-mutual-appoints-senior-bdm",
@@ -507,9 +507,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-14T03:22:52+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "PPS Mutual appoints Senior BDM to drive growth and strengthen risk insurance capabilities.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/akumin-wants-to-support-ambitious-firms",
@@ -526,9 +526,9 @@
       "confidence": 0.77,
       "is_read": false,
       "created_at": "2026-09-09T06:30:38+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Akumin targets ambitious, quality firms for AFSL expansion, offering support for growth and succession planning.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/antipodes-partners-to-acquire-bennelong-funds-management",
@@ -545,9 +545,9 @@
       "confidence": 0.73,
       "is_read": false,
       "created_at": "2026-09-16T03:15:05+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Antipodes Partners acquires Bennelong Funds Management to diversify its investment platform and enhance distribution capabilities.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.ifa.com.au/macquarie-hit-with-class-action-over-shield-losses",
@@ -564,9 +564,9 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-17T04:01:30+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Macquarie faces a class action alleging it failed to fully compensate investors for Shield-related losses and overlooked due diligence obligations.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/taxpayers-to-foot-age-pension-if-super-turned-into-atm-179813992",
@@ -583,9 +583,9 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-17T02:07:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "SMC warns One Nation's super policy could force taxpayers to cover double the Age Pension costs for retirees and inheritors.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/morningstar-names-apac-investment-chief-179813988",
@@ -602,9 +602,9 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-17T01:52:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Morningstar appoints James Foot as APAC chief investment officer to strengthen regional investment capabilities.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.ifa.com.au/advisers-banking-on-retirees-inheritors-for-growth-but-lack-strategy",
@@ -621,9 +621,9 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-17T00:15:03+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Advisers prioritize retirees and inheritors for growth but lack tailored strategies for decumulation-phase clients or intergenerational wealth transfers.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/housing-package-estimated-to-cut-10700-homes-and-push-rents-higher-new-modelling",
@@ -640,9 +640,9 @@
       "confidence": 0.71,
       "is_read": false,
       "created_at": "2026-09-14T19:32:25+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Housing policies estimated to reduce new home starts by 10,700 and raise rents by $10/week, with economic and job market impacts",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.ifa.com.au/australians-confused-and-unconvinced-by-life-insurance",
@@ -659,9 +659,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-16T05:30:30+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Australians show confusion and lack of information about life insurance, with younger demographics more likely to abandon purchase processes",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/industry-funds-largest-source-of-rollovers-into-smsfs-class",
@@ -678,9 +678,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-15T19:19:47+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Industry funds are the largest source of rollovers into SMSFs, contributing 57.2% of inflows compared to retail funds' outflows",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/15/report-highlights-significant-opportunity-for-financial-advisers",
@@ -697,9 +697,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-15T04:27:33+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Report identifies growing use of AI and digital tools by Australians as a significant opportunity for financial advisers",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/14/significant-changes-to-pricing-of-advice-report",
@@ -716,9 +716,9 @@
       "confidence": 0.68,
       "is_read": false,
       "created_at": "2026-09-14T01:06:57+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Fixed advice fees now dominate as the primary pricing model, reflecting advisers' focus on non-investment guidance and risk mitigation",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/ai-moves-into-the-advice-process-179813994",
@@ -735,9 +735,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-17T02:22:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "AI tools streamline advisers' client data analysis by integrating digital ecosystems and reducing reliance on memory",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/preparing-advice-practices-for-a-retiree-and-inheritance-boom",
@@ -754,9 +754,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-16T20:15:49+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Advisers identify retirees and inheritors as key growth areas but face gaps in preparedness for decumulation and intergenerational wealth transfer",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/somethings-wrong-when-the-biggest-bill-lands-with-the-smallest-players",
@@ -773,9 +773,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-16T04:15:02+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Advice industry revenue distribution reveals licensees retain minimal income after paying platforms, costs, and adviser salaries",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/asset-managers-turn-to-outsourcing-ai-survey-179813974",
@@ -792,9 +792,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-16T02:32:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Asset managers prioritize core capabilities, outsourcing, and AI adoption to streamline operations and cut costs",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/audits-ai-and-everything-in-between",
@@ -811,9 +811,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-15T04:34:12+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "SMSF audits face challenges from regulatory changes, AI integration, and evolving ATO compliance expectations",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/asset-based-fees-dwindle-as-firms-price-for-complexity-not-wealth",
@@ -830,9 +830,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-10T05:57:13+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Asset-based fees are declining as advisers increasingly prioritize complexity and expertise over portfolio size in pricing models.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.apra.gov.au/news-and-publications/quarterly-superannuation-industry-publication",
@@ -849,9 +849,9 @@
       "confidence": 0.65,
       "is_read": false,
       "created_at": "2026-09-09T00:00:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "APRA publishes quarterly superannuation industry data including membership stats, industry composition, and investment trends.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/competence-judgement-diligence-the-minimum-required-of-licensees",
@@ -868,9 +868,9 @@
       "confidence": 0.63,
       "is_read": false,
       "created_at": "2026-09-09T06:24:17+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "ASIC warns advisers that licensees must demonstrate competence, diligence, and judgment, citing a banned licensee lacking these qualities.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.professionalplanner.com.au/2026/09/opposition-and-peak-smsf-body-call-for-a-stop-to-tinkering-with-rules",
@@ -887,9 +887,9 @@
       "confidence": 0.56,
       "is_read": false,
       "created_at": "2026-09-10T05:54:50+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Opposition and SMSF bodies urge regulators to halt frequent rule changes, citing instability and uncertainty for superannuation fund structures.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://faaa.au/finalists-announced-for-the-2026-faaa-awards",
@@ -906,9 +906,9 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-09-16T05:16:14+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "FAAA announces finalists for 2026 awards recognizing excellence in financial advice, community contributions, and emerging talent.",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.smsfadviser.com/are-you-attending-the-smsf-awards-night",
@@ -925,9 +925,9 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-09-15T19:00:43+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Event celebrating SMSF sector achievements and networking opportunities",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://riskinfo.com.au/news/2026/09/15/advisers-urged-to-stop-being-the-bottleneck",
@@ -944,9 +944,9 @@
       "confidence": 1.0,
       "is_read": false,
       "created_at": "2026-09-15T05:43:59+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Advisers urged to avoid being the sole decision-maker in their practice to foster independence",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.moneymanagement.com.au/staying-ahead-of-the-curve",
@@ -963,9 +963,9 @@
       "confidence": 0.5,
       "is_read": false,
       "created_at": "2026-09-17T04:53:10+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "E-book explores fixed income strategies for building resilient client portfolios",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.financialstandard.com.au/news/fed-s-rate-hike-exacerbates-australia-s-outlook-179813989",
@@ -982,9 +982,9 @@
       "confidence": 0.5,
       "is_read": false,
       "created_at": "2026-09-17T01:53:00+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Fed's rate hike raises global inflation concerns and impacts Australia's economic outlook",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     },
     {
       "id": "https://www.ifa.com.au/what-does-it-mean-to-choose-independence",
@@ -1001,9 +1001,9 @@
       "confidence": 0.5,
       "is_read": false,
       "created_at": "2026-09-17T00:30:22+00:00",
-      "ai_summary": null,
-      "ai_source": null,
-      "ai_generated_at": null
+      "ai_summary": "Legal restrictions on using 'independent' terms in financial advice under section 923A",
+      "ai_source": "ollama:qwen3:8b",
+      "ai_generated_at": "2026-09-23T05:27:21.488105+00:00"
     }
   ]
 }

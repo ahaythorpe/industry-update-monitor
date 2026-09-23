@@ -1,19 +1,42 @@
 'use client'
 
+import { useEffect } from 'react'
+
 interface SettingsModalProps {
   isOpen: boolean
   onClose: () => void
 }
 
 export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
+  // Escape closes it too. The panel is taller than a laptop screen, and
+  // before it scrolled, both close buttons sat off-screen with no way out.
+  useEffect(() => {
+    if (!isOpen) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [isOpen, onClose])
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-full max-w-2xl rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-2xl">
-        <div className="mb-6 flex items-center justify-between">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4 backdrop-blur-sm sm:items-center"
+    >
+      <div
+        onClick={(event) => event.stopPropagation()}
+        className="relative my-4 max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-700 bg-slate-900 p-8 shadow-2xl"
+      >
+        <div className="sticky -top-8 z-10 -mx-8 -mt-8 mb-6 flex items-center justify-between rounded-t-3xl bg-slate-900 px-8 pt-8 pb-4">
           <h2 className="text-2xl font-bold text-white">⚙️ Settings</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-200">
+          <button
+            onClick={onClose}
+            aria-label="Close settings"
+            className="rounded-lg px-3 py-1 text-xl text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+          >
             ✕
           </button>
         </div>
@@ -30,7 +53,7 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                 </div>
                 <ul className="mt-2 ml-4 space-y-1 text-sm text-slate-300">
                   <li>• Public RSS feeds (no authentication required)</li>
-                  <li>• Newsletter subscriptions you already receive</li>
+                  <li>• Newsletter subscriptions you already receive (needs the Gmail setup in SETUP.md Part 4 — not connected yet)</li>
                   <li>• Official government/regulator publications</li>
                   <li>• Public news feeds with open API access</li>
                 </ul>
@@ -105,13 +128,10 @@ export function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             <h3 className="mb-4 text-lg font-semibold text-white">🕐 Automation Schedule</h3>
             <div className="space-y-3 rounded-2xl border border-slate-700 bg-slate-800/50 p-5">
               <p className="text-sm text-slate-300">
-                Currently manual triggers. To enable automatic scheduling:
+                The digest refreshes itself every Monday at 7am on your Mac (see
+                <code> output/weekly-run.log</code>). It never sends email or WhatsApp on its own —
+                sending is always something you start.
               </p>
-              <ul className="ml-4 space-y-1 text-sm text-slate-300">
-                <li>1. Deploy backend service (Python monitor)</li>
-                <li>2. Configure cron jobs for email/WhatsApp sends</li>
-                <li>3. Set up database for tracking sent items</li>
-              </ul>
             </div>
           </div>
 

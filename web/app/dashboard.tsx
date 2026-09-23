@@ -11,6 +11,7 @@ import {
   type Grouping,
   briefingFilename,
   buildBriefingFiles,
+  buildReadingFiles,
   combineBriefing,
   slug,
 } from '@/lib/briefing'
@@ -89,11 +90,42 @@ type Format = (typeof FORMATS)[number]['value']
 const DEPTHS = [
   { value: 'brief', label: 'Triage — one line each', prompt: BRIEF_PROMPT, chunk: BRIEF_CHUNK },
   { value: 'deep', label: 'Detailed — a short paragraph each', prompt: DEEP_PROMPT, chunk: DEEP_CHUNK },
+  // No prompt: the summaries are already written, so this is for an AI (or a
+  // person) to read, with each summary beside its link.
+  { value: 'read', label: 'Finished summaries — ready to read', prompt: null, chunk: 0 },
 ] as const
 
 type Depth = (typeof DEPTHS)[number]['value']
 
 const READ_STORAGE_KEY = 'advice-monitor:read-items'
+const THEME_STORAGE_KEY = 'advice-monitor:theme'
+
+// Light or dark, remembered in this browser. Read through
+// useSyncExternalStore like the read-items list; storage can be blocked, so
+// every access is best-effort and dark is the fallback.
+const themeListeners = new Set<() => void>()
+let themeFallback: 'dark' | 'light' = 'dark'
+
+function subscribeToTheme(onChange: () => void) {
+  themeListeners.add(onChange)
+  return () => themeListeners.delete(onChange)
+}
+
+function readTheme(): 'dark' | 'light' {
+  try {
+    return localStorage.getItem(THEME_STORAGE_KEY) === 'light' ? 'light' : 'dark'
+  } catch {
+    return themeFallback
+  }
+}
+
+function writeTheme(next: 'dark' | 'light') {
+  themeFallback = next
+  try {
+    localStorage.setItem(THEME_STORAGE_KEY, next)
+  } catch {}
+  themeListeners.forEach((listener) => listener())
+}
 
 /**
  * Which items have been read.
@@ -208,6 +240,14 @@ export default function Dashboard({
 
   const [status, setStatus] = useState<Status | null>(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+
+  // Light or dark, remembered in this browser. The class on <html> flips the
+  // palette in globals.css; storage can be blocked, so it is best-effort.
+  const theme = useSyncExternalStore(subscribeToTheme, readTheme, () => 'dark' as const)
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', theme === 'light')
+  }, [theme])
+  const toggleTheme = () => writeTheme(theme === 'light' ? 'dark' : 'light')
 
   // Captured once per mount: calling Date.now() while rendering makes the
   // filter's result depend on when React happened to re-render.
@@ -329,13 +369,15 @@ export default function Dashboard({
 
   const briefingFiles = useMemo(
     () =>
-      buildBriefingFiles(
-        downloadItems,
-        grouping,
-        digestTopics,
-        chosenDepth.chunk,
-        chosenDepth.prompt
-      ),
+      chosenDepth.prompt === null
+        ? buildReadingFiles(downloadItems, grouping, digestTopics, summaryOrigin)
+        : buildBriefingFiles(
+            downloadItems,
+            grouping,
+            digestTopics,
+            chosenDepth.chunk,
+            chosenDepth.prompt
+          ),
     [downloadItems, grouping, digestTopics, chosenDepth]
   )
 
@@ -427,7 +469,13 @@ export default function Dashboard({
     // README.md says where they came from and what to do with them; links.md
     // is every item once, to open by hand. IMPROVEMENTS.md item 12.
     const zipEntries = [
-      { name: 'README.md', text: bundleReadme(briefingFiles, digestGeneratedAt) },
+      {
+        name: 'README.md',
+        text:
+          chosenDepth.prompt === null
+            ? `# Summaries — ${(digestGeneratedAt || '').slice(0, 10)}\n\nOne file per group. Each item carries its summary, who wrote it, and its link. An ACT item is read at its source before it is acted on.\n`
+            : bundleReadme(briefingFiles, digestGeneratedAt),
+      },
       { name: 'links.md', text: bundleLinks(downloadItems, digestGeneratedAt) },
       ...briefingFiles,
     ]
@@ -522,6 +570,14 @@ export default function Dashboard({
                 publications · refresh with <code className="text-slate-300">python src/monitor.py --json</code>
               </p>
             </div>
+            <div className="flex gap-2">
+            <button
+              onClick={toggleTheme}
+              className="rounded-lg bg-slate-800 px-4 py-2 text-white hover:bg-slate-700"
+              title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {theme === 'light' ? '☾' : '☀'}
+            </button>
             <button
               onClick={() => setSettingsOpen(true)}
               className="rounded-lg bg-slate-800 px-4 py-2 text-white hover:bg-slate-700"
@@ -529,6 +585,7 @@ export default function Dashboard({
             >
               ⚙️
             </button>
+            </div>
           </div>
         </header>
 

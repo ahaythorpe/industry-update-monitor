@@ -4,6 +4,7 @@ import {
   briefingFilename,
   buildBriefing,
   buildBriefingFiles,
+  buildReadingFiles,
   combineBriefing,
   groupItems,
   slug,
@@ -185,5 +186,34 @@ describe('the downloaded briefing', () => {
       'briefing-topic-flag-2026-09-13.md'
     )
     expect(briefingFilename([], '2026-09-13T21:36:09Z')).toBe('briefing-2026-09-13.md')
+  })
+})
+
+describe('reading files', () => {
+  const origin = (source?: string | null) => (source ? `By ${source}` : 'No origin')
+
+  it('puts each summary, its origin and its link in the text', () => {
+    const [file] = buildReadingFiles(
+      [item({ ai_summary: 'Director banned for ten years.', ai_source: 'ollama:qwen3:8b' })],
+      [],
+      TOPICS,
+      origin
+    )
+    expect(file.text).toContain('By ollama:qwen3:8b: Director banned for ten years.')
+    expect(file.text).toContain('Link: https://a.test/story')
+  })
+
+  it('says when an item has no summary rather than inventing one', () => {
+    const [file] = buildReadingFiles([item({})], [], TOPICS, origin)
+    expect(file.text).toContain("Not summarised yet. Publisher's teaser: The regulator banned")
+  })
+
+  it('splits by category and urgency like the briefing', () => {
+    expect(buildReadingFiles(MIXED, ['topic', 'flag'], TOPICS, origin).map((f) => f.name)).toEqual([
+      'compliance-act.md',
+      'compliance-know.md',
+      'regulation-act.md',
+      'key-personnel-movements-note.md',
+    ])
   })
 })

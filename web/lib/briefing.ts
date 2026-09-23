@@ -236,3 +236,45 @@ export function briefingFilename(
   const day = (generatedAt || new Date().toISOString()).slice(0, 10)
   return ['briefing', ...grouping, day].join('-') + '.' + extension
 }
+
+/**
+ * The finished summaries, grouped, for reading rather than summarising.
+ *
+ * A briefing asks an AI to summarise from the teaser and forbids it the
+ * links, so a briefing handed to an AI "to read" gave it nothing but
+ * headlines and links it was told not to open. Once the local model (or a
+ * pasted reply) has written the summaries, this is the file to hand over:
+ * each item's summary sits in the text, labelled with who wrote it, beside
+ * the link a person opens. An item not yet summarised says so and carries
+ * its teaser, never an invented summary.
+ */
+export function buildReadingFiles(
+  items: DigestItem[],
+  grouping: Grouping,
+  topicOrder: string[],
+  origin: (source?: string | null) => string
+): BriefingEntry[] {
+  return groupItems(items, grouping, topicOrder).map((group) => {
+    const lines = [`# ${group.label}`, '']
+    group.items.forEach((item) => {
+      lines.push(
+        `## [${item.flag}] ${item.title}`,
+        `${item.source_name || '(unknown source)'} · ${(item.created_at || '').slice(0, 10) || '(no date)'} · ${item.topic || FALLBACK_TOPIC}`,
+        '',
+        item.ai_summary
+          ? `${origin(item.ai_source)}: ${item.ai_summary}`
+          : `Not summarised yet. Publisher's teaser: ${item.teaser || '(none)'}`,
+        '',
+        `Link: ${item.link}`,
+        ''
+      )
+    })
+    return {
+      name: `${group.name}.md`,
+      label: group.label,
+      text: lines.join('\n'),
+      items: group.items.length,
+      pastes: 1,
+    }
+  })
+}
