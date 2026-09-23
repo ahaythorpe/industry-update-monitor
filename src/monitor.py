@@ -1971,6 +1971,10 @@ if __name__ == "__main__":
     parser.add_argument("--email", action="store_true", help="Email digest instead of printing to stdout")
     parser.add_argument("--telegram", action="store_true",
                         help="Send the digest to your own Telegram chat (previews if not set up)")
+    parser.add_argument("--only-urgency", default=None, metavar="ACT,KNOW,NOTE",
+                        help="Extra send: only these urgencies, e.g. KNOW (with --email/--telegram)")
+    parser.add_argument("--only-category", default=None, metavar="CATEGORIES",
+                        help='Extra send: only these categories, e.g. "Super & tax" (with --email/--telegram)')
     parser.add_argument("--from-digest", action="store_true",
                         help="Send (--email/--telegram/--preview) the saved digest, summaries included, instead of fetching again")
     parser.add_argument("--preview", action="store_true", help="Write a local HTML preview of the digest to output/digest_preview.html")
@@ -2016,6 +2020,18 @@ if __name__ == "__main__":
 
     root = Path(__file__).resolve().parent.parent
     digest_path = root / args.digest
+
+    # A typo in an extra send must not read as "nothing on that this week".
+    if args.only_category:
+        chosen_topics, unknown = resolve_topics(args.only_category.split(","))
+        if unknown:
+            raise SystemExit(f"❌ Unknown category: {', '.join(unknown)}. "
+                             f"Choose from: {', '.join(TOPIC_LABELS)}")
+        args.only_category = ",".join(chosen_topics)
+    if args.only_urgency:
+        bad = {f.strip().upper() for f in args.only_urgency.split(",") if f.strip()} - set(FLAG_ORDER)
+        if bad:
+            raise SystemExit(f"❌ Unknown urgency: {', '.join(sorted(bad))}. Choose from ACT, KNOW, NOTE.")
 
     # Both flags only shape a briefing. Without --brief they would be read,
     # ignored, and a full fetch would run instead — so say so rather than
@@ -2266,12 +2282,21 @@ if __name__ == "__main__":
     elif args.email or USE_EMAIL:
         email_sender = _load_email_sender()
         recipient = os.getenv("EMAIL_ADDRESS")
-        if recipient:
-            email_sender.send_digest_email(digest_items, recipient)
+        # An extra, focused send: only the urgencies / categories asked for.
+        focus = " · ".join(v for v in (args.only_urgency, args.only_category) if v)
+        chosen = _load_telegram_sender().tailor(digest_items, args.only_urgency, args.only_category)
+        if focus and not chosen:
+            print(f"ℹ️  Nothing this week matches {focus} — no email sent.")
+        elif recipient:
+            subject = (f"Industry Update Monitor — extra: {focus}" if focus
+                       else "Industry Update Monitor — weekly digest")
+            email_sender.send_digest_email(chosen, recipient, subject=subject)
         else:
             print("❌ Cannot email: EMAIL_ADDRESS not set in .env")
     elif args.telegram:
-        _load_telegram_sender().send_telegram_digest(digest_items, per_flag_limit=args.per_flag)
+        _load_telegram_sender().send_telegram_digest(
+            digest_items, flags=args.only_urgency, topics=args.only_category
+        )
     elif args.whatsapp:
         whatsapp_sender = _load_whatsapp_sender()
         whatsapp_sender.send_whatsapp_digest(

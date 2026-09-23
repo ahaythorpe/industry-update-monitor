@@ -57,11 +57,30 @@ and Telegram once with [SETUP.md Part 5](SETUP.md#part-5--telegram--free).
    ```
 
    Success looks like `✅ Digest emailed to …` and
-   `✅ Digest sent to Telegram in 2 message(s).` If Telegram is not set up yet,
-   it prints the message instead of sending — nothing is lost.
+   `✅ Newsletter sent to Telegram (50 stories).` Telegram gets **one message**
+   — the headlines with their summaries, ACT first — and the full newsletter
+   attached as a file you tap to open (the same design as the email). If
+   Telegram is not set up yet, it prints the message instead — nothing is lost.
 
-The Monday 07:00 run does steps 3, 4 and 6 by itself — email and Telegram
-both.
+The Monday 07:00 run does steps 3, 4 and 6 by itself — one newsletter a week,
+by email and Telegram.
+
+### Sending an extra, focused update
+
+Any time after step 4, send just the part you care about — by urgency, by
+category, or both. Add `--email` or `--telegram` (or run it twice for both):
+
+```bash
+python src/monitor.py --telegram --from-digest --only-urgency KNOW --only-category "Super & tax"
+python src/monitor.py --email    --from-digest --only-urgency ACT
+python src/monitor.py --telegram --from-digest --only-category "Regulation,Compliance"
+```
+
+Urgencies: `ACT`, `KNOW`, `NOTE`. Categories: Compliance, Regulation, Super & tax,
+Insurance, Key personnel movements, Business, Markets & investing, Fees &
+pricing, Practice & technology, General. A misspelt one is refused with the
+list, rather than sending an empty update. Or just ask Claude: "send me the
+KNOW stories on Super".
 
 ---
 
