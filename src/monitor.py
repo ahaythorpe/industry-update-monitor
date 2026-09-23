@@ -1930,6 +1930,14 @@ def _load_email_sender():
     return email_sender
 
 
+def _load_telegram_sender():
+    try:
+        from src import telegram_sender
+    except ImportError:
+        import telegram_sender
+    return telegram_sender
+
+
 def _load_whatsapp_sender():
     try:
         from src import whatsapp_sender
@@ -1941,6 +1949,8 @@ def _load_whatsapp_sender():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Industry Update Monitor")
     parser.add_argument("--email", action="store_true", help="Email digest instead of printing to stdout")
+    parser.add_argument("--telegram", action="store_true",
+                        help="Send the digest to your own Telegram chat (previews if not set up)")
     parser.add_argument("--from-digest", action="store_true",
                         help="Send (--email/--whatsapp/--preview) the saved digest, summaries included, instead of fetching again")
     parser.add_argument("--preview", action="store_true", help="Write a local HTML preview of the digest to output/digest_preview.html")
@@ -2235,6 +2245,8 @@ if __name__ == "__main__":
             email_sender.send_digest_email(digest_items, recipient)
         else:
             print("❌ Cannot email: EMAIL_ADDRESS not set in .env")
+    elif args.telegram:
+        _load_telegram_sender().send_telegram_digest(digest_items, per_flag_limit=args.per_flag)
     elif args.whatsapp:
         whatsapp_sender = _load_whatsapp_sender()
         whatsapp_sender.send_whatsapp_digest(
