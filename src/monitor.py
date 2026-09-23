@@ -1816,6 +1816,14 @@ class OllamaUnavailable(RuntimeError):
     """Ollama could not be reached, or refused. Reported, never retried."""
 
 
+class OllamaPartial(OllamaUnavailable):
+    """A later paste failed; `partial` holds the replies that did come back."""
+
+    def __init__(self, message, partial):
+        super().__init__(message)
+        self.partial = partial
+
+
 def _assert_local(host):
     """
     Refuse any host but this machine.
@@ -1847,6 +1855,10 @@ def ollama_generate(prompt, model=None, host=None, timeout=OLLAMA_TIMEOUT):
         "model": model or OLLAMA_MODEL,
         "prompt": prompt,
         "stream": False,
+        # Thinking models (qwen3, gpt-oss) otherwise write pages of private
+        # reasoning before every answer: a 50-item week went from over 30
+        # minutes, and a timeout on the last paste, to a few minutes.
+        "think": False,
         "options": {"temperature": 0},
     }).encode("utf-8")
 
@@ -1873,7 +1885,7 @@ def ollama_generate(prompt, model=None, host=None, timeout=OLLAMA_TIMEOUT):
     except TimeoutError as error:
         raise OllamaUnavailable(
             f"{model or OLLAMA_MODEL} was still working after {timeout}s and the wait was given "
-            f"up, so nothing was merged. It is running, just slow: send fewer items per paste "
+            f"up. It is running, just slow: send fewer items per paste "
             f"(--ollama-chunk 4), narrow the week (--flags ACT), or wait longer "
             f"(--ollama-timeout 900)."
         ) from error
@@ -1918,7 +1930,15 @@ def summarise_with_ollama(items, model=None, host=None, timeout=OLLAMA_TIMEOUT,
     for number, block in enumerate(blocks, start=1):
         if on_block:
             on_block(number, len(blocks))
-        replies.append(ollama_generate(block, model=model, host=host, timeout=timeout))
+        try:
+            replies.append(ollama_generate(block, model=model, host=host, timeout=timeout))
+        except OllamaUnavailable as error:
+            # Twenty minutes of finished pastes are not thrown away because
+            # the last one timed out: hand back what came in, still no retry.
+            done = "\n".join(reply for reply in replies if reply)
+            if done:
+                raise OllamaPartial(f"Paste {number} of {len(blocks)} failed: {error}", done) from error
+            raise
     return "\n".join(reply for reply in replies if reply)
 
 
@@ -2039,6 +2059,11 @@ if __name__ == "__main__":
                     timeout=args.ollama_timeout,
                     on_block=lambda n, total: print(f"   paste {n} of {total}…", flush=True),
                 )
+            except OllamaPartial as error:
+                # Keep what came back; the items after the failure stay
+                # unsummarised and the reader sees their teaser instead.
+                print(f"⚠️  {error}\n   Keeping the summaries that did come back.")
+                reply = error.partial
             except OllamaUnavailable as error:
                 # Reported, not retried, and never quietly swapped for anything
                 # that could bill: the run stops here.

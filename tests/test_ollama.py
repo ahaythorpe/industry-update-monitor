@@ -67,12 +67,36 @@ class FakeOllamaTests(unittest.TestCase):
         self.assertEqual(sent["model"], "test-model")
         self.assertIs(sent["stream"], False)
         self.assertEqual(sent["options"]["temperature"], 0)
+        self.assertIs(sent["think"], False)
         self.assertEqual(sent["prompt"], "a prompt")
 
     def test_one_request_per_paste_and_the_replies_come_back_joined(self):
         reply = summarise_with_ollama(_items(4), model="test-model", host=self.host, chunk_size=2)
         self.assertEqual(len(_Handler.seen), 2)
         self.assertEqual(reply.count("abc123 |"), 2)
+
+    def test_a_later_failure_keeps_the_pastes_that_came_back(self):
+        from src.monitor import OllamaPartial
+
+        original = _Handler.do_POST
+
+        def fail_second(handler):
+            if len(_Handler.seen) >= 1:
+                handler.rfile.read(int(handler.headers["Content-Length"]))
+                _Handler.seen.append({})
+                handler.send_response(500)
+                handler.send_header("Content-Length", "0")
+                handler.end_headers()
+                return
+            original(handler)
+
+        _Handler.do_POST = fail_second
+        try:
+            with self.assertRaises(OllamaPartial) as caught:
+                summarise_with_ollama(_items(4), model="test-model", host=self.host, chunk_size=2)
+        finally:
+            _Handler.do_POST = original
+        self.assertEqual(caught.exception.partial.count("abc123 |"), 1)
 
     def test_the_prompt_carries_the_items_and_their_links(self):
         summarise_with_ollama(_items(1), model="test-model", host=self.host)
