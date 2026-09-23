@@ -1,4 +1,4 @@
-import type { DigestItem, Flag } from './digest'
+import { summaryPoints, type DigestItem, type Flag } from './digest'
 
 /**
  * The paste-ready briefing, in the same shape as src/monitor.py.
@@ -262,7 +262,7 @@ export function buildReadingFiles(
         `${item.source_name || '(unknown source)'} · ${(item.created_at || '').slice(0, 10) || '(no date)'} · ${item.topic || FALLBACK_TOPIC}`,
         '',
         item.ai_summary
-          ? `${origin(item.ai_source)}: ${item.ai_summary}`
+          ? `${origin(item.ai_source)}:\n\n${summaryPoints(item.ai_summary).map((point) => `- ${point}`).join('\n')}`
           : `Not summarised yet. Publisher's teaser: ${item.teaser || '(none)'}`,
         '',
         `Link: ${item.link}`,

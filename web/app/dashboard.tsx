@@ -16,8 +16,8 @@ import {
   slug,
 } from '@/lib/briefing'
 import { buildZip } from '@/lib/zip'
-import { bundleLinks, bundleReadme } from '@/lib/bundle'
-import { summaryOrigin } from '@/lib/digest'
+import { bundleLinks, bundleLinksBySource, bundleReadme } from '@/lib/bundle'
+import { boldRuns, summaryOrigin, summaryPoints } from '@/lib/digest'
 import { formatDay, toDayKey } from '@/lib/utils'
 import { Calendar } from '@/components/Calendar'
 import { SettingsModal } from '@/components/SettingsModal'
@@ -497,6 +497,21 @@ export default function Dashboard({
     const anchor = document.createElement('a')
     anchor.href = url
     anchor.download = name
+    document.body.appendChild(anchor)
+    anchor.click()
+    anchor.remove()
+    URL.revokeObjectURL(url)
+  }
+
+  // The Bibliography as a file: every article, grouped by publisher, linked.
+  const downloadSourceLinks = () => {
+    const blob = new Blob([bundleLinksBySource(digestItems, digestGeneratedAt)], {
+      type: 'text/markdown;charset=utf-8',
+    })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `links-by-source-${(digestGeneratedAt || new Date().toISOString()).slice(0, 10)}.md`
     document.body.appendChild(anchor)
     anchor.click()
     anchor.remove()
@@ -1038,7 +1053,21 @@ export default function Dashboard({
                                 item.ai_generated_at ? ` · ${formatDay(item.ai_generated_at)}` : ''
                               }`}
                             </div>
-                            <p className="text-sm text-slate-200">{item.ai_summary}</p>
+                            <ul className="list-disc space-y-1 pl-5 text-sm leading-6 text-slate-200">
+                              {summaryPoints(item.ai_summary).map((point, index) => (
+                                <li key={index}>
+                                  {boldRuns(point).map((run, runIndex) =>
+                                    run.bold ? (
+                                      <strong key={runIndex} className="font-semibold text-white">
+                                        {run.text}
+                                      </strong>
+                                    ) : (
+                                      <span key={runIndex}>{run.text}</span>
+                                    )
+                                  )}
+                                </li>
+                              ))}
+                            </ul>
                           </div>
                         ) : null}
 
@@ -1157,8 +1186,18 @@ export default function Dashboard({
         </section>
 
         <section className="mt-10 rounded-3xl border border-slate-800 bg-slate-900 p-8">
-          <h2 className="text-2xl font-semibold text-white">Bibliography</h2>
-          <p className="mt-2 text-sm text-slate-400">Publications this digest drew on</p>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h2 className="text-2xl font-semibold text-white">Bibliography</h2>
+            <button
+              onClick={downloadSourceLinks}
+              className="rounded-xl border border-sky-600/60 bg-sky-600/15 px-4 py-2 text-sm font-semibold text-sky-200 hover:bg-sky-600/25"
+            >
+              Download all links
+            </button>
+          </div>
+          <p className="mt-2 text-sm text-slate-400">
+            Publications this digest drew on — every article, with its own link
+          </p>
           <div className="mt-6 space-y-2">
             {digestSources.map((source) => (
               <div key={source.name} className="rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3">

@@ -78,8 +78,21 @@ class DeliveryTests(unittest.TestCase):
         markup = _item_html(self._item(), "act")
         self.assertIn("ASIC banned the adviser for ten years.", markup)
         self.assertIn("Summarised by hand", markup)
-        # The publisher's own words stay, so the two can be compared.
-        self.assertIn("The publisher&#x27;s teaser.", markup)
+        # Decluttered 23 Sep 2026: with a summary, the teaser is left out of
+        # the email; the article button is one tap away.
+        self.assertNotIn("The publisher&#x27;s teaser.", markup)
+
+    def test_dot_points_become_a_list_with_the_key_fact_bold(self):
+        item = self._item("ollama:qwen3:8b")
+        item["ai_summary"] = "• **ASIC banned** the adviser. • Advisers should **check** their AFSL."
+        markup = _item_html(item, "act")
+        self.assertEqual(markup.count("<li"), 2)
+        self.assertIn("<b>ASIC banned</b>", markup)
+
+    def test_no_summary_shows_the_teaser(self):
+        item = self._item()
+        del item["ai_summary"]
+        self.assertIn("The publisher&#x27;s teaser.", _item_html(item, "act"))
 
     def test_the_email_names_the_local_model(self):
         markup = _item_html(self._item("ollama:qwen3:8b"), "act")

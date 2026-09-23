@@ -96,3 +96,29 @@ export function bundleLinks(items: DigestItem[], generatedAt?: string | null): s
 function escapePipes(text: string): string {
   return text.replace(/\|/g, '/')
 }
+
+/**
+ * Every link, grouped by publisher — the dashboard's Bibliography as a file.
+ * Markdown links, so it opens as a clickable list in any notes app or AI tool.
+ */
+export function bundleLinksBySource(items: DigestItem[], generatedAt?: string | null): string {
+  const bySource = new Map<string, DigestItem[]>()
+  items.forEach((item) => {
+    const name = item.source_name || 'Unknown'
+    if (!bySource.has(name)) bySource.set(name, [])
+    bySource.get(name)!.push(item)
+  })
+  const lines = [`# Sources and links — ${day(generatedAt)}`, '']
+  Array.from(bySource.keys())
+    .sort((a, b) => a.localeCompare(b))
+    .forEach((name) => {
+      const articles = bySource.get(name)!
+      lines.push(`## ${name} (${articles.length})`, '')
+      articles.forEach((item) => {
+        const title = (item.title || 'Untitled').replace(/[[\]]/g, '')
+        lines.push(`- [${title}](${item.link}) — ${item.flag}, ${item.topic || 'General'}`)
+      })
+      lines.push('')
+    })
+  return lines.join('\n')
+}

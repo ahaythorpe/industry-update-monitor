@@ -21,9 +21,9 @@ import urllib.request
 from datetime import datetime
 
 try:
-    from src.email_sender import _build_html_digest
+    from src.email_sender import _build_html_digest, bold_html, summary_points
 except ImportError:  # pragma: no cover - only when src/ is itself the path
-    from email_sender import _build_html_digest
+    from email_sender import _build_html_digest, bold_html, summary_points
 
 TELEGRAM_API = "https://api.telegram.org/bot{token}/{method}"
 
@@ -57,8 +57,9 @@ def _line(item: dict) -> str:
     title = html.escape(item.get("title", "Untitled"))
     link = item.get("link", "")
     head = f'<a href="{html.escape(link, quote=True)}">{title}</a>' if link else title
-    summary = (item.get("ai_summary") or "").strip()
-    return f"• {head}" + (f" — {html.escape(summary)}" if summary else "")
+    # The first dot point says what happened; the rest are in the attachment.
+    points = summary_points(item.get("ai_summary") or "")
+    return f"▪️ {head}" + (f"\n    {bold_html(html.escape(points[0]))}" if points else "")
 
 
 def format_telegram_digest(items: list, flags: str | None = None,

@@ -1139,6 +1139,26 @@ than about eighty words, write "thin — open source" and nothing else; say so i
 figure or a poll may have been overtaken; always keep the ID and the LINK unchanged; do not
 attempt to access anything beyond the text provided."""
 
+# What --ollama uses by default since 23 Sep 2026: the newsletter wanted dot
+# points with the key fact bolded, not one flat sentence. Still one line per
+# item — the points are separated by "• " on that line — so the reply imports
+# exactly like the other two, and every renderer splits it back into a list.
+NEWSLETTER_PROMPT = """You are writing this week's newsletter for a trainee Australian financial
+adviser. You will be given items, each with an ID, a TITLE, a SOURCE, a DATE, the publisher's own
+text, and a LINK. For each item output exactly one line:
+`ID | FLAG | summary | LINK`. FLAG is ACT (changes what an adviser must do), KNOW (useful
+context), or NOTE (background/data). The summary is two or three dot points written on that same
+line, each starting with "• ". Each point is one short plain-English sentence. In each point put
+the single most important fact — a figure, a date, a name, or what changed — in **bold**. The
+first point says what happened; the next says why it matters to an adviser or what to do. Rules:
+use ONLY the text provided; never invent detail or add facts not present; if the text is too thin,
+write "• thin — open source"; never break the line; always keep the ID and the LINK unchanged; do
+not attempt to access anything beyond the text provided."""
+
+# Dot points are longer to write than one sentence, so fewer per paste keeps
+# each one inside the per-paste wait on a laptop that is short of memory.
+NEWSLETTER_CHUNK = 3
+
 # Roughly a comfortable paste for one chat message. Items are never split
 # across blocks.
 BRIEF_CHUNK = 15
@@ -1448,7 +1468,11 @@ def parse_summaries(text):
     """Pull `ID | FLAG | summary | LINK` lines out of a pasted reply."""
     found = {}
     for match in SUMMARY_LINE.finditer(text or ""):
-        summary = re.sub(r"\s+", " ", match.group("summary") or "").strip(" *_-")
+        summary = re.sub(r"\s+", " ", match.group("summary") or "").strip(" _-")
+        # Stray emphasis around the whole line goes; a **bold** pair inside a
+        # dot point stays, because the newsletter renders it.
+        if summary.count("**") % 2 or (summary.startswith("*") and "•" not in summary):
+            summary = summary.strip("*").strip()
         if summary:
             found[match.group("ref").lower()] = summary
     return found
@@ -1806,9 +1830,9 @@ OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "llama3.1:8b")
 OLLAMA_TIMEOUT = 600
 OLLAMA_CHUNK = 5
 # The cap is on pastes, because a paste is the unit of work and the thing that
-# takes minutes. Twelve at five items each is 60 items — a whole week, and
-# roughly half an hour of laptop.
-OLLAMA_MAX_BLOCKS = 12
+# takes minutes. Twenty at three items each is 60 items — a whole week of dot
+# points, about a quarter of an hour on this laptop.
+OLLAMA_MAX_BLOCKS = 20
 LOCAL_HOSTS = {"localhost", "127.0.0.1", "::1"}
 
 
@@ -2065,8 +2089,9 @@ if __name__ == "__main__":
                 raise SystemExit(f"❌ No matching items in {digest_path}. "
                                  f"Refresh it with: python src/monitor.py --json")
 
-            prompt = DEEP_PROMPT if args.deep else BRIEF_PROMPT
-            chunk = min(args.ollama_chunk, DEEP_CHUNK) if args.deep else args.ollama_chunk
+            prompt = DEEP_PROMPT if args.deep else NEWSLETTER_PROMPT
+            chunk = (min(args.ollama_chunk, DEEP_CHUNK) if args.deep
+                     else min(args.ollama_chunk, NEWSLETTER_CHUNK))
             print(f"🖥️  Summarising {len(model_items)} item(s) through {model} on this machine, "
                   f"{chunk} per paste. Nothing leaves it, and it is slow — minutes, not seconds.")
             try:

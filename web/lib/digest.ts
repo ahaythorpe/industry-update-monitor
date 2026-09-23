@@ -196,3 +196,28 @@ export function summaryOrigin(source?: string | null): string {
   if (source) return `Summarised by ${source}`
   return 'Summary, origin not recorded'
 }
+
+/**
+ * A summary's dot points. The local model writes them on one line, each
+ * starting "• ", with the key fact in **bold**; an older one-sentence summary
+ * is a single point. Mirrors summary_points in src/email_sender.py.
+ */
+export function summaryPoints(summary?: string | null): string[] {
+  const points = (summary || '')
+    .split(/\s*•\s*/)
+    .map((point) => point.trim())
+    .filter(Boolean)
+  return points
+}
+
+/** Split a point into plain and **bold** runs, for rendering without HTML. */
+export function boldRuns(point: string): { text: string; bold: boolean }[] {
+  return point
+    .split(/(\*\*.+?\*\*)/)
+    .filter(Boolean)
+    .map((run) =>
+      run.startsWith('**') && run.endsWith('**') && run.length > 4
+        ? { text: run.slice(2, -2), bold: true }
+        : { text: run, bold: false }
+    )
+}

@@ -1,4 +1,4 @@
-import { summaryOrigin, type DigestItem, type Flag } from './digest'
+import { summaryOrigin, summaryPoints, type DigestItem, type Flag } from './digest'
 
 /**
  * The Telegram newsletter, in the same shape as src/telegram_sender.py.
@@ -54,7 +54,9 @@ function itemBlock(index: number, item: DigestItem): string {
   // public teaser, capped — never the full article.
   const written = (item.ai_summary || '').trim()
   if (written) {
-    lines.push(escapeHtml(written))
+    summaryPoints(written).forEach((point) =>
+      lines.push('• ' + escapeHtml(point).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'))
+    )
     lines.push(`<i>— ${escapeHtml(summaryOrigin(item.ai_source))}</i>`)
   } else if (item.teaser) {
     const teaser = item.teaser

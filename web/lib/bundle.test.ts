@@ -58,3 +58,19 @@ describe('bundleLinks', () => {
     expect(links).not.toContain('- Link: https://mail.google.com')
   })
 })
+
+describe('links by source', () => {
+  it('groups every article under its publisher, each linked', async () => {
+    const { bundleLinksBySource } = await import('./bundle')
+    const text = bundleLinksBySource(
+      [
+        { title: 'One', link: 'https://a.test/1', source_name: 'SMSF Adviser', flag: 'KNOW', topic: 'Super & tax' },
+        { title: 'Two', link: 'https://a.test/2', source_name: 'SMSF Adviser', flag: 'ACT', topic: 'Compliance' },
+      ] as never,
+      '2026-09-23'
+    )
+    expect(text).toContain('## SMSF Adviser (2)')
+    expect(text).toContain('- [One](https://a.test/1) — KNOW, Super & tax')
+    expect(text).toContain('- [Two](https://a.test/2)')
+  })
+})

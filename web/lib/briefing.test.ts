@@ -199,7 +199,7 @@ describe('reading files', () => {
       TOPICS,
       origin
     )
-    expect(file.text).toContain('By ollama:qwen3:8b: Director banned for ten years.')
+    expect(file.text).toContain('By ollama:qwen3:8b:\n\n- Director banned for ten years.')
     expect(file.text).toContain('Link: https://a.test/story')
   })
 
