@@ -1098,10 +1098,8 @@ export default function Dashboard({
           <p className="mt-2 text-sm text-slate-400">Publications this digest drew on</p>
           <div className="mt-6 space-y-2">
             {digestSources.map((source) => (
-              <div
-                key={source.name}
-                className="flex items-center justify-between rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3"
-              >
+              <div key={source.name} className="rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3">
+              <div className="flex items-center justify-between">
                 <div>
                   <div className="font-medium text-white">{source.name}</div>
                   <div className="text-xs text-slate-500">
@@ -1118,6 +1116,25 @@ export default function Dashboard({
                     Visit →
                   </a>
                 ) : null}
+              </div>
+              {/* The articles this publisher contributed, each linked to its
+                  own page — the home page alone does not say what was read. */}
+              <ul className="mt-3 space-y-1 border-t border-slate-700 pt-3">
+                {digestItems
+                  .filter((item) => item.source_name === source.name)
+                  .map((item) => (
+                    <li key={item.id} className="text-sm">
+                      <a
+                        href={item.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-sky-400 underline underline-offset-2 hover:text-sky-300"
+                      >
+                        {item.title}
+                      </a>
+                    </li>
+                  ))}
+              </ul>
               </div>
             ))}
           </div>
