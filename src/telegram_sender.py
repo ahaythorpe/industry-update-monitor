@@ -155,7 +155,7 @@ def _send_document(token: str, chat_id: str, filename: str, content: bytes, capt
 def newsletter_file(items: list) -> bytes:
     """The same newsletter the email carries, as a file that opens on a phone."""
     grouped = {flag: [i for i in items if i.get("flag") == flag] for flag in FLAG_SEQUENCE}
-    return _build_html_digest(grouped).encode("utf-8")
+    return _build_html_digest(grouped, interactive=True).encode("utf-8")
 
 
 def send_telegram_digest(items: list, flags: str | None = None, topics: str | None = None) -> bool:

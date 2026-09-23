@@ -172,23 +172,32 @@ def _day(item: dict) -> str:
         return ""
 
 
-def _build_html_digest(by_flag: dict) -> str:
-    """The weekly email, laid out as a newsletter: at-a-glance counts, a quick
-    reference of every headline, each urgency grouped by category with its
-    summary as dot points, then every source with each of its articles."""
+def _build_html_digest(by_flag: dict, interactive: bool = False) -> str:
+    """The weekly newsletter, organised by category.
+
+    Email clients (Gmail above all) ignore drop-downs, so the email stays
+    short instead: an overview by category, the ACT headlines, then each
+    category with its ACT stories in full and the rest as one line each.
+    `interactive=True` is the same page for a browser — the file Telegram
+    carries — where each category and each source folds away.
+    """
     today = datetime.now().strftime("%-d %B %Y")
-    total = sum(len(items) for items in by_flag.values())
+    items = [i for flag in _FLAGS for i in by_flag.get(flag, [])]
+    total = len(items)
     act = len(by_flag.get("ACT", []))
 
     out = [
         '<!DOCTYPE html><html><head><meta charset="utf-8">'
-        '<meta name="viewport" content="width=device-width,initial-scale=1"></head>',
+        '<meta name="viewport" content="width=device-width,initial-scale=1">'
+        '<title>Advice Monitor</title>'
+        '<style>summary{cursor:pointer;list-style:none}summary::-webkit-details-marker{display:none}'
+        'details[open] .chev{transform:rotate(90deg)}.chev{display:inline-block;transition:transform .15s}</style>'
+        '</head>',
         f'<body style="margin:0;padding:0;background:#f1f5f9;font-family:Helvetica,Arial,sans-serif;color:{_INK};">',
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">'
         '<tr><td align="center" style="padding:24px 10px;">',
         '<table role="presentation" width="640" cellpadding="0" cellspacing="0" '
         'style="width:100%;max-width:640px;background:#ffffff;border-radius:12px;overflow:hidden;">',
-        # Masthead
         f'<tr><td style="background:{_INK};padding:30px 32px;">'
         '<div style="font-size:13px;letter-spacing:2px;text-transform:uppercase;color:#7dd3fc;font-weight:700;">Advice Monitor</div>'
         '<div style="font-size:28px;line-height:1.25;font-weight:700;color:#ffffff;margin-top:8px;">This week in Australian advice</div>'
@@ -196,7 +205,6 @@ def _build_html_digest(by_flag: dict) -> str:
         '</td></tr>',
     ]
 
-    # At a glance
     tiles = "".join(
         f'<td width="33%" style="padding:0 5px;"><div style="background:{bg};border-radius:10px;padding:14px;text-align:center;">'
         f'<div style="font-size:28px;font-weight:700;color:{colour};">{len(by_flag.get(flag, []))}</div>'
@@ -208,35 +216,37 @@ def _build_html_digest(by_flag: dict) -> str:
     out.append(
         '<tr><td style="padding:26px 27px 6px;">'
         f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>{tiles}</tr></table>'
-        f'<p style="font-size:17px;line-height:1.55;color:{_INK};margin:18px 5px 0;">{lead}</p>'
+        f'<p style="font-size:17px;line-height:1.55;margin:18px 5px 0;">{lead}</p>'
         '</td></tr>'
     )
 
-    out.append(_quick_reference(by_flag))
+    categories = _by_category(items)
+    out.append(_category_overview(categories))
+    if by_flag.get("ACT"):
+        out.append(_act_list(by_flag["ACT"]))
 
-    for flag, (css, heading, blurb, colour, _bg) in _FLAGS.items():
-        items = by_flag.get(flag, [])
-        if not items:
-            continue
-        out.append(
-            f'<tr><td style="padding:30px 32px 4px;">'
-            f'<div style="border-top:4px solid {colour};padding-top:14px;">'
-            f'<div style="font-size:24px;font-weight:700;color:{colour};">{heading} · {len(items)}</div>'
-            f'<div style="font-size:16px;color:{_MUTED};margin-top:4px;">{blurb}</div></div></td></tr>'
+    for topic, stories in categories:
+        counts = _counts(stories)
+        heading = (f'<span style="font-size:23px;font-weight:700;">{html.escape(topic)}</span> '
+                   f'<span style="font-size:15px;color:{_MUTED};">· {counts}</span>')
+        body = "".join(
+            _item_html(i, _FLAGS[i["flag"]][0]) if i.get("flag") == "ACT" else _compact_row(i)
+            for i in stories
         )
-        topics: dict = {}
-        for item in items:
-            topics.setdefault(item.get("topic") or "Other news", []).append(item)
-        for topic, grouped in topics.items():
+        if interactive:
+            opened = " open" if any(i.get("flag") == "ACT" for i in stories) else ""
             out.append(
-                f'<tr><td style="padding:18px 32px 2px;font-size:13px;letter-spacing:1.5px;'
-                f'text-transform:uppercase;color:{_MUTED};font-weight:700;">{html.escape(topic)}</td></tr>'
+                f'<tr><td style="padding:14px 32px 0;"><details{opened} style="border-top:1px solid {_RULE};padding-top:14px;">'
+                f'<summary><span class="chev" style="color:{_MUTED};">▸</span> {heading}</summary>'
+                f'<div style="padding-top:6px;">{body}</div></details></td></tr>'
             )
-            for item in grouped:
-                out.append(f'<tr><td style="padding:10px 32px;">{_item_html(item, css)}</td></tr>')
+        else:
+            out.append(
+                f'<tr><td style="padding:26px 32px 0;"><div style="border-top:3px solid {_INK};padding-top:12px;">{heading}</div>'
+                f'<div style="padding-top:4px;">{body}</div></td></tr>'
+            )
 
-    out.append(_sources_html([i for items in by_flag.values() for i in items]))
-
+    out.append(_sources_html(items, interactive))
     out.append(
         f'<tr><td style="padding:26px 32px 30px;border-top:1px solid {_RULE};font-size:14px;line-height:1.6;color:{_MUTED};">'
         'Summaries are triage, not advice: each says who wrote it, and an ACT story is read at its source '
@@ -247,27 +257,72 @@ def _build_html_digest(by_flag: dict) -> str:
     return "".join(out)
 
 
-def _quick_reference(by_flag: dict) -> str:
-    """Every headline in one list, ACT first, each linked to its article."""
-    rows = [f'<tr><td style="padding:26px 32px 6px;"><div style="background:#f8fafc;border:1px solid {_RULE};'
-            'border-radius:10px;padding:18px 20px;">'
-            '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">Quick reference</div>']
-    for flag, (_, _, _, colour, _) in _FLAGS.items():
-        for item in by_flag.get(flag, []):
-            title = html.escape(item.get("title", "Untitled"))
-            link = item.get("link", "")
-            head = (f'<a href="{html.escape(link, quote=True)}" target="_blank" style="color:{_INK};'
-                    f'text-decoration:none;">{title}</a>') if link else title
-            rows.append(
-                f'<div style="font-size:15px;line-height:1.45;padding:5px 0;border-bottom:1px solid {_RULE};">'
-                f'<span style="display:inline-block;min-width:48px;font-size:12px;font-weight:700;color:{colour};">{flag}</span>'
-                f'{head}</div>'
-            )
-    rows.append('</div></td></tr>')
-    return "".join(rows)
+def _by_category(items: list) -> list:
+    """Categories with ACT stories first, then by size; ACT first inside each."""
+    groups: dict = {}
+    for item in items:
+        groups.setdefault(item.get("topic") or "General", []).append(item)
+    rank = {flag: n for n, flag in enumerate(_FLAGS)}
+    for stories in groups.values():
+        stories.sort(key=lambda i: rank.get(i.get("flag"), 9))
+    return sorted(groups.items(), key=lambda kv: (
+        -sum(1 for i in kv[1] if i.get("flag") == "ACT"), -len(kv[1]), kv[0] == "General", kv[0]))
 
 
-def _sources_html(items: list) -> str:
+def _counts(stories: list) -> str:
+    return " · ".join(f"{n} {flag}" for flag in _FLAGS
+                      if (n := sum(1 for i in stories if i.get("flag") == flag)))
+
+
+def _category_overview(categories: list) -> str:
+    rows = "".join(
+        f'<tr><td style="font-size:16px;padding:7px 0;border-bottom:1px solid {_RULE};">{html.escape(topic)}</td>'
+        f'<td align="right" style="font-size:14px;padding:7px 0;border-bottom:1px solid {_RULE};white-space:nowrap;">'
+        + " ".join(
+            f'<span style="color:{_FLAGS[flag][3]};font-weight:700;">{n} {flag}</span>'
+            for flag in _FLAGS if (n := sum(1 for i in stories if i.get("flag") == flag))
+        )
+        + '</td></tr>'
+        for topic, stories in categories
+    )
+    return (f'<tr><td style="padding:24px 32px 4px;"><div style="font-size:19px;font-weight:700;margin-bottom:6px;">'
+            f'This week by category</div><table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
+            f'{rows}</table></td></tr>')
+
+
+def _act_list(stories: list) -> str:
+    colour = _FLAGS["ACT"][3]
+    rows = "".join(
+        f'<div style="font-size:16px;line-height:1.45;padding:6px 0;border-bottom:1px solid #fecaca;">'
+        + (f'<a href="{html.escape(i["link"], quote=True)}" target="_blank" style="color:{_INK};text-decoration:none;">'
+           f'{html.escape(i.get("title", "Untitled"))}</a>' if i.get("link") else html.escape(i.get("title", "Untitled")))
+        + '</div>'
+        for i in stories
+    )
+    return (f'<tr><td style="padding:22px 32px 4px;"><div style="background:#fef2f2;border-radius:10px;padding:16px 20px;">'
+            f'<div style="font-size:19px;font-weight:700;color:{colour};margin-bottom:4px;">Act on these first</div>'
+            f'{rows}</div></td></tr>')
+
+
+def _compact_row(item: dict) -> str:
+    """A KNOW or NOTE story in one tidy line: urgency, headline, key point."""
+    flag = item.get("flag", "NOTE")
+    colour = _FLAGS.get(flag, _FLAGS["NOTE"])[3]
+    title = html.escape(item.get("title", "Untitled"))
+    link = item.get("link", "")
+    head = (f'<a href="{html.escape(link, quote=True)}" target="_blank" style="color:{_INK};font-weight:700;'
+            f'text-decoration:none;">{title}</a>') if link else f"<b>{title}</b>"
+    points = summary_points(item.get("ai_summary") or "")
+    point = (f'<div style="font-size:15px;color:#334155;margin-top:3px;line-height:1.5;">'
+             f'{bold_html(html.escape(points[0]))}</div>') if points else ""
+    source = html.escape(item.get("source_name", ""))
+    return (f'<div style="padding:11px 0;border-bottom:1px solid {_RULE};">'
+            f'<div style="font-size:16px;line-height:1.4;"><span style="font-size:12px;font-weight:700;color:{colour};'
+            f'margin-right:6px;">{flag}</span>{head}</div>{point}'
+            f'<div style="font-size:13px;color:{_MUTED};margin-top:3px;">{source}</div></div>')
+
+
+def _sources_html(items: list, interactive: bool = False) -> str:
     """Every publisher this week, each of its articles listed with its own link."""
     by_source: dict = {}
     for item in items:
@@ -281,22 +336,26 @@ def _sources_html(items: list) -> str:
     ]
     for name in sorted(by_source, key=str.lower):
         articles = by_source[name]
-        rows.append(
-            f'<tr><td style="padding:18px 32px 4px;font-size:17px;font-weight:700;">{html.escape(name)} '
-            f'<span style="font-weight:400;color:{_MUTED};font-size:15px;">· {len(articles)} '
-            f'article{"s" if len(articles) != 1 else ""}</span></td></tr>'
-        )
+        label = (f'{html.escape(name)} <span style="font-weight:400;color:{_MUTED};font-size:15px;">· '
+                 f'{len(articles)} article{"s" if len(articles) != 1 else ""}</span>')
+        if interactive:
+            rows.append(f'<tr><td style="padding:12px 32px 0;"><details><summary style="font-size:17px;font-weight:700;">'
+                        f'<span class="chev" style="color:{_MUTED};">▸</span> {label}</summary>'
+                        f'<table role="presentation" width="100%" cellpadding="0" cellspacing="0">')
+        else:
+            rows.append(f'<tr><td style="padding:18px 32px 4px;font-size:17px;font-weight:700;">{label}</td></tr>')
         for item in articles:
             link = item.get("link", "")
             visit = (f'<a href="{html.escape(link, quote=True)}" target="_blank" style="color:{_ACCENT};'
                      'font-weight:700;text-decoration:none;white-space:nowrap;">Visit →</a>') if link else ""
-            rows.append(
-                f'<tr><td style="padding:2px 32px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">'
-                f'<tr><td style="font-size:15px;line-height:1.45;color:{_INK};padding:8px 0;border-bottom:1px solid {_RULE};">'
-                f'{html.escape(item.get("title", "Untitled"))}</td>'
-                f'<td align="right" width="76" style="font-size:15px;padding:8px 0 8px 12px;border-bottom:1px solid {_RULE};">{visit}</td>'
-                '</tr></table></td></tr>'
-            )
+            row = (f'<tr><td style="font-size:15px;line-height:1.45;color:{_INK};padding:8px 0;border-bottom:1px solid {_RULE};">'
+                   f'{html.escape(item.get("title", "Untitled"))}</td>'
+                   f'<td align="right" width="76" style="font-size:15px;padding:8px 0 8px 12px;border-bottom:1px solid {_RULE};">{visit}</td></tr>')
+            rows.append(row if interactive else
+                        f'<tr><td style="padding:2px 32px;"><table role="presentation" width="100%" cellpadding="0" '
+                        f'cellspacing="0">{row}</table></td></tr>')
+        if interactive:
+            rows.append('</table></details></td></tr>')
     return "".join(rows)
 
 
