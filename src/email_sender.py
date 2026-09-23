@@ -2,7 +2,8 @@
 Email digest sender for Industry Update Monitor.
 
 Sends collated, prioritised items as an HTML email digest via Gmail SMTP.
-Requires Gmail app password stored in .env (not regular Gmail password).
+Requires a Gmail app password (not the regular Gmail password), kept in the
+macOS Keychain under advice-monitor-email, or in .env.
 
 Safe: never includes full article text, only publisher teasers and links.
 """
@@ -10,9 +11,28 @@ Safe: never includes full article text, only publisher teasers and links.
 import html
 import os
 import smtplib
+import subprocess
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+
+
+# The macOS Keychain entry the password can live in instead of .env, so it is
+# never written to a file. Stored once with:
+#   security add-generic-password -a advice-monitor -s advice-monitor-email -w
+KEYCHAIN_SERVICE = "advice-monitor-email"
+
+
+def _keychain_password():
+    """The email password from the macOS Keychain, or None if it is not there."""
+    try:
+        result = subprocess.run(
+            ["security", "find-generic-password", "-s", KEYCHAIN_SERVICE, "-w"],
+            capture_output=True, text=True, timeout=10,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    return result.stdout.strip() or None if result.returncode == 0 else None
 
 
 def _smtp_config() -> dict:
@@ -21,7 +41,8 @@ def _smtp_config() -> dict:
     if smtp_host:
         smtp_port = int(os.getenv("SMTP_PORT", "587"))
         smtp_user = os.getenv("SMTP_USER") or os.getenv("EMAIL_ADDRESS")
-        smtp_password = os.getenv("SMTP_PASSWORD") or os.getenv("EMAIL_PASSWORD")
+        smtp_password = (os.getenv("SMTP_PASSWORD") or os.getenv("EMAIL_PASSWORD")
+                         or _keychain_password())
         from_email = os.getenv("SMTP_FROM_EMAIL") or os.getenv("EMAIL_ADDRESS") or smtp_user
         use_tls = os.getenv("SMTP_USE_TLS", "true").lower() in {"1", "true", "yes"}
         return {
@@ -37,7 +58,7 @@ def _smtp_config() -> dict:
         "host": "smtp.gmail.com",
         "port": 465,
         "user": os.getenv("EMAIL_ADDRESS"),
-        "password": os.getenv("EMAIL_PASSWORD"),
+        "password": os.getenv("EMAIL_PASSWORD") or _keychain_password(),
         "from_email": os.getenv("EMAIL_ADDRESS"),
         "use_tls": False,
     }
