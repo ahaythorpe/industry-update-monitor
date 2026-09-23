@@ -1941,6 +1941,8 @@ def _load_whatsapp_sender():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Industry Update Monitor")
     parser.add_argument("--email", action="store_true", help="Email digest instead of printing to stdout")
+    parser.add_argument("--from-digest", action="store_true",
+                        help="Send (--email/--whatsapp/--preview) the saved digest, summaries included, instead of fetching again")
     parser.add_argument("--preview", action="store_true", help="Write a local HTML preview of the digest to output/digest_preview.html")
     parser.add_argument("--json", nargs="?", const="web/lib/digest.json", default=None,
                         help="Write the digest as JSON for the web dashboard (default: web/lib/digest.json)")
@@ -2140,60 +2142,76 @@ if __name__ == "__main__":
     if args.sources:
         show_sources()
 
-    sources, _ = load_sources()
-    items, failures = fetch_all_sources(sources, limit=15)
-    for name, error in failures:
-        print(f"⚠️  Error fetching {name}: {error}")
+    if args.from_digest:
+        # Send the digest already on disk — the one the local model summarised
+        # — instead of fetching again, which would bring in fresh items with
+        # no summaries yet.
+        if not digest_path.exists():
+            raise SystemExit(f"❌ No digest at {digest_path}. Run: python src/monitor.py --json")
+        digest_items = [
+            {**item, "summary": item.get("teaser", "")}
+            for item in json.loads(digest_path.read_text(encoding="utf-8")).get("items", [])
+        ]
+        if not digest_items:
+            raise SystemExit(f"❌ No items in {digest_path}. Run: python src/monitor.py --json")
+        summarised = sum(1 for item in digest_items if item.get("ai_summary"))
+        print(f"📂 Using the saved digest: {len(digest_items)} items, {summarised} summarised.")
+        counts = {flag: sum(1 for i in digest_items if i["flag"] == flag) for flag in FLAG_ORDER}
+    else:
+        sources, _ = load_sources()
+        items, failures = fetch_all_sources(sources, limit=15)
+        for name, error in failures:
+            print(f"⚠️  Error fetching {name}: {error}")
 
-    if args.gmail:
-        # Opt-in and read-only. Four configured sources have no feed at all,
-        # two of them ACT-flagged, so without this they never reach the digest.
-        newsletters = fetch_gmail_items(
-            sources,
-            label=args.gmail_label,
-            max_messages=args.gmail_max,
-            newer_than_days=args.days or 14,
-        )
-        print(f"📧 Read {len(newsletters)} newsletter(s) from the Gmail label.")
-        items.extend(newsletters)
+        if args.gmail:
+            # Opt-in and read-only. Four configured sources have no feed at all,
+            # two of them ACT-flagged, so without this they never reach the digest.
+            newsletters = fetch_gmail_items(
+                sources,
+                label=args.gmail_label,
+                max_messages=args.gmail_max,
+                newer_than_days=args.days or 14,
+            )
+            print(f"📧 Read {len(newsletters)} newsletter(s) from the Gmail label.")
+            items.extend(newsletters)
 
-    if not items:
-        raise SystemExit(
-            "❌ No items fetched from any configured feed. Check data/sources.json — "
-            "every source needs a live 'rss' URL, and the run needs network access."
-        )
+        if not items:
+            raise SystemExit(
+                "❌ No items fetched from any configured feed. Check data/sources.json — "
+                "every source needs a live 'rss' URL, and the run needs network access."
+            )
 
-    print(f"📥 Fetched {len(items)} items from {len(sources) - len(failures)} sources.")
+        print(f"📥 Fetched {len(items)} items from {len(sources) - len(failures)} sources.")
 
-    if not args.no_check_links:
-        check_links(items)
-        broken = sum(1 for item in items if item.get("link_ok") is False)
-        if broken:
-            print(f"🔗 {broken} of {len(items)} links did not resolve and were dropped.")
+        if not args.no_check_links:
+            check_links(items)
+            broken = sum(1 for item in items if item.get("link_ok") is False)
+            if broken:
+                print(f"🔗 {broken} of {len(items)} links did not resolve and were dropped.")
 
-    wanted_flags = {f.strip().upper() for f in args.flags.split(",") if f.strip()}
-    unknown = wanted_flags - set(FLAG_ORDER)
-    if unknown:
-        raise SystemExit(f"❌ Unknown flag(s): {', '.join(sorted(unknown))}. Choose from ACT, KNOW, NOTE.")
+        wanted_flags = {f.strip().upper() for f in args.flags.split(",") if f.strip()}
+        unknown = wanted_flags - set(FLAG_ORDER)
+        if unknown:
+            raise SystemExit(f"❌ Unknown flag(s): {', '.join(sorted(unknown))}. Choose from ACT, KNOW, NOTE.")
 
-    collate_kwargs = {
-        "max_items": args.limit,
-        "flags": wanted_flags,
-        "min_confidence": args.min_confidence,
-        "max_age_days": args.days or None,
-        "require_working_link": not args.no_check_links,
-    }
-    digest_items = collate_items(items, **collate_kwargs)
+        collate_kwargs = {
+            "max_items": args.limit,
+            "flags": wanted_flags,
+            "min_confidence": args.min_confidence,
+            "max_age_days": args.days or None,
+            "require_working_link": not args.no_check_links,
+        }
+        digest_items = collate_items(items, **collate_kwargs)
 
-    # The email and the WhatsApp message are what get read each week, so a
-    # summary already recorded has to survive a fresh fetch to reach them.
-    restored = attach_saved_summaries(digest_items, digest_path)
-    if restored:
-        print(f"🧾 {restored} saved summar{'ies' if restored != 1 else 'y'} carried over.")
-    counts = {flag: sum(1 for i in digest_items if i["flag"] == flag) for flag in FLAG_ORDER}
+        # The email and the WhatsApp message are what get read each week, so a
+        # summary already recorded has to survive a fresh fetch to reach them.
+        restored = attach_saved_summaries(digest_items, digest_path)
+        if restored:
+            print(f"🧾 {restored} saved summar{'ies' if restored != 1 else 'y'} carried over.")
+        counts = {flag: sum(1 for i in digest_items if i["flag"] == flag) for flag in FLAG_ORDER}
     print(f"🏷️  Digest: {len(digest_items)} items — ACT {counts['ACT']}, KNOW {counts['KNOW']}, NOTE {counts['NOTE']}")
 
-    if args.json:
+    if args.json and not args.from_digest:
         written = export_json(digest_items, root / args.json, sources)
         print(f"🗂️  Digest JSON written to {written}")
 

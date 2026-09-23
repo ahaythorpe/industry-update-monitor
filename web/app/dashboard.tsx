@@ -1168,26 +1168,30 @@ export default function Dashboard({
                     href={source.home}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-sm font-medium text-sky-400 underline underline-offset-2 hover:text-sky-300"
+                    className="text-xs font-medium text-slate-400 underline underline-offset-2 hover:text-slate-200"
                   >
-                    Visit →
+                    Publisher&apos;s website
                   </a>
                 ) : null}
               </div>
               {/* The articles this publisher contributed, each linked to its
                   own page — the home page alone does not say what was read. */}
-              <ul className="mt-3 space-y-1 border-t border-slate-700 pt-3">
+              <ul className="mt-3 border-t border-slate-700 pt-2">
                 {digestItems
                   .filter((item) => item.source_name === source.name)
                   .map((item) => (
-                    <li key={item.id} className="text-sm">
+                    <li
+                      key={item.id}
+                      className="flex items-center justify-between gap-4 border-b border-slate-700/60 py-1.5 text-sm last:border-b-0"
+                    >
+                      <span className="text-slate-300">{item.title}</span>
                       <a
                         href={item.link}
                         target="_blank"
                         rel="noreferrer"
-                        className="text-sky-400 underline underline-offset-2 hover:text-sky-300"
+                        className="shrink-0 rounded-lg border border-sky-600/60 bg-sky-600/15 px-3 py-1 text-xs font-semibold text-sky-300 hover:bg-sky-600/25"
                       >
-                        {item.title}
+                        Visit →
                       </a>
                     </li>
                   ))}

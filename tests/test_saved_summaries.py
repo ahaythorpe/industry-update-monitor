@@ -128,3 +128,16 @@ class ImportOriginTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class NewsletterTests(unittest.TestCase):
+    def test_every_article_in_the_sources_list_has_its_own_visit_link(self):
+        from src.email_sender import _build_html_digest
+        items = [
+            {"title": "One", "link": "https://a.test/1", "source_name": "ifa", "flag": "ACT"},
+            {"title": "Two", "link": "https://a.test/2", "source_name": "ifa", "flag": "KNOW"},
+        ]
+        markup = _build_html_digest({"ACT": items[:1], "KNOW": items[1:], "NOTE": []})
+        self.assertIn("Sources this week", markup)
+        self.assertEqual(markup.count("Visit →"), 2)
+        self.assertIn('href="https://a.test/2"', markup)
