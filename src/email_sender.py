@@ -246,7 +246,9 @@ def _build_html_digest(by_flag: dict, interactive: bool = False) -> str:
                 f'<div style="padding-top:4px;">{body}</div></td></tr>'
             )
 
-    out.append(_sources_html(items, interactive))
+    # Sources always fold, under each publisher: a mail app that ignores
+    # drop-downs (Gmail) simply shows the list open, so nothing is lost.
+    out.append(_sources_html(items, interactive=True))
     out.append(
         f'<tr><td style="padding:26px 32px 30px;border-top:1px solid {_RULE};font-size:14px;line-height:1.6;color:{_MUTED};">'
         'Summaries are triage, not advice: each says who wrote it, and an ACT story is read at its source '
