@@ -135,6 +135,9 @@ four by hand.
 
 ## The dashboard
 
+**Public copy:** https://advice-monitor.vercel.app, for anyone, updated by the
+Sunday run. **📚 Past weeks** at the top lists every earlier week.
+
 - **By urgency**: four boxes, 🔴 Act now, 🟠 Worth knowing, 🟢 Background and
   👀 Read these yourself (stories the summariser could not read, because the
   publisher only shares a teaser). **By topic** below: one box per topic, with

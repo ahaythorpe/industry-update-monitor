@@ -9,6 +9,12 @@ export function generateStaticParams() {
   return listWeeks().map(({ week }) => ({ week }))
 }
 
+export async function generateMetadata({ params }: { params: Promise<{ week: string }> }) {
+  const { week } = await params
+  const label = new Date(`${week}T00:00:00`).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })
+  return { title: `Week of ${label} · Australian advice` }
+}
+
 export default async function Week({ params }: { params: Promise<{ week: string }> }) {
   const { week } = await params
   const digest = loadWeek(week)

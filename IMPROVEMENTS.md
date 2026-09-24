@@ -633,7 +633,8 @@ Still open:
   table ("Dixon Advisory will pay $83.5M", which was the cost of its collapse), one story at a
   time or three. `gpt-oss:20b` got the facts right but takes about 2.5 hours a week. Claude Haiku
   would cost about US 8 cents a week on a prepaid credit. The owner's to decide.
-- **Putting the dashboard online** behind a login, which alert mode depends on.
+- ~~**Putting the dashboard online**~~ Done 24 September 2026, **public with no login**, at the
+  owner's request: see item 18. Alert mode stays off.
 - **"This week in 30 seconds"**, deadlines as tags, and plain headlines: suggested, not built.
 
 ## 17. Official and fund-manager sources through Gmail
@@ -650,3 +651,23 @@ access once, add `--gmail` to the Monday run, and show the fund-manager views as
 📈 Big-picture investing topic, with official releases marked as such. Needs the owner for the
 sign-ups and the one Google sign-in.
 
+## 18. A public dashboard, with past weeks
+
+Asked for 24 September 2026 by the owner: a link other people can open, updated by itself, that
+keeps earlier weeks.
+
+Built, 24 September 2026:
+
+- **Public at https://advice-monitor.vercel.app**, the `advice-monitor` Vercel project, deployed
+  from `web/` with `vercel deploy --prod`. Hosted mode (item 16) hides the owner's settings and
+  sending, and never serves article text. The project holds **no environment variables**; keep
+  it that way. The public GitHub repo of the same name is not the deploy source and is untouched.
+- **Updated by the Sunday run**, as its last step. A deploy swaps in whole, so readers see last
+  week until the new one is ready, and a failed deploy leaves last week up and says so in the log.
+- **Past weeks.** `scripts/archive_week.py` saves each week, without article text, to
+  `web/lib/archive/<Monday>.json`; a Sunday run counts toward the Monday after it. The dashboard
+  links to `/archive`, and each week is a static page at `/week/<Monday>`. Backfilled from git
+  history for the weeks of 7, 14 and 21 September.
+
+Left as is, by the owner's choice: urgency labels stay as they are, and the email and Telegram
+stay the full newsletter.
