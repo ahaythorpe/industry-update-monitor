@@ -90,6 +90,9 @@ fi
 # web/ is uploaded, and web/.vercelignore keeps .env files out of it. launchd
 # does not load nvm, so node and vercel are found by their full path.
 if [ $STATUS -eq 0 ] && [ "$COUNT" != "0" ]; then
+  # Keep this week for the Past weeks page (web/lib/archive/, since 24 Sep 2026).
+  .venv/bin/python scripts/archive_week.py >/dev/null 2>&1 \
+    || echo "$STAMP  WEEK NOT ARCHIVED — run python scripts/archive_week.py" >>"$LOG"
   NODE_BIN="/Users/bella/.nvm/versions/node/v20.20.0/bin"
   if DEP="$(cd web && PATH="$NODE_BIN:$PATH" vercel deploy --prod --yes 2>&1)"; then
     echo "$STAMP  ok — public dashboard updated at https://advice-monitor.vercel.app" >>"$LOG"

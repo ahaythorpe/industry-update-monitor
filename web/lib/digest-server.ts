@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import bundled from './digest.json'
 import { normalizeIncomingItem, type DigestItem, type DigestSource } from './digest'
@@ -87,5 +87,52 @@ export function loadGlossary(): GlossaryEntry[] {
     } catch {
       return usable((bundled as { glossary?: GlossaryEntry[] }).glossary)
     }
+  }
+}
+
+const ARCHIVE_DIR = path.join(process.cwd(), 'lib', 'archive')
+const WEEK = /^\d{4}-\d{2}-\d{2}$/
+
+export type ArchivedWeek = { week: string; generatedAt: string; stories: number; actNow: number }
+
+/**
+ * Past weeks, newest first: lib/archive/<Monday>.json, one per week, written by
+ * scripts/archive_week.py in the Sunday run. The pages that read these are
+ * built as static pages when the site is deployed, so a hosted copy never
+ * reads the folder at request time.
+ */
+export function listWeeks(): ArchivedWeek[] {
+  let files: string[] = []
+  try {
+    files = readdirSync(ARCHIVE_DIR)
+  } catch {
+    return []
+  }
+  return files
+    .map((file) => file.replace(/\.json$/, ''))
+    .filter((week) => WEEK.test(week))
+    .sort()
+    .reverse()
+    .flatMap((week) => {
+      const digest = loadWeek(week)
+      return digest
+        ? [
+            {
+              week,
+              generatedAt: digest.generatedAt,
+              stories: digest.items.length,
+              actNow: digest.items.filter((item) => item.flag === 'ACT').length,
+            },
+          ]
+        : []
+    })
+}
+
+export function loadWeek(week: string): DigestPayload | null {
+  if (!WEEK.test(week)) return null
+  try {
+    return shape(JSON.parse(readFileSync(path.join(ARCHIVE_DIR, `${week}.json`), 'utf8')) as RawPayload, false)
+  } catch {
+    return null
   }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import Link from 'next/link'
 import { type DigestItem, type DigestSource, type Flag } from '@/lib/digest'
 import {
   BRIEF_CHUNK,
@@ -200,6 +201,7 @@ export default function Dashboard({
   generatedAt: digestGeneratedAt,
   glossary,
   hosted = false,
+  week,
 }: {
   items: DigestItem[]
   sources: DigestSource[]
@@ -208,6 +210,8 @@ export default function Dashboard({
   glossary: GlossaryEntry[]
   // On Vercel for other readers: the owner-only sections are left out.
   hosted?: boolean
+  // Set when showing a past week from the archive: its Monday, YYYY-MM-DD.
+  week?: string
 }) {
   const { readIds, toggle: toggleRead, clear: clearRead } = useReadItems()
 
@@ -579,7 +583,11 @@ export default function Dashboard({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">Industry Update Monitor</p>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight text-white">This week in Australian advice</h1>
+              <h1 className="mt-4 text-4xl font-bold tracking-tight text-white">
+                {week
+                  ? `Week of ${new Date(`${week}T00:00:00`).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}`
+                  : 'This week in Australian advice'}
+              </h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
                 A weekly round-up of the Australian financial advice trade press and regulators, sorted by urgency
                 and topic. Every story comes from a free public source. The dot points are written by an AI model
@@ -588,6 +596,16 @@ export default function Dashboard({
               <p className="mt-3 text-sm text-slate-400">
                 Updated {formatDay(digestGeneratedAt)} · {digestItems.length} stories from {digestSources.length}{' '}
                 publications
+              </p>
+              <p className="mt-3 flex gap-4 text-sm">
+                {week ? (
+                  <Link href="/" className="text-sky-300 hover:underline">
+                    ← This week
+                  </Link>
+                ) : null}
+                <Link href="/archive" className="text-sky-300 hover:underline">
+                  📚 Past weeks
+                </Link>
               </p>
             </div>
             <div className="flex gap-2">
