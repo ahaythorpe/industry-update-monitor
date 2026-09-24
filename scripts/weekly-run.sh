@@ -84,4 +84,19 @@ if [ $STATUS -eq 0 ] && [ "$COUNT" != "0" ]; then
   fi
 fi
 
+# Last, publish the week to the public dashboard, https://advice-monitor.vercel.app
+# (since 24 Sep 2026). After the summaries, so readers get the dot points; still
+# runs if they were skipped, so the site never shows last week's news. Only
+# web/ is uploaded, and web/.vercelignore keeps .env files out of it. launchd
+# does not load nvm, so node and vercel are found by their full path.
+if [ $STATUS -eq 0 ] && [ "$COUNT" != "0" ]; then
+  NODE_BIN="/Users/bella/.nvm/versions/node/v20.20.0/bin"
+  if DEP="$(cd web && PATH="$NODE_BIN:$PATH" vercel deploy --prod --yes 2>&1)"; then
+    echo "$STAMP  ok — public dashboard updated at https://advice-monitor.vercel.app" >>"$LOG"
+  else
+    echo "$STAMP  PUBLIC DASHBOARD NOT UPDATED — it still shows last week. Last lines:" >>"$LOG"
+    echo "$DEP" | tail -3 | sed 's/^/    /' >>"$LOG"
+  fi
+fi
+
 exit $STATUS
