@@ -48,11 +48,13 @@ else
   echo "$STAMP  ok — $COUNT items in the digest; briefing written to output/$SWEEP_NOTE" >>"$LOG"
 fi
 
-# Then summarise on this Mac with the local model (about 20 minutes). A
+# Then summarise on this Mac with the local model (about 2.5 hours). A
 # separate step, so Ollama being closed costs the summaries, never the digest.
 if [ $STATUS -eq 0 ] && [ "$COUNT" != "0" ]; then
   if curl -s -m 5 http://localhost:11434/api/tags >/dev/null; then
-    if OLL="$(.venv/bin/python src/monitor.py --ollama 2>&1)"; then
+    # gpt-oss:20b since 24 Sep 2026: qwen3:8b misread figures in tables.
+    # It is slower, so each paste of three stories gets up to 30 minutes.
+    if OLL="$(.venv/bin/python src/monitor.py --ollama gpt-oss:20b --ollama-timeout 1800 2>&1)"; then
       echo "$STAMP  ok — $(echo "$OLL" | grep -o '[0-9]* of [0-9]* summaries merged' || echo 'summaries merged') by the local model" >>"$LOG"
       # Write the email as it will be sent, for the dashboard's "Preview the
       # email" link. A failure here never stops the sends below.

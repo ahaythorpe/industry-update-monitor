@@ -73,7 +73,7 @@ and Telegram once with [SETUP.md Part 5](SETUP.md#part-5--telegram--free).
 
    If Telegram is not set up yet, it prints the message instead. Nothing is lost.
 
-The Monday 07:00 run does steps 3, 4 and 6 by itself — one newsletter a week,
+The Sunday 21:00 run does steps 3, 4 and 6 by itself — one newsletter a week,
 by email and Telegram.
 
 ### Sending an extra, focused update
@@ -97,11 +97,11 @@ KNOW stories on Super".
 
 ## Your week
 
-1. **Monday 07:00 — it runs by itself.** The laptop fetches the week's news,
+1. **Sunday 21:00 — it runs by itself.** The laptop fetches the week's news,
    writes the dashboard's digest, a sweep sheet and a briefing, and — if Ollama
-   is open — writes a summary of every item (about 20 minutes). Once the
+   is open — writes a summary of every item (about 2.5 hours), so it is ready by Monday morning. Once the
    summaries are written it **emails the newsletter to you**, your own
-   address only. It also sends it to your Telegram chat. It never sends to anyone else. If the laptop was closed at 07:00, it runs when it
+   address only. It also sends it to your Telegram chat. It never sends to anyone else. If the laptop was closed at 21:00, it runs when it
    next wakes. What happened is in `output/weekly-run.log`.
 2. **Open the dashboard.** In a terminal: `cd web && npm run dev`, then go to
    **http://localhost:3000**.

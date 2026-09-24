@@ -10,13 +10,14 @@
     <string>/Users/bella/Projects/advice-monitor/scripts/weekly-run.sh</string>
   </array>
 
-  <!-- Monday 07:00. launchd runs a missed job when the laptop next wakes,
-       which cron does not — that matters on a machine closed overnight.
-       Weekday 1 = Monday. -->
+  <!-- Sunday 21:00, since 24 Sep 2026: the summaries are written by
+       gpt-oss:20b, which takes about two and a half hours, so the week is
+       ready before Monday morning. launchd runs a missed job when the laptop
+       next wakes, which cron does not. Weekday 0 = Sunday. -->
   <key>StartCalendarInterval</key>
   <dict>
-    <key>Weekday</key><integer>1</integer>
-    <key>Hour</key><integer>7</integer>
+    <key>Weekday</key><integer>0</integer>
+    <key>Hour</key><integer>21</integer>
     <key>Minute</key><integer>0</integer>
   </dict>
 

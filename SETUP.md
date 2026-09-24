@@ -157,7 +157,8 @@ does the same thing with no pasting.
 
 ### The Monday run — check it, change it, stop it
 
-Installed 17 September 2026: a `launchd` agent runs **Monday at 07:00**. It
+Installed 17 September 2026 for Monday 07:00; since 24 September 2026 it runs
+**Sunday at 21:00**, because the summaries now take about 2.5 hours. It
 refreshes the digest, the sweep sheet and the briefing, then — if Ollama is
 running — writes the summaries (Part 2). Once the
 summaries exist it emails the newsletter **to your own address only**
@@ -188,7 +189,7 @@ rm ~/Library/LaunchAgents/com.advice-monitor.weekly.plist     # and forget it
 ```
 
 To change the time, edit the `StartCalendarInterval` block in the plist
-(`Weekday` 1 is Monday), copy it to `~/Library/LaunchAgents/` again, then
+(`Weekday` 0 is Sunday, 1 is Monday), copy it to `~/Library/LaunchAgents/` again, then
 `bootout` and `bootstrap` to reload it.
 
 ---
@@ -267,16 +268,17 @@ week**; the laptop will be warm and loud meanwhile. Limits built in:
 - It never retries, and never falls back to anything paid.
 
 The model's raw reply is kept at `output/ollama-reply.md` — **read it.**
-Summaries are labelled "Summarised by a local model (qwen3:8b)" everywhere they
+Since 24 Sep 2026 the Sunday run uses `gpt-oss:20b` (`qwen3:8b` misread figures in
+tables). Summaries are labelled with the model's name everywhere they
 appear — dashboard, email, Telegram — never as this tool's own work.
 
 ### In the Monday run
 
 Since 23 September 2026, `scripts/weekly-run.sh` runs `--ollama` straight after
-the 07:00 digest refresh, so summaries are waiting when you open the dashboard.
+the Sunday 21:00 digest refresh, so summaries are waiting when you open the dashboard.
 It is a separate step: if Ollama is not running, the digest is still written and
 the log says `SUMMARIES SKIPPED — Ollama is not running; open the Ollama app`.
-Nothing fails. **Leave Ollama running on Monday mornings** if you want the
+Nothing fails. **Leave Ollama running and the laptop awake on Sunday evenings** if you want the
 summaries; otherwise run `python src/monitor.py --ollama` yourself later.
 
 ### What it actually did
@@ -295,14 +297,14 @@ item is read at its source no matter what any model says about it.
 | | |
 |---|---|
 | Money | none — no key, no account, no per-call price |
-| Disk | ~5 GB for an 8B model |
+| Disk | ~13 GB for `gpt-oss:20b`, ~5 GB for `qwen3:8b` |
 | Memory | ~8 GB while it runs |
-| Time | about 20 minutes for a 50-item week |
+| Time | about 2.5 hours for a 50-item week with `gpt-oss:20b` (20 minutes with `qwen3:8b`) |
 | Electricity | a warm laptop for that time, once a week |
 
 ### Turning it off
 
-Leave off `--ollama`, and quit Ollama before Monday 07:00 (the Monday run then
+Leave off `--ollama`, and quit Ollama before Sunday 21:00 (the Monday run then
 just skips the summaries). To reclaim the disk:
 
 ```bash

@@ -426,6 +426,10 @@ the model's raw reply to disk before importing a word of it, and reports rather 
 Since 23 September 2026 it also runs in the Monday job (item 6), with `OLLAMA_MODEL=qwen3:8b` in
 `.env`. A 50-item week takes about 20 minutes.
 
+Since 24 September 2026 the weekly run uses `gpt-oss:20b` instead (item 16), passed on the
+command line with a 30-minute timeout per paste, and runs Sunday 21:00 rather than Monday 07:00
+because a week now takes about 2.5 hours.
+
 Still open, and the reason this is not finished business:
 
 - Whether a local model is good enough to trust for KNOW items. On the first real run, one of
@@ -624,7 +628,8 @@ Built, 24 September 2026:
 
 Still open:
 
-- **Which model writes the summaries.** On a test of three stories `qwen3:8b` misread a money
+- ~~**Which model writes the summaries.**~~ Decided 24 September 2026: `gpt-oss:20b`, with the
+  run moved to Sunday 21:00 so the week is ready by Monday. On a test of three stories `qwen3:8b` misread a money
   table ("Dixon Advisory will pay $83.5M", which was the cost of its collapse), one story at a
   time or three. `gpt-oss:20b` got the facts right but takes about 2.5 hours a week. Claude Haiku
   would cost about US 8 cents a week on a prepaid credit. The owner's to decide.
