@@ -1,5 +1,9 @@
 # Industry Update Monitor
 
+> **You are in: `~/Projects/advice-monitor`.** Regulator and finance news, one weekly newsletter.
+> Looking for the Reddit threads and startup events bot? That is GoldMind monitor, in `~/goldmind-monitor`.
+> All news and regulator sources go here, never in GoldMind monitor. The list is `data/sources.json`.
+
 A free, private tool for keeping up with the Australian financial advice
 industry without drowning in it.
 

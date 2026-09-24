@@ -207,6 +207,76 @@
       "rss": null,
       "home": "https://www.fspodcast.com.au",
       "note": "Profession-facing podcast. Consume directly in a podcast app — outside the digest, no cost."
+    },
+    {
+      "name": "RBA media releases",
+      "access": "free",
+      "flag": "KNOW",
+      "rss": "https://www.rba.gov.au/rss/rss-cb-media-releases.xml",
+      "home": "https://www.rba.gov.au",
+      "intake": "rss",
+      "note": "Added 25 Sep 2026. Probed the same day: live. Carries cash rate decisions, which change the numbers in every cash-flow and debt conversation. KNOW rather than ACT: a rate move changes advice inputs, not adviser obligations.",
+      "sub_status": "free RSS, no signup"
+    },
+    {
+      "name": "OAIC",
+      "access": "free",
+      "flag": "KNOW",
+      "rss": "https://www.oaic.gov.au/rss",
+      "home": "https://www.oaic.gov.au",
+      "intake": "rss",
+      "note": "Added 25 Sep 2026. Probed the same day: live, 231 entries. The privacy regulator. Privacy Act reform and notifiable data breach guidance reach every practice holding client files. High volume, so the classifier does the sorting.",
+      "sub_status": "free RSS, no signup"
+    },
+    {
+      "name": "ACCC media releases",
+      "access": "free",
+      "flag": "KNOW",
+      "rss": null,
+      "home": "https://www.accc.gov.au/news-centre",
+      "intake": "bookmark_and_check",
+      "note": "Added 25 Sep 2026. No usable feed: accc.gov.au returns 403 to automated clients on its RSS paths and news centre. Consumer law, scams and unfair contract terms. Bookmark-and-check in the weekly sweep.",
+      "sub_status": "bookmark-and-check (no RSS)"
+    },
+    {
+      "name": "Consumer Data Right",
+      "access": "free",
+      "flag": "NOTE",
+      "rss": null,
+      "home": "https://www.cdr.gov.au/news",
+      "intake": "bookmark_and_check",
+      "note": "Added 25 Sep 2026. No feed advertised on the news page. Open banking rules, relevant as CDR reaches non-bank lending and advice data sharing. Bookmark-and-check.",
+      "sub_status": "bookmark-and-check (no RSS)"
+    },
+    {
+      "name": "Yahoo Finance AU",
+      "access": "free",
+      "flag": "NOTE",
+      "rss": "https://au.finance.yahoo.com/news/rssindex",
+      "home": "https://au.finance.yahoo.com",
+      "intake": "rss",
+      "note": "Added 25 Sep 2026. Probed the same day: live, 5 entries, newest that day. Mostly markets and US stories, so NOTE prior. Free, no paywall.",
+      "sub_status": "free RSS, no signup"
+    },
+    {
+      "name": "Guardian Australia business",
+      "access": "free",
+      "flag": "NOTE",
+      "rss": "https://www.theguardian.com/au/business/rss",
+      "home": "https://www.theguardian.com",
+      "intake": "rss",
+      "note": "Added 25 Sep 2026. Probed the same day: live, 28 entries. Free, no paywall. Includes the daily Australia news live blog, which is broad; the classifier demotes what does not match.",
+      "sub_status": "free RSS, no signup"
+    },
+    {
+      "name": "The Conversation business",
+      "access": "free",
+      "flag": "NOTE",
+      "rss": "https://theconversation.com/au/business/articles.atom",
+      "home": "https://theconversation.com",
+      "intake": "rss",
+      "note": "Added 25 Sep 2026. Probed the same day: live, 25 entries, newest that day. Academic explainers on policy changes (e.g. card surcharge ban from 1 Oct 2026). Free, no paywall.",
+      "sub_status": "free RSS, no signup"
     }
   ],
   "free_search_sources": [

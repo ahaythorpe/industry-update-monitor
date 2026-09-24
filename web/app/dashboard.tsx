@@ -23,6 +23,7 @@ import { formatDay, toDayKey } from '@/lib/utils'
 import { Calendar } from '@/components/Calendar'
 import { SettingsModal } from '@/components/SettingsModal'
 import { PaywallModal } from '@/components/PaywallModal'
+import { UnreachableSources } from '@/components/UnreachableSources'
 import { CategoryBoard } from '@/components/CategoryBoard'
 import type { GlossaryEntry } from '@/lib/glossary'
 
@@ -1017,6 +1018,8 @@ export default function Dashboard({
             </div>
           </details>
           )}
+
+          <UnreachableSources />
 
           <div className="space-y-8">
             {itemsByTopic.size === 0 ? (
