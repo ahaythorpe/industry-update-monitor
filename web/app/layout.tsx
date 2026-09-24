@@ -12,10 +12,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const description =
+  "A weekly round-up of the Australian financial advice trade press and regulators, sorted into Act now, Worth knowing and Background, with plain-English summaries and a link to every source.";
+
+// Also what LinkedIn and messaging apps show when the link is shared.
 export const metadata: Metadata = {
-  title: "Industry Update Monitor",
-  description:
-    "Weekly ACT / KNOW / NOTE digest of the Australian financial advice press, built from public RSS feeds.",
+  title: "This week in Australian advice",
+  description,
+  openGraph: { title: "This week in Australian advice", description, type: "website" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

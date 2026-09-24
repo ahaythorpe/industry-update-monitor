@@ -35,6 +35,14 @@ type RawPayload = {
 
 const DIGEST_PATH = path.join(process.cwd(), 'lib', 'digest.json')
 
+/**
+ * Running on Vercel, for other readers, rather than on the owner's Mac. The
+ * hosted copy leaves out everything only the owner uses (settings, sending,
+ * the paste-into-a-chat export) and never serves the article text the local
+ * model read: readers get headlines, summaries and links, nothing more.
+ */
+export const HOSTED = Boolean(process.env.VERCEL)
+
 function shape(raw: RawPayload, live: boolean): DigestPayload {
   return {
     generatedAt: raw.generated_at || '',
@@ -44,7 +52,10 @@ function shape(raw: RawPayload, live: boolean): DigestPayload {
     topics: raw.topics?.length
       ? raw.topics
       : Array.from(new Set((raw.items || []).map((item) => item.topic).filter(Boolean) as string[])),
-    items: (raw.items || []).map((item) => normalizeIncomingItem(item)),
+    items: (raw.items || []).map((item) => {
+      const normalised = normalizeIncomingItem(item)
+      return HOSTED ? { ...normalised, brief_text: null } : normalised
+    }),
     live,
   }
 }

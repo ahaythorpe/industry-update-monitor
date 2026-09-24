@@ -199,12 +199,15 @@ export default function Dashboard({
   topics: digestTopics,
   generatedAt: digestGeneratedAt,
   glossary,
+  hosted = false,
 }: {
   items: DigestItem[]
   sources: DigestSource[]
   topics: string[]
   generatedAt: string
   glossary: GlossaryEntry[]
+  // On Vercel for other readers: the owner-only sections are left out.
+  hosted?: boolean
 }) {
   const { readIds, toggle: toggleRead, clear: clearRead } = useReadItems()
 
@@ -578,9 +581,9 @@ export default function Dashboard({
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">Industry Update Monitor</p>
               <h1 className="mt-4 text-4xl font-bold tracking-tight text-white">This week in Australian advice</h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
-                Every story comes from a free public source, sorted by urgency and category. The dot points are
-                written by an AI model running on this computer, from the publisher&apos;s own text. Tap a box to
-                read a category.
+                A weekly round-up of the Australian financial advice trade press and regulators, sorted by urgency
+                and topic. Every story comes from a free public source. The dot points are written by an AI model
+                from the publisher&apos;s own text, and every story links to the original. Tap a box to read it.
               </p>
               <p className="mt-3 text-sm text-slate-400">
                 Updated {formatDay(digestGeneratedAt)} · {digestItems.length} stories from {digestSources.length}{' '}
@@ -595,6 +598,7 @@ export default function Dashboard({
             >
               {theme === 'light' ? '☾' : '☀'}
             </button>
+            {hosted ? null : (
             <button
               onClick={() => setSettingsOpen(true)}
               className="rounded-lg bg-slate-800 px-4 py-2 text-white hover:bg-slate-700"
@@ -602,6 +606,7 @@ export default function Dashboard({
             >
               ⚙️
             </button>
+            )}
             </div>
           </div>
         </header>
@@ -749,6 +754,7 @@ export default function Dashboard({
             manual-review items are follow-ups to open by hand, not verified article links.
           </div>
 
+          {hosted ? null : (
           <details className="mb-8 rounded-2xl border border-sky-900/60 bg-sky-950/30 p-5">
             <summary className="cursor-pointer text-sm font-semibold text-slate-300">
               Advanced: export stories to paste into an AI chat
@@ -992,6 +998,7 @@ export default function Dashboard({
               ) : null}
             </div>
           </details>
+          )}
 
           <div className="space-y-8">
             {itemsByTopic.size === 0 ? (
@@ -1111,6 +1118,8 @@ export default function Dashboard({
           />
         </section>
 
+        {hosted ? null : (
+        <>
         <section className="mt-10 grid gap-6 lg:grid-cols-3">
           <IntegrationCard
             title="Email digest"
@@ -1177,15 +1186,25 @@ export default function Dashboard({
           </div>
         </section>
 
+        </>
+        )}
+
         <section className="mt-10 rounded-3xl border border-slate-800 bg-slate-900 p-8">
           <h2 className="text-2xl font-semibold text-white">How it works</h2>
           <ul className="mt-6 space-y-3 text-slate-300">
-            <li>• Free-first by design: only public feeds the publisher serves to everyone.</li>
-            <li>• No paywalls: nothing behind a login or subscription is fetched, stored or reconstructed.</li>
-            <li>• Teasers only: the publisher&apos;s own summary, never the full article text.</li>
-            <li>• Flags are weighted keywords with a confidence score — read the source before relying on a call.</li>
-            <li>• Email, Telegram and AI stay off until you configure them; the cards above say which are live.</li>
+            <li>• Only free, public news feeds from the trade press and regulators. Nothing behind a paywall.</li>
+            <li>
+              • Each story is sorted by urgency (🔴 Act now, 🟠 Worth knowing, 🟢 Background) and by topic, using
+              keyword rules. Read the source before relying on a call.
+            </li>
+            <li>• The dot points are written by an AI model and labelled as such. They can be wrong; the source is one tap away.</li>
+            <li>• Dotted words are explained from a hand-written glossary.</li>
           </ul>
+          <p className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/5 p-4 text-sm leading-6 text-amber-200">
+            General information only, not financial advice. It does not take into account anyone&apos;s objectives,
+            financial situation or needs. Summaries are produced automatically and may contain errors; check the
+            original source before acting on anything here.
+          </p>
         </section>
 
         <section className="mt-10 rounded-3xl border border-slate-800 bg-slate-900 p-8">
