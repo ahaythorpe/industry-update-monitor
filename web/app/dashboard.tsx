@@ -1133,6 +1133,9 @@ export default function Dashboard({
             items={timelineItems}
             selectedDate={selectedDate}
             onDateSelect={(date) => setSelectedDate(date || null)}
+            glossary={glossary}
+            readIds={readIds}
+            onToggleRead={toggleRead}
           />
         </section>
 

@@ -1,12 +1,17 @@
 'use client'
 
 import { DigestItem } from '@/lib/digest'
+import type { GlossaryEntry } from '@/lib/glossary'
+import { Story } from '@/components/CategoryBoard'
 import { formatDay, toDayKey } from '@/lib/utils'
 
 interface CalendarProps {
   items: DigestItem[]
   selectedDate: string | null
   onDateSelect: (date: string) => void
+  glossary: GlossaryEntry[]
+  readIds: Set<string>
+  onToggleRead: (id: string) => void
 }
 
 const FLAG_COLOUR: Record<string, string> = {
@@ -15,7 +20,7 @@ const FLAG_COLOUR: Record<string, string> = {
   NOTE: 'bg-green-600',
 }
 
-export function Calendar({ items, selectedDate, onDateSelect }: CalendarProps) {
+export function Calendar({ items, selectedDate, onDateSelect, glossary, readIds, onToggleRead }: CalendarProps) {
   // Only days that actually carry an item. Walking every calendar day in the
   // range printed 30 or 365 empty rows and buried the days with news in them.
   const itemsByDate = new Map<string, DigestItem[]>()
@@ -48,9 +53,11 @@ export function Calendar({ items, selectedDate, onDateSelect }: CalendarProps) {
             const dayItems = itemsByDate.get(dayKey) || []
             const isSelected = selectedDate === dayKey
 
+            // A day opens in place to show its stories; tapping it again closes it.
             return (
+              <div key={dayKey}>
               <button
-                key={dayKey}
+                aria-expanded={isSelected}
                 onClick={() => onDateSelect(isSelected ? '' : dayKey)}
                 className={`w-full text-left transition-all ${
                   isSelected
@@ -76,10 +83,24 @@ export function Calendar({ items, selectedDate, onDateSelect }: CalendarProps) {
                     </div>
                   </div>
                   <div className="text-sm font-medium text-slate-400">
-                    {dayItems.length} item{dayItems.length !== 1 ? 's' : ''}
+                    {dayItems.length} item{dayItems.length !== 1 ? 's' : ''} {isSelected ? '▴' : '▾'}
                   </div>
                 </div>
               </button>
+              {isSelected ? (
+                <div className="mt-3 space-y-3 pl-2">
+                  {dayItems.map((item) => (
+                    <Story
+                      key={item.id}
+                      item={item}
+                      glossary={glossary}
+                      isRead={readIds.has(item.id)}
+                      onToggleRead={() => onToggleRead(item.id)}
+                    />
+                  ))}
+                </div>
+              ) : null}
+              </div>
             )
           })
         ) : (

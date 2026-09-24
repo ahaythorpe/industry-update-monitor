@@ -127,7 +127,7 @@ function RichText({ text, glossary }: { text: string; glossary: GlossaryEntry[] 
   )
 }
 
-function Story({
+export function Story({
   item,
   glossary,
   isRead,
