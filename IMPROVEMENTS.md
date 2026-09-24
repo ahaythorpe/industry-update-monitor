@@ -590,3 +590,58 @@ tests were removed.
 Still open: the Monday run sends email only. Whether it also sends to Telegram is the owner's to
 decide in `scripts/weekly-run.sh`. For the dashboard button to send rather than preview, the two
 `TELEGRAM_` values also have to go in `web/.env.local` — never in Vercel.
+
+---
+
+## 16. Read on the dashboard, in plain English
+
+Asked for 23 to 24 September 2026 by the owner: the newsletter was getting long, the summaries
+were vague and full of acronyms, and the dashboard should organise the week itself rather than
+lean on pasting into a chat.
+
+Built, 24 September 2026:
+
+- **Summaries.** `NEWSLETTER_PROMPT` asks for three or four short dot points in plain English,
+  each carrying a real fact in bold; acronyms as plain words with the acronym in brackets; no
+  filler such as "advisers should stay informed"; care with figures in tables. The local model
+  now reads the whole article text the feed carries (`FEED_BODY_LIMIT` 12,000, up from 1,500),
+  with `num_ctx` raised so the prompt is not silently cut. Chat pastes stay at 3,000 characters
+  (`PASTE_BODY_LIMIT`). Replies that start `ID: ` now import.
+- **Dashboard.** By urgency and By topic boxes that open into a pop-up with every story; dotted
+  glossary terms with their meaning on hover or tap; a ⬇ on every box, pop-up and the whole week
+  for a Markdown file to share or give an AI tool (`web/lib/sweep.ts`, never article text); the
+  AI-chat export folded under Advanced; plain labels throughout.
+- **Newsletter.** Plain labels (Act now, Worth knowing, Background), topic icons and urgency
+  bars, every story with its dot points, a 📖 box under each story explaining its terms, a
+  👀 Read these yourself list for stories the model could not read, a 📖 Jargon buster, and
+  topics as drop-downs (open in the email, so Gmail loses nothing).
+- **Alert mode.** With `DASHBOARD_URL` set, the email and Telegram message become a one-minute
+  Act now alert with a link to the dashboard. Off until the dashboard is online.
+- **Telegram button.** `web/lib/telegram.ts` rewritten to send the same single message as
+  `--telegram`.
+- **Link check.** HEAD only; a refusal leaves the link unchecked instead of opening the page
+  with a GET (`tests/test_link_check.py`, SAFEGUARDS.md section A).
+
+Still open:
+
+- **Which model writes the summaries.** On a test of three stories `qwen3:8b` misread a money
+  table ("Dixon Advisory will pay $83.5M", which was the cost of its collapse), one story at a
+  time or three. `gpt-oss:20b` got the facts right but takes about 2.5 hours a week. Claude Haiku
+  would cost about US 8 cents a week on a prepaid credit. The owner's to decide.
+- **Putting the dashboard online** behind a login, which alert mode depends on.
+- **"This week in 30 seconds"**, deadlines as tags, and plain headlines: suggested, not built.
+
+## 17. Official and fund-manager sources through Gmail
+
+ASIC, AFCA determinations, Treasury, ABS and the ATO publish no usable feed (checked
+24 September 2026: Treasury's `rss.xml` is empty, AFCA blocks automated requests), so they reach
+the digest only second-hand through the trade press. Macquarie is signed up but arrives by email,
+which the Monday run does not read. Canaccord Genuity Wealth and Morgan Stanley publish their
+investment views by newsletter too.
+
+Proposed, not built: sign up to each body's free email alerts, file them under the
+`industry-update-monitor` label with one Gmail filter, give `src/gmail_reader.py` its read-only
+access once, add `--gmail` to the Monday run, and show the fund-manager views as their own
+📈 Big-picture investing topic, with official releases marked as such. Needs the owner for the
+sign-ups and the one Google sign-in.
+

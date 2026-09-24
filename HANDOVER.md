@@ -44,17 +44,19 @@ network is a test that will be deleted by the next person.
 | Path | What it is |
 |---|---|
 | `src/monitor.py` | Everything on the Python side: source gate, fetch, classify, link check, dedupe, digest JSON, briefing, sweep sheet, glossary, `--ollama`, `--import-summaries`, CLI |
-| `src/email_sender.py` | HTML email via SMTP. Password from env, else the macOS Keychain (`_keychain_password`, service `advice-monitor-email`) |
-| `src/telegram_sender.py` | Telegram formatting (HTML parse mode, 3900-char splitting between articles), `send_telegram_digest` to `TELEGRAM_CHAT_ID` only, `find_chat_id` |
+| `src/email_sender.py` | HTML email via SMTP. Password from env, else the macOS Keychain (`_keychain_password`, service `advice-monitor-email`). `build_email` picks the full newsletter (`_build_html_digest`: category drop-downs, per-story glossary boxes, Read these yourself, Jargon buster) or, when `DASHBOARD_URL` is set, the short Act now alert (`_build_alert_email`) |
+| `src/telegram_sender.py` | Telegram formatting (HTML parse mode, one message under 3900 chars, the rest counted), the newsletter file attached until `DASHBOARD_URL` is set, `send_telegram_digest` to `TELEGRAM_CHAT_ID` only, `find_chat_id` |
 | `src/whatsapp_sender.py` | **Retired 23 Sep 2026**, kept working: WhatsApp formatting, 1600-char splitting, Twilio send, `explain_twilio_error`. Not recommended — see [the Telegram section](#telegram-the-phone-channel-and-why-not-whatsapp) |
 | `src/gmail_reader.py` | Read-only Gmail: `gmail.readonly` scope, only the `industry-update-monitor` label |
 | `src/gmail_dry_run.py` | Local Gmail dry run |
 | `data/sources.json` | The source list, with probe notes for sources that have no feed |
-| `data/glossary.json` | Hand-written glossary for the sweep sheet |
+| `data/glossary.json` | Hand-written glossary: the sweep sheet, the newsletter's term boxes and Jargon buster, and the dashboard's dotted terms |
 | `scripts/weekly-run.sh`, `scripts/com.advice-monitor.weekly.plist` | The Monday 07:00 `launchd` run |
 | `web/` | Next.js 16 dashboard. Reads `web/lib/digest.json`; no database |
 | `web/lib/briefing.ts`, `web/lib/bundle.ts`, `web/lib/zip.ts` | The download panel's files, byte-identical to the CLI's `--brief --group-by` |
-| `web/lib/telegram.ts` | Browser twin of `src/telegram_sender.py`'s formatter, plus `clampPerFlag` and `explainTelegramError` |
+| `web/lib/telegram.ts` | Browser twin of `src/telegram_sender.py`'s formatter, plus `explainTelegramError` |
+| `web/components/CategoryBoard.tsx` | The front page: By urgency and By topic boxes, the pop-up per box, dotted glossary terms, the ⬇ downloads |
+| `web/lib/categories.ts`, `web/lib/glossary.ts`, `web/lib/sweep.ts` | Box building and plain labels (twin of `_LABELS` / `_ICONS` / `unread_reason` in `email_sender.py`); glossary matching (twin of `terms_in`); the ⬇ Markdown file |
 | `web/app/api/*` | `GET /api/items` (`flag`, `source`, `query`, `exactness`, `limit`), `POST /api/search`, `GET /api/status`, `/api/email/preview`, `POST /api/telegram/send` |
 | `tests/` | pytest, all offline |
 | `archive/` | Superseded plans and setup pages — history only; see [archive/README.md](archive/README.md) |
@@ -80,13 +82,13 @@ are git-ignored, and `git log --all` showed none ever committed (17 Sep 2026).
 | `--min-confidence` | 0.0 | Drop items whose flag confidence is below this |
 | `--flags` | `ACT,KNOW,NOTE` | Which tiers to include |
 | `--limit` | 50 | Maximum items in the digest |
-| `--no-check-links` | off | Skip the HEAD/GET check that drops dead links |
+| `--no-check-links` | off | Skip the HEAD-only check that drops dead links (never a GET; a refused HEAD leaves the link unchecked) |
 | `--sources` | off | Print the source list first |
 | `--preview` | off | Write `output/digest_preview.html` (the email body) |
 | `--email` | off | Email the digest to `EMAIL_ADDRESS` |
 | `--telegram` | off | Send the digest to your own Telegram chat (`TELEGRAM_CHAT_ID`); prints a preview when not set up |
 | `--from-digest` | off | Send the saved digest (summaries included) instead of fetching again |
-| `--per-flag` | 6 | Max items per flag in the Telegram (or WhatsApp) newsletter |
+| `--per-flag` | 6 | Max items per flag in the retired WhatsApp newsletter. Telegram no longer uses it |
 | `--whatsapp` | off | **Retired, not recommended.** WhatsApp via Twilio; prints a preview with no Twilio credentials |
 | `--whatsapp-to` | `$WHATSAPP_TO` | Recipient for the retired `--whatsapp` send |
 | `--gmail` | off | Also read newsletters from the Gmail label (read-only, opt-in) |
@@ -180,11 +182,14 @@ up costing money. The bot is **@advicemonitor_bot** ("Advice-Monitor").
 
 Built on both sides and tested on both (`tests/test_telegram.py`,
 `web/lib/telegram.test.ts`): `python src/monitor.py --telegram [--from-digest]`,
-and the dashboard's **Send this digest to Telegram** section
-(`POST /api/telegram/send`). HTML parse mode; all publisher text escaped;
-split between articles under 3900 characters, parts numbered "(1 of 3)";
-summaries labelled through `summaryOrigin` / `summary_origin`. Keep the two
-formatters in step — the WhatsApp pair drifted once (IMPROVEMENTS item 4).
+and the dashboard's **Send this week to Telegram** section
+(`POST /api/telegram/send`). HTML parse mode; all publisher text escaped; one
+message under 3900 characters, never split, with whatever does not fit counted
+("+ 12 more"). Keep the two formatters in step: the WhatsApp pair drifted once
+(IMPROVEMENTS item 4), and the Telegram pair drifted until 24 Sep 2026, when
+the web one was rewritten to match (IMPROVEMENTS item 16). The dashboard button
+cannot attach the newsletter file, so without `DASHBOARD_URL` it lists every
+urgency instead.
 With no credentials both sides return the exact messages instead of sending,
 and `/api/status` reports `telegram.configured` false (a token with no chat ID
 is reported as half-done, not live).

@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { NextRequest } from 'next/server'
 import { type DigestItem, type Flag } from '@/lib/digest'
 import { loadDigest } from '@/lib/digest-server'
@@ -38,9 +40,24 @@ function renderItem(item: DigestItem): string {
     </div>`
 }
 
+// The email exactly as src/email_sender.py builds it, written by
+// `python src/monitor.py --from-digest --preview` (the Monday run does this).
+// One renderer: the simple page below is only a fallback for when that file
+// has not been written yet, or a single urgency is asked for.
+const SENT_PREVIEW = path.join(process.cwd(), '..', 'output', 'digest_preview.html')
+
 export function GET(request: NextRequest) {
-  const { items: digestItems, generatedAt } = loadDigest()
   const flag = request.nextUrl.searchParams.get('flag') as Flag | null
+  if (!flag) {
+    try {
+      return new Response(readFileSync(SENT_PREVIEW, 'utf8'), {
+        headers: { 'content-type': 'text/html; charset=utf-8' },
+      })
+    } catch {
+      // Not written yet: fall through to the simple page.
+    }
+  }
+  const { items: digestItems, generatedAt } = loadDigest()
   const items = flag ? digestItems.filter((item) => item.flag === flag) : digestItems
 
   const sections = (Object.keys(FLAG_LABELS) as Flag[])

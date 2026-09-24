@@ -1,6 +1,6 @@
 import { type Flag } from '@/lib/digest'
 import { loadDigest } from '@/lib/digest-server'
-import { clampPerFlag, explainTelegramError, formatTelegramDigest } from '@/lib/telegram'
+import { explainTelegramError, formatTelegramDigest } from '@/lib/telegram'
 
 const FLAGS: Flag[] = ['ACT', 'KNOW', 'NOTE']
 
@@ -22,14 +22,16 @@ const FLAGS: Flag[] = ['ACT', 'KNOW', 'NOTE']
 export async function POST(request: Request) {
   const token = process.env.TELEGRAM_BOT_TOKEN?.trim()
   try {
-    const { selectedFlag, perFlagLimit } = await request.json().catch(() => ({}))
+    const { selectedFlag } = await request.json().catch(() => ({}))
 
     const chatId = process.env.TELEGRAM_CHAT_ID?.trim()
 
     const digestItems = loadDigest().items
     const flag = FLAGS.includes(selectedFlag) ? (selectedFlag as Flag) : null
-    const items = flag ? digestItems.filter((item) => item.flag === flag) : digestItems
-    const messages = formatTelegramDigest(items, clampPerFlag(perFlagLimit))
+    // One message, the same one `python src/monitor.py --telegram` sends.
+    const messages = [
+      formatTelegramDigest(digestItems, { focus: flag, dashboard: process.env.DASHBOARD_URL?.trim() || null }),
+    ]
 
     if (!token || !chatId) {
       // Nothing is sent and nothing pretends to have been sent: the caller gets

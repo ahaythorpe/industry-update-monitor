@@ -54,6 +54,9 @@ if [ $STATUS -eq 0 ] && [ "$COUNT" != "0" ]; then
   if curl -s -m 5 http://localhost:11434/api/tags >/dev/null; then
     if OLL="$(.venv/bin/python src/monitor.py --ollama 2>&1)"; then
       echo "$STAMP  ok — $(echo "$OLL" | grep -o '[0-9]* of [0-9]* summaries merged' || echo 'summaries merged') by the local model" >>"$LOG"
+      # Write the email as it will be sent, for the dashboard's "Preview the
+      # email" link. A failure here never stops the sends below.
+      .venv/bin/python src/monitor.py --from-digest --preview >/dev/null 2>&1 || true
       # Email the newsletter to yourself, summaries included. Only once the
       # summaries exist, so you never get a half-finished issue.
       if MAIL="$(.venv/bin/python src/monitor.py --email --from-digest 2>&1)" && echo "$MAIL" | grep -q "✅"; then

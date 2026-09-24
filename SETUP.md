@@ -566,8 +566,15 @@ With nothing set up, the tool prints the exact messages it would send:
 python src/monitor.py --telegram --from-digest
 ```
 
-Nothing is sent. The dashboard's **Send this digest to Telegram** button does
-the same — it shows the message until it is set up.
+Nothing is sent. The dashboard's **Send this week to Telegram** button does
+the same: it shows the message until it is set up.
+
+**What arrives each week:** one message, with the headlines grouped Act now,
+Worth knowing, Background, each with its first dot point, and the full
+newsletter attached as a file you tap to open. Once the dashboard is online and
+`DASHBOARD_URL` is set in `.env`, it becomes a short alert instead: the Act now
+headlines, the week by topic in one line, and a link to the dashboard. The
+email switches the same way.
 
 ### Setup
 

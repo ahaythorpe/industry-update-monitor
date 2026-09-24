@@ -5,7 +5,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from src.email_sender import _item_html, summary_origin
+from src.email_sender import _build_html_digest, _item_html, summary_origin
 from src.monitor import attach_saved_summaries, export_json, import_summaries
 from src.whatsapp_sender import _item_block
 
@@ -97,6 +97,71 @@ class DeliveryTests(unittest.TestCase):
     def test_the_email_names_the_local_model(self):
         markup = _item_html(self._item("ollama:qwen3:8b"), "act")
         self.assertIn("Summarised by a local model (qwen3:8b)", markup)
+
+    def test_every_story_in_the_newsletter_shows_its_dot_points(self):
+        # 23 Sep 2026: KNOW and NOTE stories were one line each, so reading the
+        # week meant opening every article. Now each carries its summary.
+        act = self._item()
+        know = dict(self._item(), flag="KNOW", title="Super fund merges",
+                    ai_summary="• **Two funds** merge in March. • Members move on **1 July**.")
+        page = _build_html_digest({"ACT": [act], "KNOW": [know], "NOTE": []})
+        self.assertIn("<b>Two funds</b> merge in March.", page)
+        self.assertIn("Members move on <b>1 July</b>.", page)
+        self.assertIn("ASIC banned the adviser for ten years.", page)
+
+    def test_only_act_stories_say_to_check_the_source(self):
+        self.assertIn("Check the source before acting.", _item_html(self._item(), "act"))
+        know = dict(self._item(), flag="KNOW")
+        self.assertNotIn("Check the source", _item_html(know, "know"))
+
+    def test_category_rows_jump_to_their_section(self):
+        page = _build_html_digest({"ACT": [dict(self._item(), topic="Super & tax")], "KNOW": [], "NOTE": []},
+                                  interactive=True)
+        self.assertIn('href="#cat-super-tax"', page)
+        self.assertIn('id="cat-super-tax"', page)
+
+    def test_stories_the_model_could_not_read_are_listed_apart(self):
+        teaser_only = dict(self._item(), title="Riskinfo story", body_source="feed_summary")
+        thin = dict(self._item(), title="Thin story", ai_summary="• Thin story. Open the source.")
+        read = dict(self._item(), title="Read fine", body_source="feed_content")
+        page = _build_html_digest({"ACT": [teaser_only, thin, read], "KNOW": [], "NOTE": []})
+        section = page[page.index("Read these yourself (2)"):]
+        self.assertIn("Riskinfo story", section[:2000])
+        self.assertIn("only shares a teaser", section[:2000])
+        self.assertIn("Too little text", section[:2000])
+        self.assertNotIn("Read fine →", page)
+
+    def test_an_acronym_in_a_story_is_explained_in_a_box(self):
+        item = dict(self._item(), title="Treasury opens CSLR levy consultation")
+        markup = _item_html(item, "act")
+        self.assertIn("CSLR (Compensation Scheme of Last Resort)", markup)
+        self.assertIn("📖", markup)
+
+    def test_the_jargon_buster_lists_each_term_once(self):
+        one = dict(self._item(), title="CSLR levy rises")
+        two = dict(self._item(), title="FAAA responds to CSLR levy")
+        page = _build_html_digest({"ACT": [one, two], "KNOW": [], "NOTE": []})
+        buster = page[page.index("Jargon buster"):]
+        self.assertEqual(buster.count("<b>CSLR (Compensation Scheme of Last Resort)</b>"), 1)
+        self.assertIn("FAAA (Financial Advice Association Australia)", buster)
+
+    def test_the_email_is_a_short_alert_once_the_dashboard_is_online(self):
+        import os
+        from unittest import mock
+        from src.email_sender import build_email
+        act = dict(self._item(), topic="Regulation")
+        know = dict(self._item(), flag="KNOW", title="Super fund merges", topic="Super & tax")
+        grouped = {"ACT": [act], "KNOW": [know], "NOTE": []}
+        with mock.patch.dict(os.environ, {"DASHBOARD_URL": "https://monitor.example/"}):
+            short = build_email(grouped)
+        with mock.patch.dict(os.environ, {"DASHBOARD_URL": ""}):
+            full = build_email(grouped)
+        self.assertIn("Open this week on the dashboard", short)
+        self.assertIn("ASIC bans an adviser", short)
+        self.assertNotIn("Super fund merges", short)  # only Act now is listed
+        self.assertIn("💰 Super &amp; tax 1", short)
+        self.assertIn("Super fund merges", full)
+        self.assertNotIn("Open this week on the dashboard", full)
 
     def test_the_whatsapp_message_carries_it_too(self):
         body = _item_block(1, self._item())

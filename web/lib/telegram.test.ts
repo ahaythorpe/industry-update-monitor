@@ -1,13 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeIncomingItem, type DigestItem, type Flag } from './digest'
-import {
-  DEFAULT_PER_FLAG,
-  MAX_BODY,
-  MAX_PER_FLAG,
-  clampPerFlag,
-  explainTelegramError,
-  formatTelegramDigest,
-} from './telegram'
+import { MAX_BODY, explainTelegramError, formatTelegramDigest } from './telegram'
 
 function item(n: number, flag: Flag = 'ACT', overrides: Partial<DigestItem> = {}): DigestItem {
   return normalizeIncomingItem({
@@ -24,81 +17,52 @@ function item(n: number, flag: Flag = 'ACT', overrides: Partial<DigestItem> = {}
 const many = (count: number, flag: Flag = 'ACT') => Array.from({ length: count }, (_, n) => item(n, flag))
 
 // Mirrors tests/test_telegram.py, so the dashboard button and --telegram
-// cannot quietly send different newsletters.
+// cannot quietly send different messages.
 describe('formatTelegramDigest', () => {
-  it('splits a long digest under the cap and numbers the parts', () => {
-    const messages = formatTelegramDigest(many(60), null)
-    expect(messages.length).toBeGreaterThan(1)
-    messages.forEach((message) => expect(message.length).toBeLessThanOrEqual(4096))
-    messages.forEach((message) => expect(message.length).toBeLessThanOrEqual(MAX_BODY + 40))
-    expect(messages[messages.length - 1]).toMatch(new RegExp(`\\(${messages.length} of ${messages.length}\\)</i>$`))
+  it('is one message under the cap, Act now first, counting what did not fit', () => {
+    const message = formatTelegramDigest([...many(80, 'KNOW'), item(99, 'ACT')])
+    expect(message.length).toBeLessThanOrEqual(MAX_BODY)
+    expect(message.indexOf('Story 99')).toBeLessThan(message.indexOf('Story 0 '))
+    expect(message).toMatch(/\+ \d+ more on the dashboard/)
+    expect(message).toContain('weekly update')
   })
 
-  it('never cuts an article in half', () => {
-    const messages = formatTelegramDigest(many(60), null)
-    messages.forEach((message) => {
-      expect(message.split('<a ').length).toBe(message.split('</a>').length)
-    })
-  })
-
-  it('sends a short digest as one message with no part counter', () => {
-    const messages = formatTelegramDigest(many(2))
-    expect(messages).toHaveLength(1)
-    expect(messages[0]).not.toContain(' of 1)')
-  })
-
-  it('labels a summary with who wrote it and escapes titles', () => {
-    const [message] = formatTelegramDigest([
-      item(1, 'ACT', { ai_summary: 'ASIC banned an adviser.', ai_source: 'ollama:qwen3:8b' }),
-    ])
-    expect(message).toContain('ASIC banned an adviser.')
-    expect(message).toContain('Summarised by a local model (qwen3:8b)')
+  it('escapes titles and cannot have a link break out of its attribute', () => {
+    const message = formatTelegramDigest([item(1, 'ACT', { link: 'https://a.test/"><script>' })])
     expect(message).toContain('Story 1 &lt;b&gt;')
-    expect(message).not.toContain('Story 1 <b>')
-    expect(message).toContain('href="https://a.test/1"')
-  })
-
-  it('labels a hand-written summary as hand-written', () => {
-    const [message] = formatTelegramDigest([item(1, 'ACT', { ai_summary: 'Mine.', ai_source: 'manual' })])
-    expect(message).toContain('Summarised by hand')
-  })
-
-  it('falls back to the publisher teaser, capped, when there is no summary', () => {
-    const [message] = formatTelegramDigest([item(1)])
-    expect(message).not.toContain('Summarised')
-    expect(message).toContain('Teaser')
-    expect(message).toContain('…')
-  })
-
-  it('cannot have a link break out of its attribute', () => {
-    const [message] = formatTelegramDigest([item(1, 'ACT', { link: 'https://a.test/"><script>' })])
     expect(message).not.toContain('"><script>')
   })
 
-  it('orders the sections ACT, then KNOW, then NOTE, and counts them', () => {
-    const [message] = formatTelegramDigest([item(1, 'NOTE'), item(2, 'ACT'), item(3, 'KNOW')], 6, '23 September 2026')
-    expect(message).toContain('Advice Monitor — 23 September 2026')
-    expect(message).toContain('1 ACT · 1 KNOW · 1 NOTE')
-    expect(message.indexOf('ACT — act')).toBeLessThan(message.indexOf('KNOW — worth'))
-    expect(message.indexOf('KNOW — worth')).toBeLessThan(message.indexOf('NOTE — background'))
+  it('shows the first dot point with its key fact bold', () => {
+    const message = formatTelegramDigest([item(1, 'ACT', { ai_summary: '• **ASIC** banned him. • Second point.' })])
+    expect(message).toContain('<b>ASIC</b> banned him.')
+    expect(message).not.toContain('Second point')
   })
 
-  it('applies the per-flag limit', () => {
-    const body = formatTelegramDigest(many(20, 'KNOW'), 3).join('\n')
-    expect(body).toContain('3. <a')
-    expect(body).not.toContain('4. <a')
+  it('uses plain words, in urgency order', () => {
+    const message = formatTelegramDigest([item(1, 'NOTE'), item(2, 'ACT'), item(3, 'KNOW')], { today: '24 September 2026' })
+    expect(message).toContain('24 September 2026')
+    expect(message).toContain('1 act now · 1 worth knowing · 1 background')
+    expect(message.indexOf('Act now</b>')).toBeLessThan(message.indexOf('Worth knowing</b>'))
+    expect(message.indexOf('Worth knowing</b>')).toBeLessThan(message.indexOf('Background</b>'))
   })
-})
 
-describe('clampPerFlag', () => {
-  it('keeps a request body from asking for an unbounded digest', () => {
-    expect(clampPerFlag(undefined)).toBe(DEFAULT_PER_FLAG)
-    expect(clampPerFlag('10')).toBe(DEFAULT_PER_FLAG)
-    expect(clampPerFlag(Number.NaN)).toBe(DEFAULT_PER_FLAG)
-    expect(clampPerFlag(0)).toBe(1)
-    expect(clampPerFlag(-5)).toBe(1)
-    expect(clampPerFlag(1e9)).toBe(MAX_PER_FLAG)
-    expect(clampPerFlag(4.7)).toBe(4)
+  it('is a short Act now alert once the dashboard is online', () => {
+    const message = formatTelegramDigest(
+      [item(1, 'ACT', { topic: 'Regulation' }), item(2, 'KNOW', { topic: 'Super & tax' })],
+      { dashboard: 'https://monitor.example/' }
+    )
+    expect(message).toContain('Story 1 ')
+    expect(message).not.toContain('Story 2 ')
+    expect(message).toContain('⚖️ Regulation 1 · 💰 Super &amp; tax 1')
+    expect(message).toContain('href="https://monitor.example/"')
+  })
+
+  it('an extra send lists only the urgency asked for', () => {
+    const message = formatTelegramDigest([item(1, 'ACT'), item(2, 'KNOW')], { focus: 'KNOW' })
+    expect(message).toContain('extra update')
+    expect(message).toContain('Only: KNOW')
+    expect(message).not.toContain('Story 1 ')
   })
 })
 

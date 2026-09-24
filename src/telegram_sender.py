@@ -7,9 +7,11 @@ trial to run out and no per-message charge. It sends only to TELEGRAM_CHAT_ID
 
 Without a token and chat ID it runs in preview mode and prints the messages.
 
-Each week: one message with the headlines and summaries, and the full
-newsletter (the same one the email carries) attached as a file. Extras can be
-focused on an urgency or a category. Never full article text.
+Each week: one message with the headlines and summaries. Until the dashboard
+is online (DASHBOARD_URL), the full newsletter (the same one the email
+carries) goes along as a file; once it is, the message is a short Act now
+alert with a link to the dashboard instead. Extras can be focused on an
+urgency or a category. Never full article text.
 """
 
 import html
@@ -21,9 +23,9 @@ import urllib.request
 from datetime import datetime
 
 try:
-    from src.email_sender import _build_html_digest, bold_html, summary_points
+    from src.email_sender import _build_html_digest, _by_category, _icon, bold_html, dashboard_url, summary_points
 except ImportError:  # pragma: no cover - only when src/ is itself the path
-    from email_sender import _build_html_digest, bold_html, summary_points
+    from email_sender import _build_html_digest, _by_category, _icon, bold_html, dashboard_url, summary_points
 
 TELEGRAM_API = "https://api.telegram.org/bot{token}/{method}"
 
@@ -33,8 +35,9 @@ MAX_BODY = 3900
 FLAG_SEQUENCE = ("ACT", "KNOW", "NOTE")
 
 
-FLAG_HEADINGS = {"ACT": "🔴 <b>ACT — act on these</b>", "KNOW": "🟠 <b>KNOW — worth knowing</b>",
-                 "NOTE": "🟢 <b>NOTE — background</b>"}
+# Plain words, the same as the newsletter and the dashboard.
+FLAG_HEADINGS = {"ACT": "🔴 <b>Act now</b>", "KNOW": "🟠 <b>Worth knowing</b>", "NOTE": "🟢 <b>Background</b>"}
+FLAG_WORDS = {"ACT": "act now", "KNOW": "worth knowing", "NOTE": "background"}
 
 
 def _wanted(setting: str | None) -> set[str]:
@@ -63,17 +66,22 @@ def _line(item: dict) -> str:
 
 
 def format_telegram_digest(items: list, flags: str | None = None,
-                           topics: str | None = None) -> tuple[str, list]:
-    """One message: the headlines, ACT first, with each summary in a line.
-    Whatever does not fit Telegram's cap is counted and left to the attached
-    newsletter, never split into a second message."""
+                           topics: str | None = None, dashboard: str | None = None) -> tuple[str, list]:
+    """One message, never split. Headlines by urgency, Act now first, each
+    with its first dot point; whatever does not fit Telegram's cap is counted.
+
+    With the dashboard online (`dashboard` is its address) the weekly message
+    is a short alert: Act now only, the week by topic in one line, and a link
+    to the dashboard. Without it, every urgency is listed and the full
+    newsletter goes along as a file.
+    """
     chosen = tailor(items, flags, topics)
     today = datetime.now().strftime("%-d %B %Y")
     focus = " · ".join(label for label in (flags, topics) if _wanted(label))
-    title = "extra update" if focus else "weekly newsletter"
-    counts = " · ".join(f"{sum(1 for i in chosen if i.get('flag') == f)} {f}"
+    title = "extra update" if focus else "weekly update"
+    counts = " · ".join(f"{sum(1 for i in chosen if i.get('flag') == f)} {FLAG_WORDS[f]}"
                         for f in FLAG_SEQUENCE if any(i.get("flag") == f for i in chosen))
-    lines = [f"📰 <b>Advice Monitor — {title}</b>", today]
+    lines = [f"📰 <b>Advice Monitor: {title}</b>", today]
     if focus:
         lines.append(f"<i>Only: {html.escape(focus)}</i>")
     lines.append("")
@@ -82,15 +90,28 @@ def format_telegram_digest(items: list, flags: str | None = None,
         return "\n".join(lines), chosen
     lines.append(f"{len(chosen)} stor{'y' if len(chosen) == 1 else 'ies'}: {counts}")
 
-    footer = "\n<i>Summaries by a local model are triage — read an ACT story at its source.</i>"
+    # An alert lists Act now only, unless an extra asked for other urgencies.
+    listed = FLAG_SEQUENCE if (focus or not dashboard) else ("ACT",)
+    if dashboard and not focus and not any(i.get("flag") == "ACT" for i in chosen):
+        lines += ["", "Nothing this week changes what you must do."]
+
+    where = "on the dashboard" if dashboard else "in the attached newsletter 📎"
+    tail = []
+    if dashboard:
+        by_topic = " · ".join(f"{_icon(topic)} {html.escape(topic)} {len(stories)}"
+                              for topic, stories in _by_category(chosen))
+        tail += ["", f"<b>By topic:</b> {by_topic}",
+                 "", f'👉 <a href="{html.escape(dashboard, quote=True)}">Open this week on the dashboard</a>']
+    footer = "\n<i>Summaries are a quick guide. Read an Act now story at its source before acting on it.</i>"
+
     left_out = 0
-    for flag in FLAG_SEQUENCE:
+    for flag in listed:
         flagged = [i for i in chosen if i.get("flag") == flag]
         if not flagged:
             continue
         section = ["", FLAG_HEADINGS[flag]]
         for item in flagged:
-            candidate = "\n".join(lines + section + [_line(item)]) + footer
+            candidate = "\n".join(lines + section + [_line(item)] + tail) + footer
             if len(candidate) > MAX_BODY - 120:
                 left_out += 1
             else:
@@ -98,10 +119,10 @@ def format_telegram_digest(items: list, flags: str | None = None,
         if len(section) > 2:
             lines += section
     if left_out:
-        lines += ["", f"<b>+ {left_out} more in the attached newsletter 📎</b>"]
-    else:
+        lines += ["", f"<b>+ {left_out} more {where}</b>"]
+    elif not dashboard:
         lines += ["", "📎 The full newsletter is attached."]
-    return "\n".join(lines) + footer, chosen
+    return "\n".join(lines + tail) + footer, chosen
 
 
 def _call(token: str, method: str, params: dict) -> dict:
@@ -159,10 +180,12 @@ def newsletter_file(items: list) -> bytes:
 
 
 def send_telegram_digest(items: list, flags: str | None = None, topics: str | None = None) -> bool:
-    """One message and one attachment, to your own chat only."""
+    """One message, plus the newsletter file until the dashboard is online.
+    To your own chat only."""
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
-    message, chosen = format_telegram_digest(items, flags, topics)
+    dashboard = dashboard_url()
+    message, chosen = format_telegram_digest(items, flags, topics, dashboard)
 
     if not token or not chat_id:
         print("ℹ️  Telegram is not set up (TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID in .env). "
@@ -177,7 +200,8 @@ def send_telegram_digest(items: list, flags: str | None = None, topics: str | No
     if not reply.get("ok"):
         print(f"❌ Telegram refused the message: {reply.get('description')}")
         return False
-    if chosen:
+    # The dashboard carries the full week once it is online, so no file then.
+    if chosen and not dashboard:
         name = f"advice-monitor-{datetime.now():%Y-%m-%d}.html"
         reply = _send_document(token, chat_id, name, newsletter_file(chosen),
                                "The full newsletter — tap to open.")

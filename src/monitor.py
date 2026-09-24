@@ -495,27 +495,33 @@ def normalise_link(url):
     ))
 
 
+# A site that answers these to a HEAD request is refusing the polite question,
+# not saying the page is gone, so the link is left unchecked rather than dead.
+HEAD_REFUSED = {401, 403, 405, 429, 501}
+
+
 def check_link(url, timeout=FETCH_TIMEOUT):
-    """HEAD-check one public URL, falling back to GET where HEAD is refused."""
+    """
+    HEAD-check one public URL: does the page exist, without downloading it.
+
+    HEAD only, never GET. A GET would open the article page, which
+    SAFEGUARDS.md section A rules out even when nothing is read or kept. It
+    used to fall back to GET when a site refused HEAD; now a refusal, or no
+    answer at all, leaves the link unchecked (ok None), which keeps the item.
+    Only a clear "not found" marks it dead. Redirects stay HEAD requests.
+    """
     if not url:
         return {"ok": False, "status": None, "url": url, "error": "no link"}
-    for method in ("HEAD", "GET"):
-        request = urllib.request.Request(
-            url, headers={"User-Agent": USER_AGENT}, method=method
-        )
-        try:
-            with urllib.request.urlopen(request, timeout=timeout) as response:
-                return {"ok": True, "status": response.status, "url": response.url, "error": None}
-        except urllib.error.HTTPError as error:
-            # 403/405 usually means "not via HEAD", so try GET before judging.
-            if method == "HEAD" and error.code in {403, 405, 501}:
-                continue
-            return {"ok": False, "status": error.code, "url": url, "error": str(error.reason)}
-        except Exception as error:  # network, DNS, TLS, timeout
-            if method == "HEAD":
-                continue
-            return {"ok": False, "status": None, "url": url, "error": type(error).__name__}
-    return {"ok": False, "status": None, "url": url, "error": "unreachable"}
+    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT}, method="HEAD")
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return {"ok": True, "status": response.status, "url": response.url, "error": None}
+    except urllib.error.HTTPError as error:
+        if error.code in HEAD_REFUSED or error.code >= 500:
+            return {"ok": None, "status": error.code, "url": url, "error": "not checked"}
+        return {"ok": False, "status": error.code, "url": url, "error": str(error.reason)}
+    except Exception as error:  # network, DNS, TLS, timeout
+        return {"ok": None, "status": None, "url": url, "error": type(error).__name__}
 
 
 def is_checkable_link(item):
@@ -881,7 +887,11 @@ def show_sources():
 # no article page. Capped anyway: a briefing is pasted into a chat window, and
 # 9,000 characters an item would blow the paste long before fifteen items.
 # The first few paragraphs carry the news; the rest is background.
-FEED_BODY_LIMIT = 1500
+# Raised from 1,500 on 23 Sep 2026 so the local model reads the whole article
+# the feed carries, not its opening paragraph. Only the local model gets all of
+# it: pastes for a chat window are cut to PASTE_BODY_LIMIT in format_briefing.
+FEED_BODY_LIMIT = 12000
+PASTE_BODY_LIMIT = 3000
 
 
 def _trim_to_sentence(text, limit):
@@ -1024,6 +1034,9 @@ def export_json(items, path, sources=None):
         # cannot drift the way a hardcoded copy in TypeScript would.
         "topics": list(TOPIC_LABELS),
         "sources": _bibliography(items, sources),
+        # The glossary travels with the digest so a deployed dashboard, which
+        # cannot see data/, still explains its terms.
+        "glossary": load_glossary(),
         "items": [],
     }
     for item in items:
@@ -1143,18 +1156,26 @@ attempt to access anything beyond the text provided."""
 # points with the key fact bolded, not one flat sentence. Still one line per
 # item — the points are separated by "• " on that line — so the reply imports
 # exactly like the other two, and every renderer splits it back into a list.
-NEWSLETTER_PROMPT = """You are writing this week's newsletter for a trainee Australian financial
-adviser. You will be given items, each with an ID, a TITLE, a SOURCE, a DATE, the publisher's own
-text, and a LINK. For each item output exactly one line:
+NEWSLETTER_PROMPT = """You are writing this week's newsletter for Australian financial advisers who
+are busy and not experts in every area. You will be given items, each with an ID, a TITLE, a
+SOURCE, a DATE, the article text, and a LINK. For each item output exactly one line:
 `ID | FLAG | summary | LINK`. FLAG is ACT (changes what an adviser must do), KNOW (useful
-context), or NOTE (background/data). The summary is exactly three dot points written on that
-same line, each starting with "• ", each a full plain-English sentence of 15 to 30 words:
-first, what happened; second, the specific detail — figures, dates, names, amounts, who is
-affected; third, what it means for an adviser or what they should do. In each point put the single
-most important fact in **bold**. Rules:
-use ONLY the text provided; never invent detail or add facts not present; if the text is too thin,
-write "• thin — open source"; never break the line; always keep the ID and the LINK unchanged; do
-not attempt to access anything beyond the text provided."""
+context), or NOTE (background/data). The summary is three or four dot points written on that
+same line, each starting with "• ". Write the way you would explain it to a colleague over coffee:
+plain everyday words, short sentences of no more than 25 words. The first point says what happened
+and why it matters, in words anyone could follow. The next points give the key facts: who, how
+much, when, what changes. Put the single most important fact in each point in **bold**. Keep
+acronyms to a minimum: write the plain-English name first and put the acronym in brackets after it
+(for example "the scheme that pays clients of collapsed advice firms (CSLR)", "the corporate
+regulator (ASIC)"), and after that use the plain name. Explain any other technical term in a few
+plain words, or leave it out if the point works without it. Only go into technical detail when the reader needs it to act. Never write generic
+advice such as "advisers should stay informed" or "should review their practices"; if the text
+gives no practical consequence, leave that point out. Take care with figures, above all in tables:
+say what each number measures exactly as the text does, and never say who pays, owes or receives
+money unless the text says so plainly. Rules: use ONLY the article text for facts
+about the story; never invent detail or add facts not present; if the text is too thin, write
+"• Thin story. Open the source."; never break the line; always keep the ID and the LINK
+unchanged; do not attempt to access anything beyond the text provided."""
 
 # Dot points are longer to write than one sentence, so fewer per paste keeps
 # each one inside the per-paste wait on a laptop that is short of memory.
@@ -1291,7 +1312,7 @@ def summary_ref(link, title=""):
     return hashlib.sha1(basis.encode("utf-8")).hexdigest()[:6]
 
 
-def format_briefing(items, chunk_size=BRIEF_CHUNK, prompt=BRIEF_PROMPT):
+def format_briefing(items, chunk_size=BRIEF_CHUNK, prompt=BRIEF_PROMPT, body_limit=PASTE_BODY_LIMIT):
     """Render the digest as paste-ready blocks for a web AI tool."""
     blocks = []
     for start in range(0, len(items), chunk_size):
@@ -1306,8 +1327,9 @@ def format_briefing(items, chunk_size=BRIEF_CHUNK, prompt=BRIEF_PROMPT):
             # poll or a set of quarterly figures has already been overtaken.
             lines.append(f"SOURCE: {item.get('source_name') or '(unknown)'}")
             lines.append(f"DATE: {(item.get('created_at') or '')[:10] or '(unknown)'}")
+            text = item.get('brief_text') or item.get('teaser') or item.get('summary') or '(none)'
             lines.append(
-                f"TEASER: {item.get('brief_text') or item.get('teaser') or item.get('summary') or '(none)'}"
+                f"TEASER: {_trim_to_sentence(text, body_limit) if body_limit else text}"
             )
             lines.append(f"LINK: {item.get('link', '')}")
             lines.append("")
@@ -1458,7 +1480,8 @@ def write_briefing_groups(directory, items, grouping, chunk_size=BRIEF_CHUNK, pr
 # The reply comes back through a chat window, so it may arrive bulleted,
 # bolded, numbered or fenced. Only the pipe-separated shape has to survive.
 SUMMARY_LINE = re.compile(
-    r"^\s*(?:[-*>]\s*|\d+[.)]\s*)?\**\s*(?P<ref>[0-9a-f]{6})\s*\**\s*\|"
+    # "ID: " is allowed in front: qwen3 echoes the label from the prompt.
+    r"^\s*(?:[-*>]\s*|\d+[.)]\s*)?\**\s*(?:ID:\s*)?(?P<ref>[0-9a-f]{6})\s*\**\s*\|"
     r"\s*(?P<flag>ACT|KNOW|NOTE)?\s*\|?"
     r"\s*(?P<summary>[^|]+?)\s*(?:\|\s*(?P<link>\S*)\s*)?$",
     re.IGNORECASE | re.MULTILINE,
@@ -1884,7 +1907,10 @@ def ollama_generate(prompt, model=None, host=None, timeout=OLLAMA_TIMEOUT):
         # reasoning before every answer: a 50-item week went from over 30
         # minutes, and a timeout on the last paste, to a few minutes.
         "think": False,
-        "options": {"temperature": 0},
+        # Ollama's default context is a few thousand tokens and it drops the
+        # start of a longer prompt silently, which is where the instructions
+        # are. Three whole articles need room.
+        "options": {"temperature": 0, "num_ctx": 16384},
     }).encode("utf-8")
 
     request = urllib.request.Request(
@@ -1944,7 +1970,9 @@ def summarise_with_ollama(items, model=None, host=None, timeout=OLLAMA_TIMEOUT,
     written to disk by the caller before being imported, so a reply that went
     wrong can be read rather than guessed at.
     """
-    blocks = format_briefing(items, chunk_size, prompt)
+    # The whole article the feed carried: the model is on this machine, so
+    # nothing here is sized for a chat window.
+    blocks = format_briefing(items, chunk_size, prompt, body_limit=None)
     if max_blocks and len(blocks) > max_blocks:
         raise OllamaUnavailable(
             f"{len(blocks)} pastes is past the {max_blocks}-paste cap for one run. "
@@ -2263,8 +2291,12 @@ if __name__ == "__main__":
         if not args.no_check_links:
             check_links(items)
             broken = sum(1 for item in items if item.get("link_ok") is False)
+            unchecked = sum(1 for item in items if "link_ok" in item and item["link_ok"] is None)
             if broken:
                 print(f"🔗 {broken} of {len(items)} links did not resolve and were dropped.")
+            if unchecked:
+                print(f"🔗 {unchecked} link(s) not checked: the site refused a HEAD request, "
+                      f"and pages are never opened to check them. Kept in the digest.")
 
         wanted_flags = {f.strip().upper() for f in args.flags.split(",") if f.strip()}
         unknown = wanted_flags - set(FLAG_ORDER)
@@ -2298,7 +2330,9 @@ if __name__ == "__main__":
         preview_dir.mkdir(exist_ok=True)
         preview_path = preview_dir / "digest_preview.html"
         grouped = {flag: [i for i in digest_items if i["flag"] == flag] for flag in FLAG_ORDER}
-        html = email_sender._build_html_digest(grouped)
+        # The email exactly as it would be sent: the short alert when
+        # DASHBOARD_URL is set, the full newsletter otherwise.
+        html = email_sender.build_email(grouped)
         preview_path.write_text(html, encoding="utf-8")
         print(f"📄 Local preview written to {preview_path}")
         if args.whatsapp:
@@ -2314,8 +2348,8 @@ if __name__ == "__main__":
         if focus and not chosen:
             print(f"ℹ️  Nothing this week matches {focus} — no email sent.")
         elif recipient:
-            subject = (f"Industry Update Monitor — extra: {focus}" if focus
-                       else "Industry Update Monitor — weekly digest")
+            subject = (f"Advice Monitor extra: {focus}" if focus
+                       else "Advice Monitor: this week in Australian advice")
             email_sender.send_digest_email(chosen, recipient, subject=subject)
         else:
             print("❌ Cannot email: EMAIL_ADDRESS not set in .env")

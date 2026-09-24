@@ -4,11 +4,17 @@ A free, private tool for keeping up with the Australian financial advice
 industry without drowning in it.
 
 Every week it reads the public news feeds of the advice trade press and the
-regulators, sorts each article into 🔴 **ACT** (could change what an adviser
-must do), 🟠 **KNOW** (useful context) or 🟢 **NOTE** (background), checks every
-link still works, and puts the result on a dashboard in your browser. A model
-on this laptop can write a short summary of each item. No API key, no bill, and
-nothing behind a paywall — ever.
+regulators, sorts each article by urgency, 🔴 **Act now** (could change what an
+adviser must do), 🟠 **Worth knowing** (useful context) or 🟢 **Background**, and
+by topic (Regulation, Super & tax, Insurance and so on), checks every link still
+works, and puts the result on a dashboard in your browser. A model on this laptop
+writes three or four plain-English dot points for each story, from the article
+text the publisher puts in their own feed. No API key, no bill, and nothing
+behind a paywall, ever.
+
+In the code and on the command line the urgencies are still called `ACT`,
+`KNOW` and `NOTE`; everything you read says Act now, Worth knowing and
+Background.
 
 **The one rule:** feeds in, free sources out. The tool never logs in anywhere,
 never fetches a paywalled article, and never pretends a feature works when it
@@ -57,10 +63,15 @@ and Telegram once with [SETUP.md Part 5](SETUP.md#part-5--telegram--free).
    ```
 
    Success looks like `✅ Digest emailed to …` and
-   `✅ Newsletter sent to Telegram (50 stories).` Telegram gets **one message**
-   — the headlines with their summaries, ACT first — and the full newsletter
-   attached as a file you tap to open (the same design as the email). If
-   Telegram is not set up yet, it prints the message instead — nothing is lost.
+   `✅ Newsletter sent to Telegram (50 stories).` What arrives depends on
+   whether the dashboard is online yet (`DASHBOARD_URL` in `.env`):
+
+   | | Dashboard not online yet (now) | Dashboard online |
+   |---|---|---|
+   | **Email** | The full newsletter: Act now first, then each topic with every story's dot points, a 👀 Read these yourself list, a 📖 Jargon buster and the sources | A one-minute alert: the Act now stories with their first dot point, the week by topic in one line, and a button to the dashboard |
+   | **Telegram** | One message with the headlines, Act now first, and the full newsletter attached as a file you tap to open | One short message: the Act now headlines, the week by topic, and a link to the dashboard |
+
+   If Telegram is not set up yet, it prints the message instead. Nothing is lost.
 
 The Monday 07:00 run does steps 3, 4 and 6 by itself — one newsletter a week,
 by email and Telegram.
@@ -94,11 +105,12 @@ KNOW stories on Super".
    next wakes. What happened is in `output/weekly-run.log`.
 2. **Open the dashboard.** In a terminal: `cd web && npm run dev`, then go to
    **http://localhost:3000**.
-3. **Read, ACT first.** Work down the 🔴 items and open each at its source;
-   then the 🟠 items that matter to you; skim 🟢 if there is time. Mark items
-   read as you go.
-4. **Take what you need away** with the Download panel — for example the
-   finished summaries as a file to read on the train.
+3. **Read, Act now first.** Open the 🔴 Act now box and read each story, then
+   check each at its source before acting on it. Then open the topic boxes that
+   matter to you. Tick **Read** as you go.
+4. **Take what you need away** with the small ⬇ on any box: that group's
+   headlines, dot points and links as a file to send a friend or give an AI
+   tool for an overview.
 5. **Optional: send it to your phone** — `python src/monitor.py --telegram --from-digest`,
    free. Only once set up (see [SETUP.md](SETUP.md) Part 5).
 
@@ -123,37 +135,36 @@ four by hand.
 
 ## The dashboard
 
-- **Search and filters** — by source, date, flag, category and link kind, plus
-  "hide read". A **timeline** shows which days carried items; click one to
-  filter to it.
-- **Read state** — tick items off and the Unread count is real. It is kept in
-  this browser only; there are no accounts.
-- **☀ / ☾** — switch between light and dark. Remembered in this browser.
-- **⚙ Settings** — what counts as an eligible source, and how email and
-  Telegram are set up. Close it with ✕, a click outside, or Escape.
-- **Download for summarising** — takes exactly what the filters show:
-  - **Detail**: *Triage — one line each*, *Detailed — a short paragraph each*,
-    or **Finished summaries — ready to read**: the summaries already written,
-    each labelled with who wrote it and next to its link. An item not summarised
-    yet says so and shows the publisher's teaser instead.
-  - **Split files by** Category, Urgency, both, or neither; **Download as** a
-    zip (one file per group) or a single file.
-  - Two rows of chips, **Urgency** and **Category**, narrow the download without
-    changing what you are reading. Each chip shows how many items it would add.
-  - **Copy** puts it straight on the clipboard — the easiest way into Claude or
-    ChatGPT, neither of which accepts a `.zip` upload.
-  - **ⓘ Never scrapes paid sources** explains where the text comes from.
-- **Bibliography** — every publisher this week's digest drew on, with its home
-  page and **each of its articles listed and linked**.
-- **Send this digest to Telegram** — shows the exact messages. It sends, free,
-  to your own Telegram chat only once the bot is set up in `web/.env.local` on
-  this laptop; otherwise it is a preview.
-- **Email** — *Preview the email body* in Settings shows what `--email` sends.
-  The dashboard itself never sends mail.
+- **By urgency**: four boxes, 🔴 Act now, 🟠 Worth knowing, 🟢 Background and
+  👀 Read these yourself (stories the summariser could not read, because the
+  publisher only shares a teaser). **By topic** below: one box per topic, with
+  an icon, a count and a bar showing its mix of urgencies.
+- **Tap a box** and it opens as a pop-up with every story: its dot points, who
+  wrote them, a **Source →** link and a **Read** tick box. Esc or ✕ closes it.
+- **Dotted words** are terms from the glossary (`data/glossary.json`). Hover
+  or tap one to see what it means, for example CSLR (Compensation Scheme of
+  Last Resort).
+- **⬇ Download**: the small ⬇ on each box and pop-up, and **⬇ Download the
+  whole week** at the top, save a Markdown file of those stories: headline,
+  dot points, source and link, with the terms explained at the end. Made to
+  send a friend or paste into an AI tool. It never includes the article text.
+- **All stories**: the full list, with search and filters (source, category,
+  date, urgency, link kind) and **Hide stories I've read**. A **timeline**
+  shows which days carried stories; click one to filter to it.
+- **Read state**: kept in this browser only; there are no accounts.
+- **☀ / ☾** switches light and dark. **⚙ Settings** explains sources, email and
+  Telegram.
+- **Advanced: export stories to paste into an AI chat** (folded away): the
+  older copy-and-paste route, for summarising in a chat tool by hand. With the
+  local model writing the summaries you should not need it.
+- **Send this week to Telegram**: the same message the Monday run sends, to
+  your own chat only, once the bot is set up in `web/.env.local`. Otherwise it
+  shows the message instead.
+- **Bibliography**: every publisher this week drew on, with each article
+  linked, and **Download all links**.
 
 Summaries appear labelled "Summarised by a local model (qwen3:8b)" or
-"Summarised by hand", never as the tool's own work, with the publisher's teaser
-kept beneath.
+"Summarised by hand", never as the tool's own work.
 
 A copy of the dashboard can be put on a private Vercel link — see
 [SETUP.md](SETUP.md#the-dashboard-on-a-vercel-link). That copy is frozen at the

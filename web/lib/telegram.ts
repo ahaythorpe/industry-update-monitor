@@ -1,34 +1,32 @@
-import { summaryOrigin, summaryPoints, type DigestItem, type Flag } from './digest'
+import { summaryPoints, type DigestItem, type Flag } from './digest'
+import { buildBoards } from './categories'
 
 /**
- * The Telegram newsletter, in the same shape as src/telegram_sender.py.
+ * The Telegram message, in the same shape as src/telegram_sender.py's
+ * format_telegram_digest. Two renderers, one output: if this drifts from the
+ * Python one, the dashboard button and the Monday run send different
+ * messages, which is what happened here until 24 Sep 2026.
  *
- * Telegram replaced WhatsApp on 23 Sep 2026: the Telegram Bot API is free with
- * no trial to run out and no per-message charge, where every WhatsApp route
- * (Twilio, Meta) eventually costs money. Two renderers, one output — if this
- * drifts from the Python one, the dashboard button and `--telegram` send
- * different newsletters, which is exactly what happened with WhatsApp
- * (IMPROVEMENTS.md item 4).
+ * One message, never split: headlines by urgency, Act now first, each with
+ * its first dot point; what does not fit is counted. With the dashboard online
+ * (DASHBOARD_URL) it is the short alert: Act now only, the week by topic in
+ * one line, and a link. The button cannot attach the newsletter file the
+ * Monday run sends, so without a dashboard it lists every urgency instead.
  *
- * Messages use Telegram's HTML parse mode, so every piece of publisher text is
+ * Telegram's HTML parse mode is used, so every piece of publisher text is
  * escaped: a headline containing "<b>" must not be able to break the message.
- * Splitting happens only between articles, never inside one.
  */
 
-// Telegram caps a message at 4096 characters; leave room for the part counter.
+// Telegram caps a message at 4096 characters.
 export const MAX_BODY = 3900
 
-// Python's --per-flag default. The route clamps anything it is sent to this range.
-export const DEFAULT_PER_FLAG = 6
-export const MAX_PER_FLAG = 50
-
-const FLAG_HEADINGS: Record<Flag, string> = {
-  ACT: '🔴 <b>ACT — act on these</b>',
-  KNOW: '🟠 <b>KNOW — worth knowing</b>',
-  NOTE: '🟢 <b>NOTE — background</b>',
-}
-
 const FLAG_SEQUENCE: Flag[] = ['ACT', 'KNOW', 'NOTE']
+const FLAG_HEADINGS: Record<Flag, string> = {
+  ACT: '🔴 <b>Act now</b>',
+  KNOW: '🟠 <b>Worth knowing</b>',
+  NOTE: '🟢 <b>Background</b>',
+}
+const FLAG_WORDS: Record<Flag, string> = { ACT: 'act now', KNOW: 'worth knowing', NOTE: 'background' }
 
 /** Same as Python's html.escape(text, quote=True). */
 export function escapeHtml(text: string): string {
@@ -40,75 +38,62 @@ export function escapeHtml(text: string): string {
     .replace(/'/g, '&#x27;')
 }
 
-function itemBlock(index: number, item: DigestItem): string {
+function line(item: DigestItem): string {
   const title = escapeHtml(item.title || 'Untitled')
-  const lines = [
-    item.link
-      ? `<b>${index}. <a href="${escapeHtml(item.link)}">${title}</a></b>`
-      : `<b>${index}. ${title}</b>`,
-  ]
-  if (item.source_name) lines.push(`<i>${escapeHtml(item.source_name)}</i>`)
-
-  // A summary is always labelled with who wrote it, so it never reads as the
-  // publisher's words or as this tool's own work. Without one, the publisher's
-  // public teaser, capped — never the full article.
-  const written = (item.ai_summary || '').trim()
-  if (written) {
-    summaryPoints(written).forEach((point) =>
-      lines.push('• ' + escapeHtml(point).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>'))
-    )
-    lines.push(`<i>— ${escapeHtml(summaryOrigin(item.ai_source))}</i>`)
-  } else if (item.teaser) {
-    const teaser = item.teaser
-    lines.push(escapeHtml(teaser.slice(0, 280) + (teaser.length > 280 ? '…' : '')))
-  }
-  return lines.join('\n')
+  const head = item.link ? `<a href="${escapeHtml(item.link)}">${title}</a>` : title
+  const [first] = summaryPoints(item.ai_summary)
+  return `▪️ ${head}` + (first ? `\n    ${escapeHtml(first).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')}` : '')
 }
 
 export function formatTelegramDigest(
   items: DigestItem[],
-  perFlagLimit: number | null = DEFAULT_PER_FLAG,
-  today?: string
-): string[] {
-  const date =
-    today ||
+  options: { focus?: Flag | null; dashboard?: string | null; today?: string } = {}
+): string {
+  const { focus = null, dashboard = null } = options
+  const chosen = focus ? items.filter((item) => item.flag === focus) : items
+  const today =
+    options.today ||
     new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())
-  const count = (flag: Flag) => items.filter((item) => item.flag === flag).length
-  const header =
-    `📰 <b>Advice Monitor — ${escapeHtml(date)}</b>\n` +
-    `${count('ACT')} ACT · ${count('KNOW')} KNOW · ${count('NOTE')} NOTE`
+  const lines = [`📰 <b>Advice Monitor: ${focus ? 'extra update' : 'weekly update'}</b>`, escapeHtml(today)]
+  if (focus) lines.push(`<i>Only: ${focus}</i>`)
+  lines.push('')
+  if (!chosen.length) {
+    lines.push('Nothing matched this week.')
+    return lines.join('\n')
+  }
+  const counts = FLAG_SEQUENCE.filter((flag) => chosen.some((item) => item.flag === flag))
+    .map((flag) => `${chosen.filter((item) => item.flag === flag).length} ${FLAG_WORDS[flag]}`)
+    .join(' · ')
+  lines.push(`${chosen.length} stor${chosen.length === 1 ? 'y' : 'ies'}: ${counts}`)
 
-  const blocks = [header]
-  FLAG_SEQUENCE.forEach((flag) => {
-    let flagged = items.filter((item) => item.flag === flag)
-    if (perFlagLimit) flagged = flagged.slice(0, perFlagLimit)
+  const listed: Flag[] = focus || !dashboard ? FLAG_SEQUENCE : ['ACT']
+  if (dashboard && !focus && !chosen.some((item) => item.flag === 'ACT')) {
+    lines.push('', 'Nothing this week changes what you must do.')
+  }
+
+  const tail: string[] = []
+  if (dashboard) {
+    const byTopic = buildBoards(chosen)
+      .topics.map((board) => `${board.icon} ${escapeHtml(board.title)} ${board.items.length}`)
+      .join(' · ')
+    tail.push('', `<b>By topic:</b> ${byTopic}`, '', `👉 <a href="${escapeHtml(dashboard)}">Open this week on the dashboard</a>`)
+  }
+  const footer = '\n<i>Summaries are a quick guide. Read an Act now story at its source before acting on it.</i>'
+
+  let leftOut = 0
+  listed.forEach((flag) => {
+    const flagged = chosen.filter((item) => item.flag === flag)
     if (!flagged.length) return
-    blocks.push(FLAG_HEADINGS[flag])
-    flagged.forEach((item, position) => blocks.push(itemBlock(position + 1, item)))
+    const section = ['', FLAG_HEADINGS[flag]]
+    flagged.forEach((item) => {
+      const candidate = [...lines, ...section, line(item), ...tail].join('\n') + footer
+      if (candidate.length > MAX_BODY - 120) leftOut += 1
+      else section.push(line(item))
+    })
+    if (section.length > 2) lines.push(...section)
   })
-  blocks.push('<i>Summaries are triage. Read an ACT item at its source before acting on it.</i>')
-
-  const messages: string[] = []
-  let current = ''
-  blocks.forEach((block) => {
-    const candidate = current ? `${current}\n\n${block}` : block
-    if (candidate.length > MAX_BODY && current) {
-      messages.push(current)
-      current = block
-    } else {
-      current = candidate
-    }
-  })
-  if (current) messages.push(current)
-
-  if (messages.length === 1) return messages
-  return messages.map((message, index) => `${message}\n\n<i>(${index + 1} of ${messages.length})</i>`)
-}
-
-/** A per-flag limit from an untrusted request body, forced into 1..MAX_PER_FLAG. */
-export function clampPerFlag(value: unknown): number {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return DEFAULT_PER_FLAG
-  return Math.min(MAX_PER_FLAG, Math.max(1, Math.floor(value)))
+  if (leftOut) lines.push('', `<b>+ ${leftOut} more on the dashboard</b>`)
+  return [...lines, ...tail].join('\n') + footer
 }
 
 /**

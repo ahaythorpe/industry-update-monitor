@@ -135,9 +135,15 @@ digest came with it.
 
 That is still the feed, not the article page. Nothing is fetched, no wall is
 approached, and a publisher who does not want the text there does not put it
-there. It is capped at **1,500 characters** (`FEED_BODY_LIMIT`), trimmed back to
-a sentence boundary, because a briefing is pasted into a chat window and 9,000
-characters an item would blow the paste long before fifteen items.
+there. It is capped at **12,000 characters** (`FEED_BODY_LIMIT`), which in
+practice is the whole of what any feed carries, so the local model reads the
+full article text the publisher sent rather than its opening paragraph. A
+briefing pasted into a chat window is still cut to 3,000 characters an item
+(`PASTE_BODY_LIMIT`), trimmed back to a sentence, so a paste stays a sensible
+size.
+
+> Raised from 1,500 on 2026-09-24. At 1,500 the model saw about 220 words a
+> story and its summaries came out vague; a tenth of stories were being cut.
 
 Every item records **`body_source`** — `feed_content` or `feed_summary` — so it
 is always visible which a summary was written from. The article URL is stored so
@@ -156,7 +162,7 @@ Publisher furniture is stripped: photo credits, `The post … appeared first on
 before they were removed they were being *scored* as if they were part of the
 story.
 
-### 5. Classify — weighted keywords, no AI
+### 5. Classify: weighted keywords, no AI
 
 Each item is scored for ACT / KNOW / NOTE and given a category. A term in the
 headline counts **double**, because the headline is what the story is about. A
@@ -169,14 +175,21 @@ involved at any point here.
 
 ### 6. Check the links
 
-Each URL is asked whether it resolves — `HEAD`, falling back to `GET` where a
-site refuses `HEAD`. **The response body is never read.** The check keeps the
-status and the redirect target, nothing else. Dead links are dropped so the
-digest never ships one.
+Each URL is asked whether it exists with an HTTP `HEAD` request, which
+downloads nothing: no page, no text. Redirects are followed as `HEAD` too. The
+check keeps the status and the redirect target, nothing else.
 
-*This is the only place the code touches an article URL, and it is worth being
-precise about: asking "does this resolve?" and reading a page are different
-operations. This one never calls `.read()`.*
+- **Found:** kept, marked working.
+- **Clearly gone** (404 and the like): dropped, so the digest never ships a
+  dead link.
+- **The site refuses `HEAD`, or does not answer:** kept, marked *not checked*.
+  The page is never opened with a `GET` to find out. The Monday log says how
+  many links went unchecked.
+
+*This is the only place the code touches an article URL. Until 2026-09-24 it
+fell back to a `GET` when a site refused `HEAD`, which opened the page even
+though nothing was read. That fallback is gone, and `tests/test_link_check.py`
+runs a small local web server that fails the test if a page is ever opened.*
 
 ### 7. Deduplicate, filter, rank
 
@@ -223,10 +236,10 @@ convenience.
 
 ### The honest caveat
 
-The link check in stage 6 does send a request to article URLs. It reads no
-content, but it is the nearest thing in the codebase to the line
-[SAFEGUARDS.md](SAFEGUARDS.md) section A draws, so it is written down here
-rather than left for you to find. If you would rather not make even that
+The link check in stage 6 does send a request to article URLs: a `HEAD`, which
+asks whether the page exists and downloads nothing. It is the nearest thing in
+the codebase to the line [SAFEGUARDS.md](SAFEGUARDS.md) section A draws, so it
+is written down here rather than left for you to find. If you would rather not make even that
 request, `--no-check-links` skips it — at the cost of dead links reaching the
 digest.
 

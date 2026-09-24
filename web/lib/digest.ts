@@ -12,6 +12,8 @@ export type DigestItem = {
   // The fuller teaser the feed supplied, used for summarising. `teaser` is the
   // shortened version the dashboard shows on a card.
   brief_text?: string | null
+  // Whether brief_text is the article the feed carried or only its teaser.
+  body_source?: 'feed_content' | 'feed_summary' | null
   link: string
   source_name: string
   // How the item reached us: a public feed, or a newsletter in the Gmail
@@ -99,6 +101,7 @@ export function normalizeIncomingItem(input: Partial<DigestItem> & Pick<DigestIt
     title: input.title,
     teaser: input.teaser || '',
     brief_text: input.brief_text ?? null,
+    body_source: input.body_source ?? null,
     link: input.link,
     source_name: input.source_name,
     intake: input.intake || 'rss',

@@ -15,7 +15,7 @@ def test_the_weekly_newsletter_is_one_message_under_the_cap():
     assert len(chosen) == 81
     assert message.index("Story 99") < message.index("Story 0 ")  # ACT first
     assert "more in the attached newsletter" in message
-    assert "weekly newsletter" in message
+    assert "weekly update" in message
 
 
 def test_titles_are_escaped_and_linked():
@@ -46,3 +46,25 @@ def test_preview_mode_without_settings(monkeypatch, capsys):
     monkeypatch.delenv("TELEGRAM_BOT_TOKEN", raising=False)
     assert telegram_sender.send_telegram_digest([_item(1)]) is False
     assert "Preview" in capsys.readouterr().out
+
+
+def test_with_the_dashboard_online_it_is_a_short_act_now_alert():
+    items = [_item(1, "ACT", "Regulation"), _item(2, "KNOW", "Super & tax"), _item(3, "KNOW", "Super & tax")]
+    message, chosen = format_telegram_digest(items, dashboard="https://monitor.example/")
+    assert len(chosen) == 3
+    assert "Story 1 " in message and "Story 2 " not in message  # Act now only
+    assert "1 act now · 2 worth knowing" in message
+    assert "⚖️ Regulation 1" in message and "💰 Super &amp; tax 2" in message
+    assert 'href="https://monitor.example/"' in message
+    assert "attached" not in message
+
+
+def test_a_quiet_week_says_nothing_needs_action():
+    message, _ = format_telegram_digest([_item(1, "KNOW")], dashboard="https://monitor.example/")
+    assert "Nothing this week changes what you must do." in message
+
+
+def test_labels_are_plain_words():
+    message, _ = format_telegram_digest([_item(1, "ACT"), _item(2, "NOTE")])
+    assert "🔴 <b>Act now</b>" in message and "🟢 <b>Background</b>" in message
+    assert "ACT —" not in message

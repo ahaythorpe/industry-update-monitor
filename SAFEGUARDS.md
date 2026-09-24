@@ -41,6 +41,9 @@ How to enforce it in code:
   visible which one a summary was written from.
 - No function in the codebase should fetch a publisher article page. If you're writing a
   `requests.get(article_url)` against a trade-press URL, stop — that's the line.
+- The weekly link check asks only whether a page exists (an HTTP HEAD request, which
+  downloads nothing). A site that refuses that is left "not checked", never opened with a
+  GET instead. Amended 2026-09-24; `tests/test_link_check.py` fails if a page is ever opened.
 
 The distinction that matters: **what the publisher sends you is safe; what you
 go and take is not.** A feed is delivered. An article page is fetched. Nothing

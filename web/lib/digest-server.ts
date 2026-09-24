@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import bundled from './digest.json'
 import { normalizeIncomingItem, type DigestItem, type DigestSource } from './digest'
+import type { GlossaryEntry } from './glossary'
 
 /**
  * Load the digest at request time, not at build time.
@@ -53,5 +54,27 @@ export function loadDigest(): DigestPayload {
     return shape(JSON.parse(readFileSync(DIGEST_PATH, 'utf8')) as RawPayload, true)
   } catch {
     return shape(bundled as RawPayload, false)
+  }
+}
+
+const GLOSSARY_PATH = path.join(process.cwd(), '..', 'data', 'glossary.json')
+
+/**
+ * The hand-written glossary the monitor uses, read per request like the
+ * digest: data/glossary.json on this Mac, else the copy export_json puts in
+ * the digest. Missing or unreadable is not an error: the dashboard just shows
+ * no term explanations.
+ */
+export function loadGlossary(): GlossaryEntry[] {
+  const usable = (terms?: GlossaryEntry[]) => (terms || []).filter((entry) => entry.term && entry.means)
+  try {
+    return usable((JSON.parse(readFileSync(GLOSSARY_PATH, 'utf8')) as { terms?: GlossaryEntry[] }).terms)
+  } catch {
+    // Deployed, data/ is not there: use the copy the digest carries.
+    try {
+      return usable((JSON.parse(readFileSync(DIGEST_PATH, 'utf8')) as { glossary?: GlossaryEntry[] }).glossary)
+    } catch {
+      return usable((bundled as { glossary?: GlossaryEntry[] }).glossary)
+    }
   }
 }

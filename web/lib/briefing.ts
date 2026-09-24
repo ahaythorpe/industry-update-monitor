@@ -1,5 +1,15 @@
 import { summaryPoints, type DigestItem, type Flag } from './digest'
 
+// Same as src/monitor.py PASTE_BODY_LIMIT and _trim_to_sentence.
+export const PASTE_BODY_LIMIT = 3000
+
+function pasteText(text: string): string {
+  if (text.length <= PASTE_BODY_LIMIT) return text
+  const cut = text.slice(0, PASTE_BODY_LIMIT)
+  const end = Math.max(cut.lastIndexOf('. '), cut.lastIndexOf('! '), cut.lastIndexOf('? '))
+  return end > PASTE_BODY_LIMIT * 0.4 ? cut.slice(0, end + 1) : cut.trimEnd() + '…'
+}
+
 /**
  * The paste-ready briefing, in the same shape as src/monitor.py.
  *
@@ -128,7 +138,9 @@ function itemBlock(item: DigestItem): string {
     `SOURCE: ${item.source_name || '(unknown)'}`,
     `DATE: ${(item.created_at || '').slice(0, 10) || '(unknown)'}`,
     // brief_text is the fuller teaser; teaser is the short display version.
-    `TEASER: ${item.brief_text || item.teaser || '(none)'}`,
+    // Cut like Python's PASTE_BODY_LIMIT: the digest now holds whole articles
+    // for the local model, which would swamp a chat paste.
+    `TEASER: ${pasteText(item.brief_text || item.teaser || '(none)')}`,
     `LINK: ${item.link}`,
   ].join('\n')
 }

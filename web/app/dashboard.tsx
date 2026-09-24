@@ -22,6 +22,8 @@ import { formatDay, toDayKey } from '@/lib/utils'
 import { Calendar } from '@/components/Calendar'
 import { SettingsModal } from '@/components/SettingsModal'
 import { PaywallModal } from '@/components/PaywallModal'
+import { CategoryBoard } from '@/components/CategoryBoard'
+import type { GlossaryEntry } from '@/lib/glossary'
 
 type Exactness = 'all' | 'exact' | 'fallback' | 'broad'
 type DateRange = 'week' | 'month' | 'all'
@@ -34,19 +36,16 @@ type Status = {
   ai: IntegrationStatus
 }
 
-const flagMeta: Record<Flag, { blurb: string; chip: string; button: string }> = {
+const flagMeta: Record<Flag, { chip: string; button: string }> = {
   ACT: {
-    blurb: 'Regulatory changes, enforcement and deadlines',
     chip: 'border-red-500/40 bg-red-500/10 text-red-300',
     button: 'bg-red-600 text-white border border-red-500',
   },
   KNOW: {
-    blurb: 'Policy, people and market context',
     chip: 'border-orange-500/40 bg-orange-500/10 text-orange-300',
     button: 'bg-orange-600 text-white border border-orange-500',
   },
   NOTE: {
-    blurb: 'Background and reference material',
     chip: 'border-green-500/40 bg-green-500/10 text-green-300',
     button: 'bg-green-600 text-white border border-green-500',
   },
@@ -199,11 +198,13 @@ export default function Dashboard({
   sources: digestSources,
   topics: digestTopics,
   generatedAt: digestGeneratedAt,
+  glossary,
 }: {
   items: DigestItem[]
   sources: DigestSource[]
   topics: string[]
   generatedAt: string
+  glossary: GlossaryEntry[]
 }) {
   const { readIds, toggle: toggleRead, clear: clearRead } = useReadItems()
 
@@ -552,11 +553,11 @@ export default function Dashboard({
       if (data.success) {
         if (!data.sent) {
           setTelegramMessage(
-            `Telegram is not set up here, so nothing was sent. This is the exact message it would send, in ${data.parts} part${data.parts === 1 ? '' : 's'}:`
+            'Telegram is not set up here, so nothing was sent. This is the exact message it would send:'
           )
           setTelegramPreview(data.preview || '')
         } else {
-          setTelegramMessage(`✓ Sent to your Telegram chat in ${data.parts} message${data.parts === 1 ? '' : 's'}`)
+          setTelegramMessage('✓ Sent to your Telegram chat')
         }
       } else {
         setTelegramMessage(data.error || 'Failed to send')
@@ -575,14 +576,15 @@ export default function Dashboard({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.3em] text-sky-300">Industry Update Monitor</p>
-              <h1 className="mt-4 text-4xl font-bold tracking-tight text-white">Digest dashboard</h1>
+              <h1 className="mt-4 text-4xl font-bold tracking-tight text-white">This week in Australian advice</h1>
               <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300">
-                Every item below came from a public RSS feed, was flagged ACT / KNOW / NOTE by a weighted keyword
-                classifier, and had its link checked. No AI, no API key, nothing behind a paywall.
+                Every story comes from a free public source, sorted by urgency and category. The dot points are
+                written by an AI model running on this computer, from the publisher&apos;s own text. Tap a box to
+                read a category.
               </p>
               <p className="mt-3 text-sm text-slate-400">
-                Collected {formatDay(digestGeneratedAt)} · {digestItems.length} items from {digestSources.length}{' '}
-                publications · refresh with <code className="text-slate-300">python src/monitor.py --json</code>
+                Updated {formatDay(digestGeneratedAt)} · {digestItems.length} stories from {digestSources.length}{' '}
+                publications
               </p>
             </div>
             <div className="flex gap-2">
@@ -608,8 +610,8 @@ export default function Dashboard({
           {[
             { label: 'Total', value: stats.total },
             { label: 'Unread', value: stats.unread },
-            { label: 'ACT', value: stats.act },
-            { label: 'KNOW', value: stats.know },
+            { label: '🔴 Act now', value: stats.act },
+            { label: '🟠 Worth knowing', value: stats.know },
           ].map((card) => (
             <div key={card.label} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
               <div className="text-sm uppercase tracking-[0.2em] text-slate-400">{card.label}</div>
@@ -618,19 +620,18 @@ export default function Dashboard({
           ))}
         </section>
 
-        <section className="mt-10 grid gap-6 md:grid-cols-3">
-          {(Object.keys(flagMeta) as Flag[]).map((flag) => (
-            <div key={flag} className={`rounded-2xl border p-5 ${flagMeta[flag].chip}`}>
-              <div className="mb-3 text-sm font-semibold uppercase tracking-[0.2em]">{flag}</div>
-              <div className="text-lg font-semibold">{flagMeta[flag].blurb}</div>
-            </div>
-          ))}
-        </section>
+        <CategoryBoard
+          items={digestItems}
+          glossary={glossary}
+          readIds={readIds}
+          onToggleRead={toggleRead}
+          generatedAt={digestGeneratedAt}
+        />
 
         <section className="mt-10 rounded-3xl border border-slate-800 bg-slate-900/70 p-8">
           <div className="mb-6 flex flex-col gap-4">
             <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-              <h2 className="text-2xl font-semibold text-white">Latest items</h2>
+              <h2 className="text-2xl font-semibold text-white">All stories</h2>
               <div className="text-sm text-slate-400">
                 Showing {filteredItems.length} of {digestItems.length}
                 {filtersActive ? (
@@ -723,7 +724,7 @@ export default function Dashboard({
                   onChange={(event) => setHideRead(event.target.checked)}
                   className="h-4 w-4 accent-sky-500"
                 />
-                Hide read
+                Hide stories I&apos;ve read
               </label>
 
               {readIds.size > 0 ? (
@@ -748,8 +749,11 @@ export default function Dashboard({
             manual-review items are follow-ups to open by hand, not verified article links.
           </div>
 
-          <div className="mb-8 rounded-2xl border border-sky-900/60 bg-sky-950/30 p-5">
-            <div className="flex flex-col gap-4">
+          <details className="mb-8 rounded-2xl border border-sky-900/60 bg-sky-950/30 p-5">
+            <summary className="cursor-pointer text-sm font-semibold text-slate-300">
+              Advanced: export stories to paste into an AI chat
+            </summary>
+            <div className="mt-4 flex flex-col gap-4">
               <div>
                 <div className="flex flex-wrap items-center gap-3">
                   <h3 className="text-base font-semibold text-white">Download for summarising</h3>
@@ -987,7 +991,7 @@ export default function Dashboard({
                 </div>
               ) : null}
             </div>
-          </div>
+          </details>
 
           <div className="space-y-8">
             {itemsByTopic.size === 0 ? (
@@ -1127,16 +1131,15 @@ export default function Dashboard({
         </section>
 
         <section id="telegram-scroll" className="mt-10 rounded-3xl border border-slate-800 bg-slate-900 p-8">
-          <h2 className="text-2xl font-semibold text-white">✈️ Send this digest to Telegram</h2>
+          <h2 className="text-2xl font-semibold text-white">✈️ Send this week to Telegram</h2>
           <p className="mt-2 text-sm text-slate-400">
-            Sends the items currently selected by the flag filter, up to six per flag, to your own chat with your bot.
-            Telegram is free — no trial, no per-message charge. Without the bot token and chat ID nothing is sent — you
-            get the exact message back to proof-read.
+            Sends the same message as the Monday run to your own Telegram chat: the headlines, Act now first, each
+            with its first dot point. If you have picked an urgency in the filters above, only that urgency is sent.
+            Telegram is free. If it is not set up yet, nothing is sent and you see the message instead.
           </p>
           <p className="mt-2 text-sm text-slate-400">
-            It goes to one chat only: <code className="text-slate-300">TELEGRAM_CHAT_ID</code> in the server
-            environment. There is no recipient box, deliberately — an endpoint that sent wherever it was asked could be
-            used by anyone who found the URL.
+            It only ever goes to your own chat (<code className="text-slate-300">TELEGRAM_CHAT_ID</code>). There is
+            no box to type another recipient, on purpose, so nobody who finds this page can use it to message others.
           </p>
           <div className="mt-6 space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row">

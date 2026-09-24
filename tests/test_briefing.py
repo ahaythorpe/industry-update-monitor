@@ -108,6 +108,15 @@ class BriefingTests(unittest.TestCase):
         self.assertIn("TEASER: The longer version the feed actually supplied", block)
         self.assertNotIn("The short display version.", block)
 
+    def test_a_chat_paste_is_cut_but_the_local_model_gets_the_whole_article(self):
+        article = "The regulator acted today. " * 400
+        item = {"title": "A headline", "link": "https://a.test/x", "brief_text": article}
+        pasted = format_briefing([item])[0]
+        whole = format_briefing([item], body_limit=None)[0]
+        self.assertLess(len(pasted), len(whole) - 7000)
+        self.assertNotIn(article.strip(), pasted)
+        self.assertIn(article.strip(), whole)
+
     def test_an_item_with_no_teaser_says_so_rather_than_showing_nothing(self):
         block = format_briefing([{"title": "A headline", "link": "https://a.test/x"}])[0]
         self.assertIn("TEASER: (none)", block)
@@ -268,6 +277,10 @@ class ParseReplyTests(unittest.TestCase):
         parsed = parse_summaries(reply)
         self.assertEqual(len(parsed), 3)
         self.assertEqual(parsed["c3d4e5"], "Third summary.")
+
+    def test_a_line_that_echoes_the_id_label_still_imports(self):
+        parsed = parse_summaries("ID: ff0208 | ACT | • **Treasury** acts. | https://a.test/1")
+        self.assertEqual(parsed["ff0208"], "• **Treasury** acts.")
 
     def test_the_thin_teaser_answer_survives(self):
         parsed = parse_summaries("d4e5f6 | KNOW | thin — open source | https://a.test/3")
