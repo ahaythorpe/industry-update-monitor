@@ -152,11 +152,11 @@ class BibliographyTests(unittest.TestCase):
 
     def test_each_source_appears_once_with_its_home_and_count(self):
         entries = _bibliography(_items(3), self.SOURCES)
-        self.assertEqual(entries, [{"name": "Test Source", "home": "https://a.test/", "count": 3}])
+        self.assertEqual(entries[1], {"name": "Test Source", "home": "https://a.test/", "count": 3, "intake": ""})
 
-    def test_a_source_that_contributed_nothing_is_left_out(self):
-        names = [entry["name"] for entry in _bibliography(_items(1), self.SOURCES)]
-        self.assertNotIn("Silent Source", names)
+    def test_a_source_that_contributed_nothing_is_still_listed(self):
+        entries = _bibliography(_items(1), self.SOURCES)
+        self.assertEqual(entries[0], {"name": "Silent Source", "home": "https://b.test/", "count": 0, "intake": ""})
 
     def test_a_source_missing_from_the_config_still_lists_without_a_home(self):
         entries = _bibliography(_items(1), [])
@@ -167,7 +167,7 @@ class BibliographyTests(unittest.TestCase):
             path = export_json(_items(2), Path(tmp) / "digest.json", self.SOURCES)
             payload = json.loads(path.read_text(encoding="utf-8"))
         self.assertEqual(len(payload["items"]), 2)
-        self.assertEqual(payload["sources"][0]["count"], 2)
+        self.assertEqual(payload["sources"][1]["count"], 2)
         self.assertIn("generated_at", payload)
 
 

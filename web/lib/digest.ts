@@ -36,6 +36,8 @@ export type DigestSource = {
   name: string
   home: string
   count: number
+  /** How the source reaches the monitor; missing in digests before 25 Sep 2026. */
+  intake?: string
 }
 
 // Section pages a bookmark-and-check source points at: landing pages that list

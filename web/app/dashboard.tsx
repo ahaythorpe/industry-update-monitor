@@ -601,7 +601,7 @@ export default function Dashboard({
                 from the publisher&apos;s own text, and every story links to the original. Tap a box to read it.
               </p>
               <p className="mt-3 text-sm text-slate-400">
-                Updated {formatDay(digestGeneratedAt)} · {digestItems.length} stories from {digestSources.length}{' '}
+                Updated {formatDay(digestGeneratedAt)} · {digestItems.length} stories from {digestSources.filter((source) => source.count > 0).length}{' '}
                 publications
               </p>
               <p className="mt-3 flex gap-4 text-sm">
@@ -1248,7 +1248,7 @@ export default function Dashboard({
             </button>
           </div>
           <p className="mt-2 text-sm text-slate-400">
-            Publications this digest drew on — every article, with its own link
+            Every source on the list, and every article this digest drew from it
           </p>
           <div className="mt-6 space-y-2">
             {digestSources.map((source) => (
@@ -1257,7 +1257,11 @@ export default function Dashboard({
                 <div>
                   <div className="font-medium text-white">{source.name}</div>
                   <div className="text-xs text-slate-500">
-                    {source.count} item{source.count !== 1 ? 's' : ''} in this digest
+                    {source.count > 0
+                      ? `${source.count} item${source.count !== 1 ? 's' : ''} in this digest`
+                      : source.intake === 'bookmark_and_check' || source.intake === 'listen'
+                        ? 'Not read automatically: open the website yourself'
+                        : 'Nothing from this source this week'}
                   </div>
                 </div>
                 {source.home ? (
@@ -1273,6 +1277,7 @@ export default function Dashboard({
               </div>
               {/* The articles this publisher contributed, each linked to its
                   own page — the home page alone does not say what was read. */}
+              {source.count > 0 ? (
               <ul className="mt-3 border-t border-slate-700 pt-2">
                 {digestItems
                   .filter((item) => item.source_name === source.name)
@@ -1293,6 +1298,7 @@ export default function Dashboard({
                     </li>
                   ))}
               </ul>
+              ) : null}
               </div>
             ))}
           </div>

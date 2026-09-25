@@ -1004,22 +1004,27 @@ def summarise_items(items, **collate_kwargs):
 
 def _bibliography(items, sources=None):
     """
-    One entry per source that actually contributed an item.
+    One entry per source on the list, with how many items it gave this digest.
 
-    The dashboard used to build its bibliography from item links, which listed
-    the same publisher once per article and pointed "Visit" at a single story.
-    A bibliography is a list of the publications consulted, so it is built from
-    the source list and carries the publisher's own home page.
+    Every configured source is listed, including those that gave nothing: a
+    body the monitor cannot read (ASIC, the ATO) never contributes an item,
+    and a bibliography that drops it hides that it is on the list at all.
+    `intake` lets the dashboard say why a count is zero.
     """
-    homes = {s.get("name", ""): s.get("home", "") for s in (sources or [])}
     counts = {}
     for item in items:
         name = item.get("source_name", "")
         if name:
             counts[name] = counts.get(name, 0) + 1
+    config = {s.get("name", ""): s for s in (sources or []) if s.get("name")}
     return [
-        {"name": name, "home": homes.get(name, ""), "count": counts[name]}
-        for name in sorted(counts)
+        {
+            "name": name,
+            "home": config.get(name, {}).get("home", ""),
+            "count": counts.get(name, 0),
+            "intake": config.get(name, {}).get("intake", ""),
+        }
+        for name in sorted(set(counts) | set(config), key=str.lower)
     ]
 
 
