@@ -11,16 +11,12 @@ import { useState } from 'react'
 import {
   PASTE_PROMPT,
   REASON_LABEL,
+  RESOURCE_GROUPS,
   UNREACHABLE_SOURCES,
   resourcesMarkdown,
-  type UnreachableReason,
 } from '@/lib/unreachable'
 import { saveText } from '@/lib/sweep'
 
-const GROUPS: { reasons: UnreachableReason[]; title: string; hint: string }[] = [
-  { reasons: ['paywall'], title: 'Paywall access', hint: 'Only paste what your own subscription lets you read.' },
-  { reasons: ['blocks-bots', 'no-feed'], title: 'Free, but cannot be fetched automatically', hint: 'They block automated readers or publish no feed.' },
-]
 
 export function UnreachableSources() {
   const [copied, setCopied] = useState<'idle' | 'copied' | 'failed'>('idle')
@@ -59,7 +55,7 @@ export function UnreachableSources() {
       </div>
 
       <div className="flex flex-col gap-3">
-        {GROUPS.map((group) => {
+        {RESOURCE_GROUPS.map((group) => {
           const sources = UNREACHABLE_SOURCES.filter((source) => group.reasons.includes(source.reason))
           return (
             <details key={group.title} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">

@@ -24,6 +24,7 @@ import { Calendar } from '@/components/Calendar'
 import { SettingsModal } from '@/components/SettingsModal'
 import { PaywallModal } from '@/components/PaywallModal'
 import { UnreachableSources } from '@/components/UnreachableSources'
+import { RESOURCE_GROUPS, UNREACHABLE_SOURCES, resourcesMarkdown } from '@/lib/unreachable'
 import { CategoryBoard } from '@/components/CategoryBoard'
 import type { GlossaryEntry } from '@/lib/glossary'
 
@@ -514,7 +515,12 @@ export default function Dashboard({
 
   // The Bibliography as a file: every article, grouped by publisher, linked.
   const downloadSourceLinks = () => {
-    const blob = new Blob([bundleLinksBySource(digestItems, digestGeneratedAt)], {
+    const blob = new Blob([[
+      bundleLinksBySource(digestItems, digestGeneratedAt),
+      ...RESOURCE_GROUPS.map((group) =>
+        resourcesMarkdown(group.title, UNREACHABLE_SOURCES.filter((source) => group.reasons.includes(source.reason)))
+      ),
+    ].join('\n')], {
       type: 'text/markdown;charset=utf-8',
     })
     const url = URL.createObjectURL(blob)
@@ -1290,6 +1296,33 @@ export default function Dashboard({
               </div>
             ))}
           </div>
+
+          {/* The sources the monitor cannot read never produce an article
+              above, so they are named here to keep the bibliography whole. */}
+          {RESOURCE_GROUPS.map((group) => (
+            <div key={group.title} className="mt-8">
+              <h3 className="text-lg font-semibold text-white">Additional resources: {group.title}</h3>
+              <p className="mt-1 text-sm text-slate-400">{group.hint} Not in this digest; open them yourself.</p>
+              <ul className="mt-3 rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-2">
+                {UNREACHABLE_SOURCES.filter((source) => group.reasons.includes(source.reason)).map((source) => (
+                  <li
+                    key={source.name}
+                    className="flex items-center justify-between gap-4 border-b border-slate-700/60 py-1.5 text-sm last:border-b-0"
+                  >
+                    <span className="text-slate-300">{source.name}</span>
+                    <a
+                      href={source.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="shrink-0 rounded-lg border border-sky-600/60 bg-sky-600/15 px-3 py-1 text-xs font-semibold text-sky-300 hover:bg-sky-600/25"
+                    >
+                      Visit →
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </section>
       </div>
 

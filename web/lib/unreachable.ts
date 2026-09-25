@@ -23,6 +23,12 @@ export const REASON_LABEL: Record<UnreachableReason, string> = {
   'no-feed': 'No feed',
 }
 
+/** How the dashboard groups these: paid, or free but not fetchable. */
+export const RESOURCE_GROUPS: { reasons: UnreachableReason[]; title: string; hint: string }[] = [
+  { reasons: ['paywall'], title: 'Paywall access', hint: 'Only paste what your own subscription lets you read.' },
+  { reasons: ['blocks-bots', 'no-feed'], title: 'Free, but cannot be fetched automatically', hint: 'They block automated readers or publish no feed.' },
+]
+
 export const UNREACHABLE_SOURCES: UnreachableSource[] = [
   // Paywalled
   { name: 'Australian Financial Review', url: 'https://www.afr.com/wealth', reason: 'paywall', why: 'Breaks advice, super and ASIC stories first. The biggest gap.' },
