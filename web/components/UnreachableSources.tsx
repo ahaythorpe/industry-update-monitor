@@ -12,8 +12,10 @@ import {
   PASTE_PROMPT,
   REASON_LABEL,
   UNREACHABLE_SOURCES,
+  resourcesMarkdown,
   type UnreachableReason,
 } from '@/lib/unreachable'
+import { saveText } from '@/lib/sweep'
 
 const GROUPS: { reasons: UnreachableReason[]; title: string; hint: string }[] = [
   { reasons: ['paywall'], title: 'Paywall access', hint: 'Only paste what your own subscription lets you read.' },
@@ -64,6 +66,19 @@ export function UnreachableSources() {
               <summary className="cursor-pointer text-base font-semibold text-white">
                 {group.title} ({sources.length})
                 <span className="ml-2 text-xs font-normal text-slate-500">{group.hint}</span>
+                <button
+                  type="button"
+                  onClick={(event) => {
+                    event.preventDefault()
+                    const slug = group.title.toLowerCase().replace(/[^a-z]+/g, '-').replace(/-+$/, '')
+                    saveText(`additional-resources-${slug}.md`, resourcesMarkdown(group.title, sources))
+                  }}
+                  title={`Download ${group.title}: links with instructions, to give an AI tool`}
+                  aria-label={`Download ${group.title}`}
+                  className="float-right rounded-lg border border-slate-700 px-2 py-1 text-xs font-semibold text-slate-300 hover:border-sky-500 hover:text-sky-200"
+                >
+                  ⬇
+                </button>
               </summary>
               <ul className="mt-4 space-y-2">
                 {sources.map((source) => (

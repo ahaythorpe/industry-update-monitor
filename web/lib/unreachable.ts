@@ -76,3 +76,30 @@ Give: 1) what changed, 2) who it affects, 3) whether an adviser must act, and by
 If the text is too thin to answer, say so.
 
 [paste the article text here]`
+
+/**
+ * A group of these sources as a Markdown file an AI tool can be handed:
+ * instructions first, then one link per line. The tool reads only what the
+ * user's own access lets it open; it is told to say so rather than guess.
+ */
+export function resourcesMarkdown(title: string, sources: UnreachableSource[]): string {
+  const lines = [
+    `# Additional resources: ${title}`,
+    '',
+    '## Instructions for the AI reading this file',
+    '',
+    'You are helping an Australian financial adviser keep up with the industry.',
+    'For each link below, open it and report what is new in the last 7 days:',
+    '1) what changed, 2) who it affects, 3) whether an adviser must act, and by when.',
+    'Only use what you can actually open. If a page is paywalled, blocked or has',
+    'nothing new, say so in one line. Do not guess or fill gaps from memory.',
+    '',
+    '## Sources',
+    '',
+  ]
+  sources.forEach((source) => {
+    lines.push(`- [${source.name}](${source.url}) — ${REASON_LABEL[source.reason]}. ${source.why}`)
+  })
+  lines.push('')
+  return lines.join('\n')
+}
