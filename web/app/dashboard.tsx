@@ -652,6 +652,8 @@ export default function Dashboard({
           generatedAt={digestGeneratedAt}
         />
 
+        <UnreachableSources />
+
         <section className="mt-10 rounded-3xl border border-slate-800 bg-slate-900/70 p-8">
           <div className="mb-6 flex flex-col gap-4">
             <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
@@ -1018,8 +1020,6 @@ export default function Dashboard({
             </div>
           </details>
           )}
-
-          <UnreachableSources />
 
           <div className="space-y-8">
             {itemsByTopic.size === 0 ? (

@@ -15,10 +15,9 @@ import {
   type UnreachableReason,
 } from '@/lib/unreachable'
 
-const GROUPS: { reason: UnreachableReason; title: string }[] = [
-  { reason: 'paywall', title: 'Paywalled: only paste what your own subscription lets you read' },
-  { reason: 'blocks-bots', title: 'Free, but they block automated readers' },
-  { reason: 'no-feed', title: 'Free, but no feed to subscribe to' },
+const GROUPS: { reasons: UnreachableReason[]; title: string; hint: string }[] = [
+  { reasons: ['paywall'], title: 'Paywall access', hint: 'Only paste what your own subscription lets you read.' },
+  { reasons: ['blocks-bots', 'no-feed'], title: 'Free, but cannot be fetched automatically', hint: 'They block automated readers or publish no feed.' },
 ]
 
 export function UnreachableSources() {
@@ -35,42 +34,38 @@ export function UnreachableSources() {
   }
 
   return (
-    <details className="mb-8 rounded-2xl border border-amber-900/60 bg-amber-950/20 p-5">
-      <summary className="cursor-pointer text-sm font-semibold text-slate-300">
-        Sources the monitor can&apos;t read ({UNREACHABLE_SOURCES.length}), open these yourself
-      </summary>
+    <section className="mt-10">
+      <h2 className="mb-4 text-2xl font-semibold text-white">Additional resources</h2>
 
-      <div className="mt-4 flex flex-col gap-4">
-        <div className="rounded-xl border border-slate-700 bg-slate-800/50 p-4 text-xs text-slate-300">
-          <p>
-            The monitor never opens these pages. To get one summarised: open it, copy the article
-            text, then paste it into Claude under this prompt.
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <button
-              onClick={copyPrompt}
-              className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
-                copied === 'failed'
-                  ? 'border-amber-600/60 bg-amber-600/15 text-amber-200'
-                  : 'border-sky-600/60 bg-sky-600/15 text-sky-200 hover:bg-sky-600/25'
-              }`}
-            >
-              {copied === 'copied' ? '✓ Copied' : copied === 'failed' ? 'Copy failed' : 'Copy prompt for Claude'}
-            </button>
-            <span className="text-slate-500">
-              A 🔴 Act now item is still read at its source.
-            </span>
-          </div>
+      <div className="mb-4 rounded-xl border border-slate-700 bg-slate-800/50 p-4 text-xs text-slate-300">
+        <p>
+          The monitor never opens these pages. To get one summarised: open it, copy the article
+          text, then paste it into Claude under this prompt.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            onClick={copyPrompt}
+            className={`rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${
+              copied === 'failed'
+                ? 'border-amber-600/60 bg-amber-600/15 text-amber-200'
+                : 'border-sky-600/60 bg-sky-600/15 text-sky-200 hover:bg-sky-600/25'
+            }`}
+          >
+            {copied === 'copied' ? '✓ Copied' : copied === 'failed' ? 'Copy failed' : 'Copy prompt for Claude'}
+          </button>
         </div>
+      </div>
 
+      <div className="flex flex-col gap-3">
         {GROUPS.map((group) => {
-          const sources = UNREACHABLE_SOURCES.filter((source) => source.reason === group.reason)
+          const sources = UNREACHABLE_SOURCES.filter((source) => group.reasons.includes(source.reason))
           return (
-            <section key={group.reason}>
-              <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.1em] text-slate-500">
-                {group.title}
-              </h3>
-              <ul className="space-y-2">
+            <details key={group.title} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+              <summary className="cursor-pointer text-base font-semibold text-white">
+                {group.title} ({sources.length})
+                <span className="ml-2 text-xs font-normal text-slate-500">{group.hint}</span>
+              </summary>
+              <ul className="mt-4 space-y-2">
                 {sources.map((source) => (
                   <li
                     key={source.name}
@@ -94,10 +89,10 @@ export function UnreachableSources() {
                   </li>
                 ))}
               </ul>
-            </section>
+            </details>
           )
         })}
       </div>
-    </details>
+    </section>
   )
 }
