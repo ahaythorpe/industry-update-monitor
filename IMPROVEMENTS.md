@@ -671,3 +671,51 @@ Built, 24 September 2026:
 
 Left as is, by the owner's choice: urgency labels stay as they are, and the email and Telegram
 stay the full newsletter.
+
+## 19. The Sunday run republishes old news, and sent nothing on 27 September
+
+Found 29 September 2026 while checking the public dashboard against GitHub. The code on GitHub
+and on https://advice-monitor.vercel.app match (last commit `2f17702`, 25 Sep). The problem is
+the news, not the code.
+
+**1. The scheduled run never fetches.** `scripts/weekly-run.sh` runs
+`monitor.py --json --sweep --brief` (or `--json --brief`). In `src/monitor.py`, asking for
+`--sweep` or `--brief` sends the program down the "work from the digest on disk" branch, which
+ends in `raise SystemExit(0)` before the fetch is reached. `--json` is silently ignored and the
+log still says `ok — 50 items`. Every scheduled run has done this: the sweep sheets of 17, 21
+and 27 Sep say "from the digest of" 14, 17 and 24 Sep. On 27 Sep the site was redeployed with
+the 24 Sep stories, and `scripts/archive_week.py` rewrote `web/lib/archive/2026-09-21.json`
+(uncommitted) instead of saving a week of 28 Sep. This is exactly the failure item 6 says must
+not happen: a stale week that reads as a successful one.
+
+Proposed fix, for approval, not built:
+
+- Split the step in `weekly-run.sh`: `monitor.py --json` first, then `--sweep --brief` from the
+  digest it just wrote.
+- Make `monitor.py` refuse `--json` together with `--sweep`, `--brief`, `--ollama` or
+  `--import-summaries`, the way it already refuses `--group-by` without `--brief`, so the
+  combination cannot be silently ignored again.
+- Have the run log the digest's `generated_at`, and log a failure when it is older than today.
+- A test: `--json --brief` is refused, never ignored.
+- Then revert or regenerate `web/lib/archive/2026-09-21.json` and rerun the week.
+
+**2. The summaries failed on 27 Sep, so no email or Telegram went out.** Ollama stopped with
+`llama-server process has terminated: signal: killed`, which on this 16 GB laptop usually means
+it ran out of memory: `gpt-oss:20b` is about 13 GB on its own. The run correctly held back the
+email and Telegram rather than send a half-finished issue, but nothing tells the owner that no
+newsletter came. Options, the owner's to choose: quit other apps on Sunday evenings; go back to
+`qwen3:8b` (fast, but it misread a money table, item 16); or a smaller mid-size model, tested
+first on the three stories item 16 used.
+
+**3. Docs that no longer match the tool.** Correct these when the fix above lands:
+
+- SETUP.md "The dashboard on a Vercel link" and HANDOVER.md "Repos and deploys" say deploys are
+  previews, made by hand, behind Vercel's login. The site is public and the Sunday run deploys
+  it with `--prod` (item 18). README.md's last dashboard paragraph says the same.
+- SAFEGUARDS.md section A says `FEED_BODY_LIMIT` is 1,500 characters; it is 12,000 (item 16).
+- "Monday run" / "Monday 07:00" in README.md, SETUP.md (table, Part 2, "When it goes wrong"),
+  HANDOVER.md and HOW_IT_WORKS.md. It runs Sunday at 21:00.
+- SETUP.md Part 5 "What it costs" says a digest is split into numbered parts; it is now one
+  message with the rest counted.
+- SETUP.md Part 2 still describes `qwen3:8b`, 5 items a paste and 20 minutes as the setup; the
+  run uses `gpt-oss:20b`, 3 a paste, about 2.5 hours.
