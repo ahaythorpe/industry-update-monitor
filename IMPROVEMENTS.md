@@ -719,3 +719,26 @@ first on the three stories item 16 used.
   message with the rest counted.
 - SETUP.md Part 2 still describes `qwen3:8b`, 5 items a paste and 20 minutes as the setup; the
   run uses `gpt-oss:20b`, 3 a paste, about 2.5 hours.
+
+**Fixed, 1 October 2026** (parts 1 and 2), at the owner's request after no Telegram arrived:
+
+- `scripts/weekly-run.sh` now fetches with `monitor.py --json` on its own, then writes the sweep
+  sheet and briefing from the digest it just wrote. It logs `STALE` and stops when the digest's
+  `generated_at` is not today, so last week's news can no longer pass as this week's.
+- `monitor.py` refuses `--json` together with `--sweep`, `--brief`, `--ollama` or
+  `--import-summaries` (`tests/test_cli_refusals.py`).
+- Summaries: `gpt-oss:20b` first; if it fails, the week is redone with `qwen3:8b` (the owner's
+  choice: big model, small backup). The log names the model that wrote them.
+- The dashboard is published before anything is sent, so the Telegram link opens on this week.
+- Telegram goes out every week that fetched fresh news, even without summaries, so a silent
+  Sunday cannot pass unnoticed. The email still waits for the summaries.
+- **The Telegram message became a short briefing** (the owner's choice, not the full newsletter):
+  the top five stories, Act now first, each with *what happened* and the *key fact* (the first two
+  dot points); a word of the week from `data/glossary.json`, turning with the week number; the
+  rest counted by topic, with further Act now stories counted on their own; and a link to the
+  public dashboard. The newsletter file is no longer attached — the email carries it.
+  `src/telegram_sender.py` and its twin `web/lib/telegram.ts`, tests on both sides.
+- A test briefing was sent to the owner's chat on 1 Oct 2026 and Telegram accepted it.
+
+Still open: part 3, the doc corrections listed above, apart from SETUP.md Part 2's model note and
+Part 5's description of the message, which are now right.

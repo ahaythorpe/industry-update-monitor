@@ -2102,6 +2102,17 @@ if __name__ == "__main__":
         raise SystemExit(f"❌ {name} shapes the briefing. Add --brief, e.g. "
                          f"python src/monitor.py --brief {name} {value}")
 
+    # These work from the digest on disk and never fetch. With --json as well,
+    # --json used to be silently ignored, so the Sunday run reused old news
+    # for weeks while logging "ok" (IMPROVEMENTS.md item 19). Fetch first.
+    from_disk = [name for name, used in (("--sweep", args.sweep is not None), ("--brief", args.brief is not None),
+                                         ("--ollama", args.ollama is not None),
+                                         ("--import-summaries", bool(args.import_summaries))) if used]
+    if args.json and from_disk:
+        raise SystemExit(f"❌ {' and '.join(from_disk)} work from the digest on disk and never fetch, so "
+                         f"--json would be ignored. Run python src/monitor.py --json first, then "
+                         f"python src/monitor.py {' '.join(from_disk)}")
+
     # Both halves of the manual round trip work from the digest already on
     # disk: no feeds are fetched, so they cost nothing and work offline.
     if (args.brief is not None or args.import_summaries or args.sweep is not None

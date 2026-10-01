@@ -1,5 +1,5 @@
 import { type Flag } from '@/lib/digest'
-import { loadDigest } from '@/lib/digest-server'
+import { loadDigest, loadGlossary } from '@/lib/digest-server'
 import { explainTelegramError, formatTelegramDigest } from '@/lib/telegram'
 
 const FLAGS: Flag[] = ['ACT', 'KNOW', 'NOTE']
@@ -30,7 +30,11 @@ export async function POST(request: Request) {
     const flag = FLAGS.includes(selectedFlag) ? (selectedFlag as Flag) : null
     // One message, the same one `python src/monitor.py --telegram` sends.
     const messages = [
-      formatTelegramDigest(digestItems, { focus: flag, dashboard: process.env.DASHBOARD_URL?.trim() || null }),
+      formatTelegramDigest(digestItems, {
+        focus: flag,
+        dashboard: process.env.DASHBOARD_URL?.trim() || null,
+        glossary: loadGlossary(),
+      }),
     ]
 
     if (!token || !chatId) {

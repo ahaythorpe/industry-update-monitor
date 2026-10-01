@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { normalizeIncomingItem, type DigestItem, type Flag } from './digest'
-import { MAX_BODY, explainTelegramError, formatTelegramDigest } from './telegram'
+import { MAX_BODY, PUBLIC_DASHBOARD, TOP_STORIES, explainTelegramError, formatTelegramDigest, isoWeek } from './telegram'
 
 function item(n: number, flag: Flag = 'ACT', overrides: Partial<DigestItem> = {}): DigestItem {
   return normalizeIncomingItem({
@@ -18,13 +18,17 @@ const many = (count: number, flag: Flag = 'ACT') => Array.from({ length: count }
 
 // Mirrors tests/test_telegram.py, so the dashboard button and --telegram
 // cannot quietly send different messages.
+const twoPoints = { ai_summary: '• What happened here. • **A key fact.** • A third point.' }
+const glossary = [{ term: 'ASIC', also: ['Australian Securities and Investments Commission'], means: 'the regulator.', matters: 'it acts.' }]
+
 describe('formatTelegramDigest', () => {
-  it('is one message under the cap, Act now first, counting what did not fit', () => {
+  it('names the top stories, Act now first, and counts the rest', () => {
     const message = formatTelegramDigest([...many(80, 'KNOW'), item(99, 'ACT')])
     expect(message.length).toBeLessThanOrEqual(MAX_BODY)
     expect(message.indexOf('Story 99')).toBeLessThan(message.indexOf('Story 0 '))
-    expect(message).toMatch(/\+ \d+ more on the dashboard/)
-    expect(message).toContain('weekly update')
+    expect(message.split('<a href="https://a.test/').length - 1).toBe(TOP_STORIES)
+    expect(message).toContain(`Also this week (${81 - TOP_STORIES})`)
+    expect(message).toContain(`href="${PUBLIC_DASHBOARD}"`)
   })
 
   it('escapes titles and cannot have a link break out of its attribute', () => {
@@ -33,28 +37,38 @@ describe('formatTelegramDigest', () => {
     expect(message).not.toContain('"><script>')
   })
 
-  it('shows the first dot point with its key fact bold', () => {
-    const message = formatTelegramDigest([item(1, 'ACT', { ai_summary: '• **ASIC** banned him. • Second point.' })])
-    expect(message).toContain('<b>ASIC</b> banned him.')
-    expect(message).not.toContain('Second point')
+  it('says what happened and the key fact, bold kept', () => {
+    const message = formatTelegramDigest([item(1, 'ACT', twoPoints)])
+    expect(message).toContain('<i>What happened:</i> What happened here.')
+    expect(message).toContain('<i>Key fact:</i> <b>A key fact.</b>')
+    expect(message).not.toContain('A third point')
   })
 
-  it('uses plain words, in urgency order', () => {
+  it('ranks a story the model could not read below one it did, and says so', () => {
+    const message = formatTelegramDigest([item(1, 'ACT'), item(2, 'ACT', twoPoints)])
+    expect(message).toContain('Not summarised: open the source.')
+    expect(message.indexOf('Story 2 ')).toBeLessThan(message.indexOf('Story 1 '))
+  })
+
+  it('counts Act now stories left out', () => {
+    expect(formatTelegramDigest(many(TOP_STORIES + 3))).toContain('🔴 3 more act now among them.')
+  })
+
+  it('explains a word of the week from the glossary', () => {
+    const message = formatTelegramDigest([item(1, 'ACT', { ai_summary: '• ASIC issued a stop order.' })], { glossary })
+    expect(message).toContain('📖 <b>Word of the week: ASIC (Australian Securities and Investments Commission)</b>')
+    expect(message).toContain('<i>Why it matters:</i> it acts.')
+  })
+
+  it('uses plain words', () => {
     const message = formatTelegramDigest([item(1, 'NOTE'), item(2, 'ACT'), item(3, 'KNOW')], { today: '24 September 2026' })
     expect(message).toContain('24 September 2026')
     expect(message).toContain('1 act now · 1 worth knowing · 1 background')
-    expect(message.indexOf('Act now</b>')).toBeLessThan(message.indexOf('Worth knowing</b>'))
-    expect(message.indexOf('Worth knowing</b>')).toBeLessThan(message.indexOf('Background</b>'))
   })
 
-  it('is a short Act now alert once the dashboard is online', () => {
-    const message = formatTelegramDigest(
-      [item(1, 'ACT', { topic: 'Regulation' }), item(2, 'KNOW', { topic: 'Super & tax' })],
-      { dashboard: 'https://monitor.example/' }
-    )
-    expect(message).toContain('Story 1 ')
-    expect(message).not.toContain('Story 2 ')
-    expect(message).toContain('⚖️ Regulation 1 · 💰 Super &amp; tax 1')
+  it('says when nothing needs action, and takes another dashboard address', () => {
+    const message = formatTelegramDigest([item(1, 'KNOW')], { dashboard: 'https://monitor.example/' })
+    expect(message).toContain('Nothing this week changes what you must do.')
     expect(message).toContain('href="https://monitor.example/"')
   })
 
@@ -63,6 +77,11 @@ describe('formatTelegramDigest', () => {
     expect(message).toContain('extra update')
     expect(message).toContain('Only: KNOW')
     expect(message).not.toContain('Story 1 ')
+  })
+
+  it('counts weeks the way Python does', () => {
+    expect(isoWeek(new Date(2026, 9, 1))).toBe(40)
+    expect(isoWeek(new Date(2027, 0, 1))).toBe(53)
   })
 })
 

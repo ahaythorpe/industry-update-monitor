@@ -7,11 +7,11 @@ trial to run out and no per-message charge. It sends only to TELEGRAM_CHAT_ID
 
 Without a token and chat ID it runs in preview mode and prints the messages.
 
-Each week: one message with the headlines and summaries. Until the dashboard
-is online (DASHBOARD_URL), the full newsletter (the same one the email
-carries) goes along as a file; once it is, the message is a short Act now
-alert with a link to the dashboard instead. Extras can be focused on an
-urgency or a category. Never full article text.
+Each week, since 1 Oct 2026: one short briefing, not the full newsletter
+(that is the email). The top stories with what happened and the key fact, a
+word of the week explained from the glossary, the rest counted by topic, and
+a link to the public dashboard. Extras can be focused on an urgency or a
+category. Never full article text.
 """
 
 import html
@@ -23,9 +23,9 @@ import urllib.request
 from datetime import datetime
 
 try:
-    from src.email_sender import _build_html_digest, _by_category, _icon, bold_html, dashboard_url, summary_points
+    from src.email_sender import _by_category, _icon, _term_name, bold_html, dashboard_url, item_terms, summary_points
 except ImportError:  # pragma: no cover - only when src/ is itself the path
-    from email_sender import _build_html_digest, _by_category, _icon, bold_html, dashboard_url, summary_points
+    from email_sender import _by_category, _icon, _term_name, bold_html, dashboard_url, item_terms, summary_points
 
 TELEGRAM_API = "https://api.telegram.org/bot{token}/{method}"
 
@@ -56,73 +56,106 @@ def tailor(items: list, flags: str | None = None, topics: str | None = None) -> 
     ]
 
 
-def _line(item: dict) -> str:
+# Where the full week can be read. The public dashboard (item 18) unless
+# DASHBOARD_URL names another address.
+PUBLIC_DASHBOARD = "https://advice-monitor.vercel.app"
+
+# The briefing names this many stories at most, Act now first; the rest are
+# counted, with the Act now ones counted separately so none goes unnoticed.
+TOP_STORIES = 5
+
+
+def _rank(items: list) -> list:
+    """Act now first, then Worth knowing, then Background; within each, a
+    summarised story before one the model could not read, then the most
+    confidently flagged."""
+    order = {flag: n for n, flag in enumerate(FLAG_SEQUENCE)}
+    return sorted(items, key=lambda i: (order.get(i.get("flag"), 3), not i.get("ai_summary"),
+                                        -(i.get("confidence") or 0)))
+
+
+def _story(n: int, item: dict) -> str:
+    """One story: its headline, what happened, and the key fact."""
     title = html.escape(item.get("title", "Untitled"))
     link = item.get("link", "")
     head = f'<a href="{html.escape(link, quote=True)}">{title}</a>' if link else title
-    # The first dot point says what happened; the rest are in the attachment.
+    emoji = FLAG_HEADINGS.get(item.get("flag"), FLAG_HEADINGS["NOTE"]).split(" ")[0]
+    lines = [f"{n}. {emoji} {head}"]
     points = summary_points(item.get("ai_summary") or "")
-    return f"▪️ {head}" + (f"\n    {bold_html(html.escape(points[0]))}" if points else "")
+    for label, point in zip(("What happened", "Key fact"), points[:2]):
+        lines.append(f"    <i>{label}:</i> {bold_html(html.escape(point))}")
+    if not points:
+        lines.append("    <i>Not summarised: open the source.</i>")
+    if item.get("source_name"):
+        lines.append(f"    — {html.escape(item['source_name'])}")
+    return "\n".join(lines)
+
+
+def _word_of_the_week(items: list) -> list:
+    """One glossary term from the stories named, explained. Which one turns
+    with the week, so the same everyday term (ASIC) is not taught every time."""
+    found: dict = {}
+    for item in items:
+        for entry in item_terms(item):
+            found.setdefault(entry["term"], entry)
+    if not found:
+        return []
+    terms = list(found.values())
+    entry = terms[datetime.now().isocalendar()[1] % len(terms)]
+    lines = ["", f"📖 <b>Word of the week: {html.escape(_term_name(entry))}</b>",
+             html.escape(entry.get("means", ""))]
+    if entry.get("matters"):
+        lines.append(f"<i>Why it matters:</i> {html.escape(entry['matters'])}")
+    return lines
 
 
 def format_telegram_digest(items: list, flags: str | None = None,
                            topics: str | None = None, dashboard: str | None = None) -> tuple[str, list]:
-    """One message, never split. Headlines by urgency, Act now first, each
-    with its first dot point; whatever does not fit Telegram's cap is counted.
-
-    With the dashboard online (`dashboard` is its address) the weekly message
-    is a short alert: Act now only, the week by topic in one line, and a link
-    to the dashboard. Without it, every urgency is listed and the full
-    newsletter goes along as a file.
-    """
+    """A short briefing in one message, never split: the week's top stories
+    (Act now first), each with what happened and its key fact; one
+    jargon term explained; the rest of the week counted by topic; and a link
+    to the dashboard, which carries everything else."""
     chosen = tailor(items, flags, topics)
+    dashboard = dashboard or PUBLIC_DASHBOARD
     today = datetime.now().strftime("%-d %B %Y")
     focus = " · ".join(label for label in (flags, topics) if _wanted(label))
-    title = "extra update" if focus else "weekly update"
-    counts = " · ".join(f"{sum(1 for i in chosen if i.get('flag') == f)} {FLAG_WORDS[f]}"
-                        for f in FLAG_SEQUENCE if any(i.get("flag") == f for i in chosen))
-    lines = [f"📰 <b>Advice Monitor: {title}</b>", today]
+    lines = [f"📰 <b>Advice Monitor{': extra update' if focus else ''}</b> · {today}"]
     if focus:
         lines.append(f"<i>Only: {html.escape(focus)}</i>")
-    lines.append("")
     if not chosen:
-        lines.append("Nothing matched this week.")
+        lines += ["", "Nothing matched this week."]
         return "\n".join(lines), chosen
+    counts = " · ".join(f"{sum(1 for i in chosen if i.get('flag') == f)} {FLAG_WORDS[f]}"
+                        for f in FLAG_SEQUENCE if any(i.get("flag") == f for i in chosen))
     lines.append(f"{len(chosen)} stor{'y' if len(chosen) == 1 else 'ies'}: {counts}")
+    if not focus and not any(i.get("flag") == "ACT" for i in chosen):
+        lines.append("Nothing this week changes what you must do.")
 
-    # An alert lists Act now only, unless an extra asked for other urgencies.
-    listed = FLAG_SEQUENCE if (focus or not dashboard) else ("ACT",)
-    if dashboard and not focus and not any(i.get("flag") == "ACT" for i in chosen):
-        lines += ["", "Nothing this week changes what you must do."]
+    wanted = _rank(chosen)[:TOP_STORIES]
+    footer = ("\n\n<i>Summaries are a quick guide. Read an Act now story at its source "
+              "before acting on it.</i>")
 
-    where = "on the dashboard" if dashboard else "in the attached newsletter 📎"
-    tail = []
-    if dashboard:
-        by_topic = " · ".join(f"{_icon(topic)} {html.escape(topic)} {len(stories)}"
-                              for topic, stories in _by_category(chosen))
-        tail += ["", f"<b>By topic:</b> {by_topic}",
-                 "", f'👉 <a href="{html.escape(dashboard, quote=True)}">Open this week on the dashboard</a>']
-    footer = "\n<i>Summaries are a quick guide. Read an Act now story at its source before acting on it.</i>"
+    def tail(picked: list) -> list:
+        rest = [i for i in chosen if i not in picked]
+        out = _word_of_the_week(picked)
+        if rest:
+            by_topic = " · ".join(f"{_icon(topic)} {html.escape(topic)} {len(stories)}"
+                                  for topic, stories in _by_category(rest))
+            acts = sum(1 for i in rest if i.get("flag") == "ACT")
+            out += ["", f"<b>Also this week ({len(rest)}):</b> {by_topic}"]
+            if acts:
+                out.append(f"🔴 {acts} more act now among them.")
+        out += ["", f'👉 <a href="{html.escape(dashboard, quote=True)}">Read every story on the dashboard</a>']
+        return out
 
-    left_out = 0
-    for flag in listed:
-        flagged = [i for i in chosen if i.get("flag") == flag]
-        if not flagged:
-            continue
-        section = ["", FLAG_HEADINGS[flag]]
-        for item in flagged:
-            candidate = "\n".join(lines + section + [_line(item)] + tail) + footer
-            if len(candidate) > MAX_BODY - 120:
-                left_out += 1
-            else:
-                section.append(_line(item))
-        if len(section) > 2:
-            lines += section
-    if left_out:
-        lines += ["", f"<b>+ {left_out} more {where}</b>"]
-    elif not dashboard:
-        lines += ["", "📎 The full newsletter is attached."]
-    return "\n".join(lines + tail) + footer, chosen
+    picked, stories = [], ["", "<b>The ones to read</b>"]
+    for item in wanted:
+        trial = stories + ["", _story(len(picked) + 1, item)]
+        if len("\n".join(lines + trial + tail(picked + [item])) + footer) > MAX_BODY:
+            break
+        picked.append(item)
+        stories = trial
+    return "\n".join(lines + stories + tail(picked)) + footer, chosen
 
 
 def _call(token: str, method: str, params: dict) -> dict:
@@ -148,40 +181,9 @@ def find_chat_id(token: str) -> str | None:
     return None
 
 
-def _send_document(token: str, chat_id: str, filename: str, content: bytes, caption: str) -> dict:
-    """sendDocument needs a multipart upload; built by hand to stay dependency-free."""
-    boundary = "----advice-monitor-" + datetime.now().strftime("%H%M%S%f")
-    parts = []
-    for name, value in (("chat_id", chat_id), ("caption", caption), ("parse_mode", "HTML")):
-        parts.append(f'--{boundary}\r\nContent-Disposition: form-data; name="{name}"\r\n\r\n{value}\r\n'.encode())
-    parts.append(
-        f'--{boundary}\r\nContent-Disposition: form-data; name="document"; filename="{filename}"\r\n'
-        f"Content-Type: text/html; charset=utf-8\r\n\r\n".encode() + content + b"\r\n"
-    )
-    parts.append(f"--{boundary}--\r\n".encode())
-    request = urllib.request.Request(
-        TELEGRAM_API.format(token=token, method="sendDocument"), data=b"".join(parts),
-        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"},
-    )
-    try:
-        with urllib.request.urlopen(request, timeout=60) as response:
-            return json.loads(response.read())
-    except urllib.error.HTTPError as error:
-        try:
-            return json.loads(error.read())
-        except ValueError:
-            return {"ok": False, "description": f"HTTP {error.code}"}
-
-
-def newsletter_file(items: list) -> bytes:
-    """The same newsletter the email carries, as a file that opens on a phone."""
-    grouped = {flag: [i for i in items if i.get("flag") == flag] for flag in FLAG_SEQUENCE}
-    return _build_html_digest(grouped, interactive=True).encode("utf-8")
-
-
 def send_telegram_digest(items: list, flags: str | None = None, topics: str | None = None) -> bool:
-    """One message, plus the newsletter file until the dashboard is online.
-    To your own chat only."""
+    """One short briefing, to your own chat only. The full newsletter is the
+    email; every story is on the dashboard."""
     token = os.getenv("TELEGRAM_BOT_TOKEN")
     chat_id = os.getenv("TELEGRAM_CHAT_ID")
     dashboard = dashboard_url()
@@ -200,13 +202,5 @@ def send_telegram_digest(items: list, flags: str | None = None, topics: str | No
     if not reply.get("ok"):
         print(f"❌ Telegram refused the message: {reply.get('description')}")
         return False
-    # The dashboard carries the full week once it is online, so no file then.
-    if chosen and not dashboard:
-        name = f"advice-monitor-{datetime.now():%Y-%m-%d}.html"
-        reply = _send_document(token, chat_id, name, newsletter_file(chosen),
-                               "The full newsletter — tap to open.")
-        if not reply.get("ok"):
-            print(f"❌ The message went, but Telegram refused the newsletter file: {reply.get('description')}")
-            return False
-    print(f"✅ Newsletter sent to Telegram ({len(chosen)} stories).")
+    print(f"✅ Briefing sent to Telegram ({len(chosen)} stories this week).")
     return True

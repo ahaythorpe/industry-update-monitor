@@ -269,7 +269,10 @@ week**; the laptop will be warm and loud meanwhile. Limits built in:
 
 The model's raw reply is kept at `output/ollama-reply.md` — **read it.**
 Since 24 Sep 2026 the Sunday run uses `gpt-oss:20b` (`qwen3:8b` misread figures in
-tables). Summaries are labelled with the model's name everywhere they
+tables). It is about 13 GB, and on 27 Sep 2026 this 16 GB laptop ran out of
+memory part-way; since 1 Oct 2026 the run then redoes the week with `qwen3:8b`,
+so a newsletter still goes out. Quitting other apps on Sunday evenings makes the
+bigger model more likely to finish. Summaries are labelled with the model's name everywhere they
 appear — dashboard, email, Telegram — never as this tool's own work.
 
 ### In the Monday run
@@ -571,12 +574,14 @@ python src/monitor.py --telegram --from-digest
 Nothing is sent. The dashboard's **Send this week to Telegram** button does
 the same: it shows the message until it is set up.
 
-**What arrives each week:** one message, with the headlines grouped Act now,
-Worth knowing, Background, each with its first dot point, and the full
-newsletter attached as a file you tap to open. Once the dashboard is online and
-`DASHBOARD_URL` is set in `.env`, it becomes a short alert instead: the Act now
-headlines, the week by topic in one line, and a link to the dashboard. The
-email switches the same way.
+**What arrives each week (since 1 Oct 2026):** a short briefing, not the full
+newsletter — that is the email. Five stories to read, Act now first, each with
+*what happened* and the *key fact*; a **word of the week** explained from the
+glossary, a different one each week; the rest of the week counted by topic, with
+any further Act now stories counted on their own; and a link to the public
+dashboard. It goes out every Sunday that fetched fresh news, even if the
+summaries failed — a story the model could not read says so — so a silent
+Sunday means something is wrong: check `output/weekly-run.log`.
 
 ### Setup
 

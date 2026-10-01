@@ -45,7 +45,7 @@ network is a test that will be deleted by the next person.
 |---|---|
 | `src/monitor.py` | Everything on the Python side: source gate, fetch, classify, link check, dedupe, digest JSON, briefing, sweep sheet, glossary, `--ollama`, `--import-summaries`, CLI |
 | `src/email_sender.py` | HTML email via SMTP. Password from env, else the macOS Keychain (`_keychain_password`, service `advice-monitor-email`). `build_email` picks the full newsletter (`_build_html_digest`: category drop-downs, per-story glossary boxes, Read these yourself, Jargon buster) or, when `DASHBOARD_URL` is set, the short Act now alert (`_build_alert_email`) |
-| `src/telegram_sender.py` | Telegram formatting (HTML parse mode, one message under 3900 chars, the rest counted), the newsletter file attached until `DASHBOARD_URL` is set, `send_telegram_digest` to `TELEGRAM_CHAT_ID` only, `find_chat_id` |
+| `src/telegram_sender.py` | The short weekly briefing (since 1 Oct 2026; HTML parse mode, one message under 3900 chars): top five stories ranked by `_rank`, what happened + key fact, a word of the week from the glossary, the rest counted by topic, link to `PUBLIC_DASHBOARD` (or `DASHBOARD_URL`). No attachment. `send_telegram_digest` to `TELEGRAM_CHAT_ID` only, `find_chat_id` |
 | `src/whatsapp_sender.py` | **Retired 23 Sep 2026**, kept working: WhatsApp formatting, 1600-char splitting, Twilio send, `explain_twilio_error`. Not recommended — see [the Telegram section](#telegram-the-phone-channel-and-why-not-whatsapp) |
 | `src/gmail_reader.py` | Read-only Gmail: `gmail.readonly` scope, only the `industry-update-monitor` label |
 | `src/gmail_dry_run.py` | Local Gmail dry run |
