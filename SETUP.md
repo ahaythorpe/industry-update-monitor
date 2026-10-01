@@ -575,11 +575,11 @@ Nothing is sent. The dashboard's **Send this week to Telegram** button does
 the same: it shows the message until it is set up.
 
 **What arrives each week (since 1 Oct 2026):** a short briefing, not the full
-newsletter — that is the email. Five stories to read, Act now first, each with
-*what happened* and the *key fact*; a **word of the week** explained from the
-glossary, a different one each week; the rest of the week counted by topic, with
-any further Act now stories counted on their own; and a link to the public
-dashboard. It goes out every Sunday that fetched fresh news, even if the
+newsletter — that is the email. Up to five stories under **Act now** and
+**Worth knowing** headings, each its headline and one line on what happened; a
+**word of the week** in one line from the glossary, a different one each week;
+the rest of the week counted by topic, with further Act now stories counted on
+their own; and a link to the public dashboard. It goes out every Sunday that fetched fresh news, even if the
 summaries failed — a story the model could not read says so — so a silent
 Sunday means something is wrong: check `output/weekly-run.log`.
 

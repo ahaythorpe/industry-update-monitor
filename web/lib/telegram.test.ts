@@ -27,7 +27,8 @@ describe('formatTelegramDigest', () => {
     expect(message.length).toBeLessThanOrEqual(MAX_BODY)
     expect(message.indexOf('Story 99')).toBeLessThan(message.indexOf('Story 0 '))
     expect(message.split('<a href="https://a.test/').length - 1).toBe(TOP_STORIES)
-    expect(message).toContain(`Also this week (${81 - TOP_STORIES})`)
+    expect(message).toContain(`<b>${81 - TOP_STORIES} more:</b>`)
+    expect(message).toContain('🔴 <b>Act now</b>')
     expect(message).toContain(`href="${PUBLIC_DASHBOARD}"`)
   })
 
@@ -37,11 +38,10 @@ describe('formatTelegramDigest', () => {
     expect(message).not.toContain('"><script>')
   })
 
-  it('says what happened and the key fact, bold kept', () => {
-    const message = formatTelegramDigest([item(1, 'ACT', twoPoints)])
-    expect(message).toContain('<i>What happened:</i> What happened here.')
-    expect(message).toContain('<i>Key fact:</i> <b>A key fact.</b>')
-    expect(message).not.toContain('A third point')
+  it('gives each story its headline and what happened, bold kept', () => {
+    const message = formatTelegramDigest([item(1, 'ACT', { ai_summary: '• **ASIC** banned him. • Second point.' })])
+    expect(message).toContain('\n   <b>ASIC</b> banned him.')
+    expect(message).not.toContain('Second point')
   })
 
   it('ranks a story the model could not read below one it did, and says so', () => {
@@ -51,18 +51,17 @@ describe('formatTelegramDigest', () => {
   })
 
   it('counts Act now stories left out', () => {
-    expect(formatTelegramDigest(many(TOP_STORIES + 3))).toContain('🔴 3 more act now among them.')
+    expect(formatTelegramDigest(many(TOP_STORIES + 3))).toContain('<b>3 more (3 act now):</b>')
   })
 
   it('explains a word of the week from the glossary', () => {
     const message = formatTelegramDigest([item(1, 'ACT', { ai_summary: '• ASIC issued a stop order.' })], { glossary })
-    expect(message).toContain('📖 <b>Word of the week: ASIC (Australian Securities and Investments Commission)</b>')
-    expect(message).toContain('<i>Why it matters:</i> it acts.')
+    expect(message).toContain('📖 <b>ASIC (Australian Securities and Investments Commission)</b>: the regulator.')
   })
 
   it('uses plain words', () => {
-    const message = formatTelegramDigest([item(1, 'NOTE'), item(2, 'ACT'), item(3, 'KNOW')], { today: '24 September 2026' })
-    expect(message).toContain('24 September 2026')
+    const message = formatTelegramDigest([item(1, 'NOTE'), item(2, 'ACT'), item(3, 'KNOW')], { today: '24 Sept' })
+    expect(message).toContain('week to 24 Sept')
     expect(message).toContain('1 act now · 1 worth knowing · 1 background')
   })
 
@@ -74,7 +73,7 @@ describe('formatTelegramDigest', () => {
 
   it('an extra send lists only the urgency asked for', () => {
     const message = formatTelegramDigest([item(1, 'ACT'), item(2, 'KNOW')], { focus: 'KNOW' })
-    expect(message).toContain('extra update')
+    expect(message).toContain('Advice Monitor: extra</b>')
     expect(message).toContain('Only: KNOW')
     expect(message).not.toContain('Story 1 ')
   })

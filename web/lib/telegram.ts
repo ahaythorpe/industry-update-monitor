@@ -8,10 +8,10 @@ import { termName, termsIn, type GlossaryEntry } from './glossary'
  * Python one, the dashboard button and the Sunday run send different
  * messages, which is what happened here until 24 Sep 2026.
  *
- * Since 1 Oct 2026 a short briefing, not the full newsletter (that is the
- * email): the top five stories, Act now first, each with what happened and
- * its key fact; a word of the week from the glossary; the rest counted by
- * topic; and a link to the dashboard. One message, never split.
+ * Since 1 Oct 2026 a short weekly briefing, not the full newsletter (that is
+ * the email): up to five stories under urgency headings, each its headline
+ * and what happened; a word of the week from the glossary; the rest counted
+ * by topic; and a link to the dashboard. One message, never split.
  *
  * Telegram's HTML parse mode is used, so every piece of publisher text is
  * escaped: a headline containing "<b>" must not be able to break the message.
@@ -23,7 +23,11 @@ export const PUBLIC_DASHBOARD = 'https://advice-monitor.vercel.app'
 export const TOP_STORIES = 5
 
 const FLAG_SEQUENCE: Flag[] = ['ACT', 'KNOW', 'NOTE']
-const FLAG_EMOJI: Record<Flag, string> = { ACT: '🔴', KNOW: '🟠', NOTE: '🟢' }
+const FLAG_HEADINGS: Record<Flag, string> = {
+  ACT: '🔴 <b>Act now</b>',
+  KNOW: '🟠 <b>Worth knowing</b>',
+  NOTE: '🟢 <b>Background</b>',
+}
 const FLAG_WORDS: Record<Flag, string> = { ACT: 'act now', KNOW: 'worth knowing', NOTE: 'background' }
 
 /** Same as Python's html.escape(text, quote=True). */
@@ -52,17 +56,11 @@ function rank(items: DigestItem[]): DigestItem[] {
   )
 }
 
-function story(n: number, item: DigestItem): string {
+function story(item: DigestItem): string {
   const title = escapeHtml(item.title || 'Untitled')
   const head = item.link ? `<a href="${escapeHtml(item.link)}">${title}</a>` : title
-  const lines = [`${n}. ${FLAG_EMOJI[item.flag] || FLAG_EMOJI.NOTE} ${head}`]
-  const points = summaryPoints(item.ai_summary)
-  ;['What happened', 'Key fact'].forEach((label, i) => {
-    if (points[i]) lines.push(`    <i>${label}:</i> ${bold(escapeHtml(points[i]))}`)
-  })
-  if (!points.length) lines.push('    <i>Not summarised: open the source.</i>')
-  if (item.source_name) lines.push(`    — ${escapeHtml(item.source_name)}`)
-  return lines.join('\n')
+  const [first] = summaryPoints(item.ai_summary)
+  return `• ${head}\n   ${first ? bold(escapeHtml(first)) : '<i>Not summarised: open the source.</i>'}`
 }
 
 /** ISO week number, which turns the word of the week the same way as Python's isocalendar(). */
@@ -83,9 +81,7 @@ function wordOfTheWeek(items: DigestItem[], glossary: GlossaryEntry[], week: num
   const terms = Array.from(found.values())
   if (!terms.length) return []
   const entry = terms[week % terms.length]
-  const lines = ['', `📖 <b>Word of the week: ${escapeHtml(termName(entry))}</b>`, escapeHtml(entry.means || '')]
-  if (entry.matters) lines.push(`<i>Why it matters:</i> ${escapeHtml(entry.matters)}`)
-  return lines
+  return ['', `📖 <b>${escapeHtml(termName(entry))}</b>: ${escapeHtml(entry.means || '')}`]
 }
 
 export function formatTelegramDigest(
@@ -103,9 +99,8 @@ export function formatTelegramDigest(
   const week = options.week ?? isoWeek(new Date())
   const chosen = focus ? items.filter((item) => item.flag === focus) : items
   const today =
-    options.today ||
-    new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date())
-  const lines = [`📰 <b>Advice Monitor${focus ? ': extra update' : ''}</b> · ${escapeHtml(today)}`]
+    options.today || new Intl.DateTimeFormat('en-AU', { day: 'numeric', month: 'short' }).format(new Date())
+  const lines = [`📰 <b>Advice Monitor${focus ? ': extra' : ''}</b> · week to ${escapeHtml(today)}`]
   if (focus) lines.push(`<i>Only: ${focus}</i>`)
   if (!chosen.length) return [...lines, '', 'Nothing matched this week.'].join('\n')
   const counts = FLAG_SEQUENCE.filter((flag) => chosen.some((item) => item.flag === flag))
@@ -114,7 +109,7 @@ export function formatTelegramDigest(
   lines.push(`${chosen.length} stor${chosen.length === 1 ? 'y' : 'ies'}: ${counts}`)
   if (!focus && !chosen.some((item) => item.flag === 'ACT')) lines.push('Nothing this week changes what you must do.')
 
-  const footer = '\n\n<i>Summaries are a quick guide. Read an Act now story at its source before acting on it.</i>'
+  const footer = '\n<i>Check an Act now story at its source before acting.</i>'
   const tail = (picked: DigestItem[]) => {
     const rest = chosen.filter((item) => !picked.includes(item))
     const out = wordOfTheWeek(picked, glossary, week)
@@ -122,23 +117,24 @@ export function formatTelegramDigest(
       const byTopic = buildBoards(rest)
         .topics.map((board) => `${board.icon} ${escapeHtml(board.title)} ${board.items.length}`)
         .join(' · ')
-      out.push('', `<b>Also this week (${rest.length}):</b> ${byTopic}`)
       const acts = rest.filter((item) => item.flag === 'ACT').length
-      if (acts) out.push(`🔴 ${acts} more act now among them.`)
+      out.push('', `<b>${rest.length} more${acts ? ` (${acts} act now)` : ''}:</b> ${byTopic}`)
     }
-    out.push('', `👉 <a href="${escapeHtml(dashboard)}">Read every story on the dashboard</a>`)
+    out.push(`👉 <a href="${escapeHtml(dashboard)}">Read them on the dashboard</a>`)
     return out
   }
+  const body = (picked: DigestItem[]) =>
+    FLAG_SEQUENCE.flatMap((flag) => {
+      const flagged = picked.filter((item) => item.flag === flag)
+      return flagged.length ? ['', FLAG_HEADINGS[flag], ...flagged.map(story)] : []
+    })
 
   const picked: DigestItem[] = []
-  let stories = ['', '<b>The ones to read</b>']
   for (const item of rank(chosen).slice(0, TOP_STORIES)) {
-    const trial = [...stories, '', story(picked.length + 1, item)]
-    if ([...lines, ...trial, ...tail([...picked, item])].join('\n').length + footer.length > MAX_BODY) break
+    if ([...lines, ...body([...picked, item]), ...tail([...picked, item])].join('\n').length + footer.length > MAX_BODY) break
     picked.push(item)
-    stories = trial
   }
-  return [...lines, ...stories, ...tail(picked)].join('\n') + footer
+  return [...lines, ...body(picked), ...tail(picked)].join('\n') + footer
 }
 
 /**

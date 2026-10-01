@@ -737,6 +737,8 @@ first on the three stories item 16 used.
   dot points); a word of the week from `data/glossary.json`, turning with the week number; the
   rest counted by topic, with further Act now stories counted on their own; and a link to the
   public dashboard. The newsletter file is no longer attached — the email carries it.
+  Made shorter and grouped the same day, at the owner's request: stories sit under urgency
+  headings, two lines each (headline, what happened); the word of the week is one line.
   `src/telegram_sender.py` and its twin `web/lib/telegram.ts`, tests on both sides.
 - A test briefing was sent to the owner's chat on 1 Oct 2026 and Telegram accepted it.
 

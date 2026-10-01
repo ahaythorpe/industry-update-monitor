@@ -74,25 +74,18 @@ def _rank(items: list) -> list:
                                         -(i.get("confidence") or 0)))
 
 
-def _story(n: int, item: dict) -> str:
-    """One story: its headline, what happened, and the key fact."""
+def _story(item: dict) -> str:
+    """One story in two lines: the headline, then what happened."""
     title = html.escape(item.get("title", "Untitled"))
     link = item.get("link", "")
     head = f'<a href="{html.escape(link, quote=True)}">{title}</a>' if link else title
-    emoji = FLAG_HEADINGS.get(item.get("flag"), FLAG_HEADINGS["NOTE"]).split(" ")[0]
-    lines = [f"{n}. {emoji} {head}"]
     points = summary_points(item.get("ai_summary") or "")
-    for label, point in zip(("What happened", "Key fact"), points[:2]):
-        lines.append(f"    <i>{label}:</i> {bold_html(html.escape(point))}")
-    if not points:
-        lines.append("    <i>Not summarised: open the source.</i>")
-    if item.get("source_name"):
-        lines.append(f"    — {html.escape(item['source_name'])}")
-    return "\n".join(lines)
+    first = bold_html(html.escape(points[0])) if points else "<i>Not summarised: open the source.</i>"
+    return f"• {head}\n   {first}"
 
 
 def _word_of_the_week(items: list) -> list:
-    """One glossary term from the stories named, explained. Which one turns
+    """One glossary term from the stories named, on one line. Which one turns
     with the week, so the same everyday term (ASIC) is not taught every time."""
     found: dict = {}
     for item in items:
@@ -102,24 +95,20 @@ def _word_of_the_week(items: list) -> list:
         return []
     terms = list(found.values())
     entry = terms[datetime.now().isocalendar()[1] % len(terms)]
-    lines = ["", f"📖 <b>Word of the week: {html.escape(_term_name(entry))}</b>",
-             html.escape(entry.get("means", ""))]
-    if entry.get("matters"):
-        lines.append(f"<i>Why it matters:</i> {html.escape(entry['matters'])}")
-    return lines
+    return ["", f"📖 <b>{html.escape(_term_name(entry))}</b>: {html.escape(entry.get('means', ''))}"]
 
 
 def format_telegram_digest(items: list, flags: str | None = None,
                            topics: str | None = None, dashboard: str | None = None) -> tuple[str, list]:
-    """A short briefing in one message, never split: the week's top stories
-    (Act now first), each with what happened and its key fact; one
-    jargon term explained; the rest of the week counted by topic; and a link
-    to the dashboard, which carries everything else."""
+    """A short weekly briefing in one message, never split, organised by
+    urgency: the top stories (Act now first) in two lines each, one jargon
+    term, the rest of the week counted by topic, and a link to the dashboard,
+    which carries everything else."""
     chosen = tailor(items, flags, topics)
     dashboard = dashboard or PUBLIC_DASHBOARD
-    today = datetime.now().strftime("%-d %B %Y")
+    today = datetime.now().strftime("%-d %b")
     focus = " · ".join(label for label in (flags, topics) if _wanted(label))
-    lines = [f"📰 <b>Advice Monitor{': extra update' if focus else ''}</b> · {today}"]
+    lines = [f"📰 <b>Advice Monitor{': extra' if focus else ''}</b> · week to {today}"]
     if focus:
         lines.append(f"<i>Only: {html.escape(focus)}</i>")
     if not chosen:
@@ -131,9 +120,7 @@ def format_telegram_digest(items: list, flags: str | None = None,
     if not focus and not any(i.get("flag") == "ACT" for i in chosen):
         lines.append("Nothing this week changes what you must do.")
 
-    wanted = _rank(chosen)[:TOP_STORIES]
-    footer = ("\n\n<i>Summaries are a quick guide. Read an Act now story at its source "
-              "before acting on it.</i>")
+    footer = "\n<i>Check an Act now story at its source before acting.</i>"
 
     def tail(picked: list) -> list:
         rest = [i for i in chosen if i not in picked]
@@ -142,20 +129,25 @@ def format_telegram_digest(items: list, flags: str | None = None,
             by_topic = " · ".join(f"{_icon(topic)} {html.escape(topic)} {len(stories)}"
                                   for topic, stories in _by_category(rest))
             acts = sum(1 for i in rest if i.get("flag") == "ACT")
-            out += ["", f"<b>Also this week ({len(rest)}):</b> {by_topic}"]
-            if acts:
-                out.append(f"🔴 {acts} more act now among them.")
-        out += ["", f'👉 <a href="{html.escape(dashboard, quote=True)}">Read every story on the dashboard</a>']
+            more = f" ({acts} act now)" if acts else ""
+            out += ["", f"<b>{len(rest)} more{more}:</b> {by_topic}"]
+        out += [f'👉 <a href="{html.escape(dashboard, quote=True)}">Read them on the dashboard</a>']
         return out
 
-    picked, stories = [], ["", "<b>The ones to read</b>"]
-    for item in wanted:
-        trial = stories + ["", _story(len(picked) + 1, item)]
-        if len("\n".join(lines + trial + tail(picked + [item])) + footer) > MAX_BODY:
+    def body(picked: list) -> list:
+        out = []
+        for flag in FLAG_SEQUENCE:
+            flagged = [i for i in picked if i.get("flag") == flag]
+            if flagged:
+                out += ["", FLAG_HEADINGS[flag]] + [_story(i) for i in flagged]
+        return out
+
+    picked: list = []
+    for item in _rank(chosen)[:TOP_STORIES]:
+        if len("\n".join(lines + body(picked + [item]) + tail(picked + [item])) + footer) > MAX_BODY:
             break
         picked.append(item)
-        stories = trial
-    return "\n".join(lines + stories + tail(picked)) + footer, chosen
+    return "\n".join(lines + body(picked) + tail(picked)) + footer, chosen
 
 
 def _call(token: str, method: str, params: dict) -> dict:
