@@ -14,44 +14,172 @@
  ],
  "sources": [
   {
+   "name": "ABS releases",
+   "home": "https://www.abs.gov.au",
+   "count": 0,
+   "intake": "email_alert"
+  },
+  {
+   "name": "ACCC media releases",
+   "home": "https://www.accc.gov.au/news-centre",
+   "count": 0,
+   "intake": "bookmark_and_check"
+  },
+  {
+   "name": "AFCA determinations",
+   "home": "https://www.afca.org.au/what-to-expect/search-published-decisions",
+   "count": 0,
+   "intake": "bookmark_and_check"
+  },
+  {
+   "name": "APRA publications",
+   "home": "https://www.apra.gov.au",
+   "count": 0,
+   "intake": "rss"
+  },
+  {
+   "name": "ASIC media releases",
+   "home": "https://www.asic.gov.au/about-asic/news-centre/find-a-media-release/",
+   "count": 0,
+   "intake": "bookmark_and_check"
+  },
+  {
+   "name": "ATO media centre",
+   "home": "https://www.ato.gov.au/about-ato/media-centre",
+   "count": 0,
+   "intake": "bookmark_and_check"
+  },
+  {
+   "name": "AUSTRAC news",
+   "home": "https://www.austrac.gov.au/news-and-media",
+   "count": 0,
+   "intake": "bookmark_and_check"
+  },
+  {
+   "name": "CFS FirstTech",
+   "home": "https://www.cfs.com.au",
+   "count": 0,
+   "intake": "email_newsletter"
+  },
+  {
+   "name": "Consumer Data Right",
+   "home": "https://www.cdr.gov.au/news",
+   "count": 0,
+   "intake": "bookmark_and_check"
+  },
+  {
+   "name": "CSLR",
+   "home": "https://cslr.org.au",
+   "count": 0,
+   "intake": "rss"
+  },
+  {
    "name": "FAAA",
    "home": "https://faaa.au",
-   "count": 1
+   "count": 1,
+   "intake": "email_newsletter"
   },
   {
    "name": "Financial Standard FS Advice",
    "home": "https://www.financialstandard.com.au",
-   "count": 10
+   "count": 10,
+   "intake": "email_newsletter"
   },
   {
-   "name": "Money Management",
-   "home": "https://www.moneymanagement.com.au",
-   "count": 9
+   "name": "FS Industry Moves",
+   "home": "https://www.financialstandard.com.au",
+   "count": 0,
+   "intake": "email_newsletter"
   },
   {
-   "name": "Professional Planner",
-   "home": "https://www.professionalplanner.com.au",
-   "count": 11
-  },
-  {
-   "name": "Riskinfo",
-   "home": "https://riskinfo.com.au",
-   "count": 4
-  },
-  {
-   "name": "SMSF Adviser",
-   "home": "https://www.smsfadviser.com",
-   "count": 7
-  },
-  {
-   "name": "Tax Practitioners Board",
-   "home": "https://www.tpb.gov.au",
-   "count": 1
+   "name": "Guardian Australia business",
+   "home": "https://www.theguardian.com",
+   "count": 0,
+   "intake": "rss"
   },
   {
    "name": "ifa",
    "home": "https://www.ifa.com.au",
-   "count": 7
+   "count": 7,
+   "intake": "rss"
+  },
+  {
+   "name": "Macquarie Technical Services",
+   "home": "https://www.macquarie.com.au",
+   "count": 0,
+   "intake": "email_newsletter"
+  },
+  {
+   "name": "Money Management",
+   "home": "https://www.moneymanagement.com.au",
+   "count": 9,
+   "intake": "rss"
+  },
+  {
+   "name": "OAIC",
+   "home": "https://www.oaic.gov.au",
+   "count": 0,
+   "intake": "rss"
+  },
+  {
+   "name": "Professional Planner",
+   "home": "https://www.professionalplanner.com.au",
+   "count": 11,
+   "intake": "email_newsletter"
+  },
+  {
+   "name": "RBA media releases",
+   "home": "https://www.rba.gov.au",
+   "count": 0,
+   "intake": "rss"
+  },
+  {
+   "name": "Riskinfo",
+   "home": "https://riskinfo.com.au",
+   "count": 4,
+   "intake": "email_newsletter"
+  },
+  {
+   "name": "SMSF Adviser",
+   "home": "https://www.smsfadviser.com",
+   "count": 7,
+   "intake": "rss"
+  },
+  {
+   "name": "SMSF Adviser Show",
+   "home": "https://www.fspodcast.com.au",
+   "count": 0,
+   "intake": "listen"
+  },
+  {
+   "name": "Tax Practitioners Board",
+   "home": "https://www.tpb.gov.au",
+   "count": 1,
+   "intake": "rss"
+  },
+  {
+   "name": "The Conversation business",
+   "home": "https://theconversation.com",
+   "count": 0,
+   "intake": "rss"
+  },
+  {
+   "name": "The ifa Show",
+   "home": "https://www.fspodcast.com.au",
+   "count": 0,
+   "intake": "listen"
+  },
+  {
+   "name": "Treasury consultations",
+   "home": "https://treasury.gov.au/consultation",
+   "count": 0,
+   "intake": "bookmark_and_check"
+  },
+  {
+   "name": "Yahoo Finance AU",
+   "home": "https://au.finance.yahoo.com",
+   "count": 0,
+   "intake": "rss"
   }
  ],
  "glossary": [
